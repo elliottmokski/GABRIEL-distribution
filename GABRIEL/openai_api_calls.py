@@ -4,11 +4,15 @@ import queue
 import threading
 import time
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from GABRIEL import foundational_functions
 
 import os
 
+# Determine the path to the 'Prompts' folder dynamically
+package_dir = os.path.dirname(os.path.abspath(foundational_functions.__file__))
+templates_dir = os.path.join(package_dir, 'Prompts')
 env = Environment(
-    loader=FileSystemLoader('GABRIEL/Prompts'),
+    loader=FileSystemLoader(templates_dir),
     autoescape=select_autoescape()
 )
 

@@ -10,6 +10,10 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/elliottmokski/GABRIEL-distribution',  
     packages=find_packages(),
+    include_package_data=True,
+    package_data={
+        'GABRIEL': ['Prompts/*.jinja'],
+    },
     install_requires=[
         'numpy>=1.18.0',
         'pandas>=1.0.0',
