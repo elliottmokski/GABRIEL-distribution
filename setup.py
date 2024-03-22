@@ -21,6 +21,7 @@ setup(
         'Jinja2>=2.11.0'
     ],
     classifiers=[
-        'Programming Language :: Python :: 3'],
+        'Programming Language :: Python :: 3',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'],
     python_requires='>=3.6'
 )
