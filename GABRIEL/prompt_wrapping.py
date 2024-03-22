@@ -3,7 +3,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 # Assuming your Jinja2 templates are in the 'templates' directory
 env = Environment(
-    loader=FileSystemLoader('Gabriel_2/Prompts'),
+    loader=FileSystemLoader('GABRIEL/Prompts'),
     autoescape=select_autoescape()
 )
 
