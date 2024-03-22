@@ -36,7 +36,12 @@ The simplest ratings call, which returns a Pandas dataframe, is just:
 ```python
 ratings = combined_assistant.simple_evaluation_pipeline(search_axis_1 = your_texts, attributes = your_attributes, definitions = your_definitions, attribute_category = your_attribute_category, object_category = your_object_category)
 ```
+
 You can save these results as a CSV, and you're good to go!
+
+#### Colab Playground
+
+Check out our playground [here](https://colab.research.google.com/drive/1tshfY-2al7asU7pTFvFFg1n4NSvLXtZg?usp=sharing) to see other examples! You can copy the file and use this as your baseline code.
 
 ### Function parameters
 
