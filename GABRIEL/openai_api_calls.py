@@ -6,10 +6,9 @@ import time
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 import os
-os.environ["OPENAI_API_KEY"] = "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"
 
 env = Environment(
-    loader=FileSystemLoader('Gabriel_2/Prompts'),
+    loader=FileSystemLoader('GABRIEL/Prompts'),
     autoescape=select_autoescape()
 )
 

@@ -7,7 +7,7 @@ class APIError(Exception):
     pass
 
 env = Environment(
-    loader=FileSystemLoader('Gabriel_2/Prompts'),
+    loader=FileSystemLoader('GABRIEL/Prompts'),
     autoescape=select_autoescape()
 )
 

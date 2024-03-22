@@ -1,4 +1,4 @@
-from Gabriel_2.foundational_functions import *
+from GABRIEL.foundational_functions import *
 import json
 import pandas as pd
 import numpy as np

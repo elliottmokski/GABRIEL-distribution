@@ -1,5 +1,5 @@
 # from decorators import with_prompt
-from Gabriel_2.openai_api_calls import *
+from GABRIEL.openai_api_calls import *
 import re
 
 @with_prompt('attribute_description_prompt')
