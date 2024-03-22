@@ -16,8 +16,6 @@ env = Environment(
     autoescape=select_autoescape()
 )
 
-print("Templates directory:", templates_dir)
-
 class APIError(Exception):
     pass
 
@@ -32,7 +30,6 @@ def with_prompt(template_name):
             # print("Template Context:", template_context)
 
             # Load and render the template
-            print("Loading template from:", templates_dir)
             template = env.get_template(f"{template_name}.j2")
             rendered_prompt = template.render(**template_context)
             
