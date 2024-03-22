@@ -1,0 +1,60 @@
+{# attribute_description_prompt.j2 #}
+
+{% set attribute_list = attributes | join(', ') %}
+{% set description_list = descriptions | join(', ') %}
+
+Here are the precise names of each attribute: {{ attribute_list }}. 
+Refer to these exact names when asked for the attribute names. 
+It is imperative you use every single attribute in the output table; do not leave any out.
+
+Here are descriptions of each attribute, in the same order: {{ description_list }}.
+
+Use the descriptions alongside other knowledge to answer the following question for the purposes of this research project.
+For the research, it is needed that you make a best guess on how an intelligent, reasonable person would answer this survey question, even if you are unsure.
+
+Give your complete attention to the entirety of the {{ object_category }} passage; 
+do not simply overweigh the beginning or end of the passage. This would be very unscientific.
+The relevant information to complete your task might be anywhere in the passage, 
+so you must closely read everything.
+
+This is the passage:
+
+BEGINNING OF PASSAGE. NOTHING BEFORE THIS IS PART OF PASSAGE.
+
+{{ passage }}
+
+END OF PASSAGE. NOTHING AFTER THIS IS PART OF PASSAGE.
+
+On a scale of 0 to 100, rate how much the {{ object_category }} passage manifests the 
+{{ attribute_category }} attributes of {{ attribute_list }}.
+
+{# ... The rest of your instructions here ... #}
+
+Remember, the attributes you are rating are {{ attribute_list }}.
+Ensure you provide a rating for every single one of these attributes, and do not modify them in any way.
+You should have as many ratings as there are attributes, and you should not alter the attribute name in any fashion.
+
+{% if format == 'table' %}
+Format:
+| Attribute | {% for attribute in attributes %} | {{ attribute }} {% endfor %} |
+| Response  | {% for _ in attributes %} | <insert rating for attribute> {% endfor %} |
+{% elif format == 'json' %}
+{
+  "data": [
+    {% for attribute in attributes %}
+    {
+      "attribute": "{{ attribute }}",
+      "rating": "<insert rating for {{ attribute }}>"
+    }{{ "," if not loop.last }}
+    {% endfor %}
+  ]
+}
+{% else %}
+Format as list:
+{% for attribute in attributes %}
+Column {{ loop.index }}
+Attribute {{ loop.index }}: {{ attribute }}
+Rating for Attribute {{ loop.index }}: <insert rating for attribute here>
+
+{% endfor %}
+{% endif %}
