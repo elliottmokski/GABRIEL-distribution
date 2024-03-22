@@ -16,6 +16,8 @@ env = Environment(
     autoescape=select_autoescape()
 )
 
+print("Templates directory:", templates_dir)
+
 class APIError(Exception):
     pass
 
