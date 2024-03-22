@@ -18,6 +18,8 @@ env = Environment(
     autoescape=select_autoescape()
 )
 
+print("Templates directory:", templates_dir)
+
 def with_prompt(template_name):
     def decorator(func):
         @functools.wraps(func)
