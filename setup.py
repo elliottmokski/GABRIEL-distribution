@@ -12,7 +12,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     package_data={
-        'GABRIEL': ['Prompts/*.jinja'],
+        'GABRIEL': ['Prompts/*.j2'],
     },
     install_requires=[
         'numpy>=1.18.0',
