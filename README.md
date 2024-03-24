@@ -34,7 +34,7 @@ Once you create the object, you can run a simple ratings framework through the *
 The simplest ratings call, which returns a Pandas dataframe, is just:
 
 ```python
-ratings = combined_assistant.simple_evaluation_pipeline(search_axis_1 = your_texts, attributes = your_attributes, definitions = your_definitions, attribute_category = your_attribute_category, object_category = your_object_category)
+ratings = combined_assistant.simple_evaluation_pipeline(search_axis_1 = your_texts, attributes = your_attributes, descriptions = your_descriptions, attribute_category = your_attribute_category, object_category = your_object_category)
 ```
 
 You can save these results as a CSV, and you're good to go!
@@ -67,4 +67,4 @@ The full list of parameters for the function is as follows.
 
 Please cite the project using: 
 
-The Generalized Attribute Based Ratings Information Extraction Library (GABRIEL). Hemanth Asirvatham and Elliott Mokski (2023).
+The Generalized Attribute Based Ratings Information Extraction Library (GABRIEL). Hemanth Asirvatham and Elliott Mokski (2023). https://github.com/elliottmokski/GABRIEL-distribution. 
