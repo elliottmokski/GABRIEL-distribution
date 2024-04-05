@@ -86,3 +86,45 @@ class CombinedAssistant:
         output_df = pd.DataFrame(dfs)
         print(output_df)
         return output_df
+    
+    def rate_single_text(self, text, object_category, attribute_category, descriptions,
+                                attributes, temperature,use_classification, format, classification_clarification, 
+                                project_probs, truncate, model, seed, api_key, truncate_len, timeout):
+        
+        if use_classification:
+            rating_function = generate_simple_classification
+            attribute_param = 'classification category'
+        else:
+            rating_function = generate_simple_ratings
+            attribute_param = 'attribute'
+
+        if truncate: 
+            try:
+                text = ' '.join(text.split()[:truncate_len])
+            except:
+                pass
+        
+        dfs = list()
+        try:
+            raw_ratings = rating_function(attributes = attributes, descriptions = descriptions,
+                                                passage = text, object_category= object_category, 
+                                                attribute_category=attribute_category,format = format,classification_clarification = classification_clarification,
+                                                temperature = temperature, model = model, seed = seed, api_key = api_key)
+            
+            if format == 'json':
+                ratings = json.loads(raw_ratings)['data']
+                # Create a dictionary for the current passage's ratings
+                passage_data = {'Text': text}
+                for rating in ratings:
+                    attribute = rating[attribute_param]
+                    rating_value = rating['rating']
+                    if project_probs:
+                        rating_value = float(rating_value) / 100
+                        rating_value = 1 / (1 + np.exp(-24 * (rating_value - 0.5)))
+                    passage_data[attribute] = rating_value
+
+                dfs.append(passage_data)
+        except Exception as error:
+            print(error)
+        output_df = pd.DataFrame(dfs)
+        return output_df
