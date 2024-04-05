@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='GABRIEL-ratings', 
-    version='0.1.0',  
+    version='0.1.1',  
     author='Hemanth Asirvatham and Elliott Mokski',  
     author_email='elliottpmokski@gmail.com',  
     description='THE GABRIEL library for numerical analysis of texts in the social sciences.', 
@@ -18,7 +18,8 @@ setup(
         'numpy>=1.18.0',
         'pandas>=1.0.0',
         'openai>=1.0.0',
-        'Jinja2>=2.11.0'
+        'Jinja2>=2.11.0',
+        'tqdm>=4.42.0'
     ],
     classifiers=[
         'Programming Language :: Python :: 3',
