@@ -1,6 +1,5 @@
 from GABRIEL.foundational_functions import *
-# from GABRIEL.combined_assistant import CombinedAssistant
-from combined_assistant import CombinedAssistant
+from GABRIEL.combined_assistant import CombinedAssistant
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
