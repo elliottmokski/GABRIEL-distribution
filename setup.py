@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='GABRIEL-ratings', 
-    version='0.1.2',  
+    version='0.1.3',  
     author='Hemanth Asirvatham and Elliott Mokski',  
     author_email='elliottpmokski@gmail.com',  
     description='THE GABRIEL library for numerical analysis of texts in the social sciences.', 
@@ -12,7 +12,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     package_data={
-        'GABRIEL': ['Prompts/*.j2'],
+        'gabriel': ['Prompts/*.j2'],
     },
     install_requires=[
         'numpy>=1.18.0',

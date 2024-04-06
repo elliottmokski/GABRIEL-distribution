@@ -1,1 +1,1 @@
-recursive-include GABRIEL/Prompts *.j2
+recursive-include gabriel/Prompts *.j2

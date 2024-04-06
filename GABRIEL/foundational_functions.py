@@ -1,5 +1,5 @@
 # from decorators import with_prompt
-from GABRIEL.openai_api_calls import *
+from gabriel.openai_api_calls import *
 import re
 
 @with_prompt('attribute_description_prompt')
@@ -73,6 +73,32 @@ def generate_simple_ratings(rendered_prompt, attributes, descriptions, passage,
     
     return response
 
+@with_prompt('ratings_prompt_full')
+def generate_full_ratings(rendered_prompt,attribute_dict, passage,
+                            entity_category, attribute_category,attributes,format = 'json',
+                            timeout=90, temperature=0.8, model='gpt-3.5-turbo-0125',
+                            seed = None, api_key = None, **kwargs):
+    
+    if format == 'json':
+        desired_response_format = 'json_object'
+        system_instruction = 'Please output precise ratings as requested, following the detailed JSON template.'
+    else:
+        desired_response_format = 'text'
+        system_instruction = 'Please output precise ratings as requested, using the provided format.'
+
+    # print(rendered_prompt)
+    response = call_api(rendered_prompt,
+                        system_instruction,
+                        timeout = timeout, 
+                        temperature = temperature, 
+                        model = model,
+                        desired_response_format = desired_response_format,
+                        seed = seed,
+                        api_key = api_key,
+                        **kwargs)
+    
+    return response
+
 @with_prompt('classification_prompt')
 def generate_simple_classification(rendered_prompt, attributes, descriptions, passage,
                             object_category, attribute_category,format = 'json',classification_clarification = None,
@@ -96,3 +122,39 @@ def generate_simple_classification(rendered_prompt, attributes, descriptions, pa
                         **kwargs)
     
     return response
+
+@with_prompt('identify_categories_prompt')
+def identify_categories(rendered_prompt, task_description,format = 'json',
+                            timeout=90, temperature=0.8, model='gpt-3.5-turbo-0125',
+                            seed = None, api_key = None, **kwargs):
+    if format == 'json':
+        desired_response_format = 'json_object'
+        system_instruction = 'Please output well-defined categories as requested, following the detailed JSON template.'
+    else:
+        desired_response_format = 'text'
+        system_instruction = 'Please output well-defined as requested, using the provided format.'
+
+    # print(rendered_prompt)
+    response = call_api(rendered_prompt,
+                        system_instruction,
+                        timeout = timeout, 
+                        temperature = temperature, 
+                        model = model,
+                        desired_response_format = desired_response_format,
+                        seed = seed,
+                        api_key = api_key,
+                        **kwargs)
+    
+    return response
+
+def update_dataframe(existing_df, new_df, attributes, word_merge = 250):
+    existing_df['merge_words'] = existing_df['Text'].apply(lambda x:' '.join(x.split()[:word_merge]))
+    new_df['merge_words'] = new_df['Text'].apply(lambda x:' '.join(x.split()[:word_merge]))
+    for _, new_row in new_df.iterrows():
+        text = new_row['merge_words']
+        # If the text already exists in df, update it
+        if text in existing_df['merge_words'].values:
+            for attr in attributes:
+                existing_df.loc[existing_df['merge_words'] == text, attr] = new_row[attr]
+    # return existing_df.drop(columns = ['merge_words'])
+    return existing_df.drop(columns = ['merge_words']), new_df.drop(columns = ['merge_words'])

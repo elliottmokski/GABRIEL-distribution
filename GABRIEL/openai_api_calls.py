@@ -4,7 +4,7 @@ import queue
 import threading
 import time
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-from GABRIEL import foundational_functions
+from gabriel import foundational_functions
 
 import os
 
@@ -81,7 +81,7 @@ class ChatAssistant:
 
     @retry_on_api_error(max_retries=3)
     def generate_response(self, prompt, system_instruction, external_messages=None, timeout=100, 
-                          temperature=0.9, max_tokens=1500, desired_response_format='text', seed = None):
+                          temperature=0.9, max_tokens=2000, desired_response_format='text', seed = None):
         response_queue = queue.Queue()
 
         def target():

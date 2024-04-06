@@ -7,7 +7,7 @@ import os
 class APIError(Exception):
     pass
 
-from GABRIEL import foundational_functions
+from gabriel import foundational_functions
 
 # Determine the path to the 'Prompts' folder dynamically
 package_dir = os.path.dirname(os.path.abspath(foundational_functions.__file__))
@@ -28,6 +28,7 @@ def with_prompt(template_name):
             # Load and render the template
             template = env.get_template(f"{template_name}.j2")
             prompt = template.render(**context)
+            # print("Rendered Prompt:", prompt)
             
             # Execute the wrapped function with the rendered prompt and any remaining kwargs
             return func(prompt, *args, **kwargs)

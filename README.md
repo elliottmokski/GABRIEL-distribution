@@ -4,6 +4,10 @@
 
 GABRIEL is a simple Python framework built on top of LLMs like ChatGPT to simplify quantitative text analysis in the social sciences.
 
+## Colab Playground
+
+Check out our playground [here](https://colab.research.google.com/drive/1tshfY-2al7asU7pTFvFFg1n4NSvLXtZg?usp=sharing) to see how the library works and some simple examples! You can copy the file and use this as your baseline code.
+
 ## Installation
 
 The new Python library replaces the previous API and dramatically simplifies the use of the package. Installation is extremely simple using pip.
@@ -22,26 +26,33 @@ pip install gabriel-ratings
 ## Use
 ### Simple ratings framework
 
-The main way to get ratings from GABRIEL is using the CombinedAssistant class. The class requires an OpenAI api-key for instantiation. We strongly recommend you store the key as an environment variable. To create a CombinedAssistant object, use the following syntax. 
+The main way to get ratings from GABRIEL is using the Archangel class. The class requires an OpenAI api-key for instantiation. We strongly recommend you store the key as an environment variable. To create an Archangel object, use the following syntax. 
 
 ```python
-from GABRIEL.combined_assistant import CombinedAssistant
-combined_assistant = CombinedAssistant(your_api_key)
+from GABRIEL.Archangel import Archangel
+combined_assistant = Archangel(your_api_key)
 ```
 
-Once you create the object, you can run a simple ratings framework through the *simple_evaluation_pipeline* function. You must supply a list of the texts to rate, *search_axis_1*, a list of attributes, *attributes*, an object category (*object_category*) and an attribute category (*attribute_category*). We also strongly recommend providing a list of definitions for these attributes, *descriptions*. You can also specify a specific OpenAI model for your call, using the *model* parameter (the default is GPT-3.5-turbo). See below for the full list of parameters, and more detailed descriptions.
+Once you create the object, you can run a simple ratings framework through the *rate_texts* function. You must supply a list of the texts to rate, *texts*; an *attributes_dict*, where the keys are your attributes, and the values are the definitions; an object category (*object_category*) and an attribute category (*attribute_category*). You can also specify a specific OpenAI model for your call, using the *model* parameter (the default is GPT-3.5-turbo). See below for the full list of parameters, and more detailed descriptions.
 
 The simplest ratings call, which returns a Pandas dataframe, is just:
 
 ```python
-ratings = combined_assistant.simple_evaluation_pipeline(search_axis_1 = your_texts, attributes = your_attributes, descriptions = your_descriptions, attribute_category = your_attribute_category, object_category = your_object_category)
+ratings = archangel.rate_texts(texts, attributes_dict= attribute_dict, save_folder = 'path_to_your_folder', file_name = 'your_file_name.csv', attribute_category = your_attribute_category, object_category = your_object_category)
 ```
 
-You can save these results as a CSV, and you're good to go!
+### Features 
 
-#### Colab Playground
+The Archangel class comes with a number of easy to use features to help you run your code. 
+- parallelization: the library parallelizes API calls to dramatically speed up running time. We configure this by default.
+- cost estimates: we provide a very rough cost estimate of each run when you begin the call, based on the model and texts you input. 
+- auto-saving: the class will auto-save your results to a CSV at each iteration, as long as you provide a valid path.  
 
-Check out our playground [here](https://colab.research.google.com/drive/1tshfY-2al7asU7pTFvFFg1n4NSvLXtZg?usp=sharing) to see other examples! You can copy the file and use this as your baseline code.
+### Preset classes
+
+To simplify the task of choosing your hyperparameters, we provide two default options: 
+- 'mazda': cheap, fast, and reliable. Uses GPT-3.5-turbo, with text truncation to 9500 words to allow for prompts. Runs 50 queries in parallel.  
+- 'tesla': expensive. Uses GPT-4-turbo, with 30 parallel queries. Not recommended due to cost. 
 
 ### Function parameters
 

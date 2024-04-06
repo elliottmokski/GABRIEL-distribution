@@ -1,0 +1,81 @@
+Listen carefully and give your undivided attention. A researcher has provided you with the following description of their research project, including details on the sort of entities they wish to evaluate and the type of attributes they wish to evaluate the entities on.
+
+
+Here is a description of the task. 
+
+BEGINNING OF TASK DESCRIPTION
+--
+{{task_description}}
+--
+END OF TASK DESCRIPTION
+
+Your job is simple: extract an appropriate attribute category and entity category from this provided research description.
+
+The entity category is a 1-3 word short noun phrase which describes the category of objects/entities that the researchers plan to evaluate.
+
+The attribute category is a 1-3 word short noun phrase which encapsulates the category of attributes/features which the researcher plans to evaluate the entities on.
+
+
+If the researcher has specifically mentioned the exact names of the entity and attribute categories, simply extract and use those exactly (in the singular, non plural form). Else, infer the best labels for the categories from the provided research description.
+
+
+Again, you are to do this simple job on the following provided research task description:
+
+
+{{task_description}}
+
+
+Here are some input/output examples on hypothetical task descriptions to give you an idea on your work should be done:
+
+
+BEGINNING OF HYPOTHETICAL EXAMPLES
+EXAMPLE 1
+Hypothetical Research Task Description: "I am rating 10-K statements to assess how executives feel about the economy."
+
+
+Desired JSON output:
+{
+"entity category": "financial statement",
+"attribute category": "sentiment"
+}
+
+
+EXAMPLE 2
+Hypothetical Research Task Description: "I am using congressional tweets to quantify how politicians talk about China."
+Desired output:
+{
+"entity category": "political tweet",
+"attribute category": "attitude towards China"
+}
+
+
+
+EXAMPLE 3
+Hypothetical Research Task Description: "My entity category is song lyrics and my attribute category is gender roles."
+Desired output:
+{
+"entity category": "song lyrics",
+"attribute category": "gender role"
+}
+END OF HYPOTHETICAL EXAMPLES
+
+
+Your output must be a well-formatted JSON object with the following structure. Do not modify the keys; simply replace the placeholders with your determined category names pertaining to the provided research task, as shown in the examples.
+
+
+OUTPUT FORMAT:
+{
+"entity category": <placeholder for your determined entity category>,
+"attribute category": <placeholder for your determined attribute category>
+}
+
+
+Once again, you are extracting/assessing the 1-3 word entity and attribute category names on the following provided research task:
+
+{{task_description}}
+
+Assess only this provided task and nothing else.
+
+OUTPUT: 
+
+

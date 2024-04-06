@@ -1,4 +1,4 @@
-from GABRIEL.foundational_functions import *
+from gabriel.foundational_functions import *
 import json
 import pandas as pd
 import numpy as np
@@ -87,15 +87,14 @@ class CombinedAssistant:
         print(output_df)
         return output_df
     
-    def rate_single_text(self, text, object_category, attribute_category, descriptions,
-                                attributes, temperature,use_classification, format, classification_clarification, 
+    def rate_single_text(self, text, attribute_dict, entity_category, attribute_category, temperature,use_classification, format, classification_clarification, 
                                 project_probs, truncate, model, seed, api_key, truncate_len, timeout):
         
         if use_classification:
             rating_function = generate_simple_classification
             attribute_param = 'classification category'
         else:
-            rating_function = generate_simple_ratings
+            rating_function = generate_full_ratings
             attribute_param = 'attribute'
 
         if truncate: 
@@ -105,26 +104,29 @@ class CombinedAssistant:
                 pass
         
         dfs = list()
+        # descriptions = list(attribute_dict.values())
+        attributes = list(attribute_dict.keys())
         try:
-            raw_ratings = rating_function(attributes = attributes, descriptions = descriptions,
-                                                passage = text, object_category= object_category, 
-                                                attribute_category=attribute_category,format = format,classification_clarification = classification_clarification,
-                                                temperature = temperature, model = model, seed = seed, api_key = api_key)
+            raw_ratings = rating_function(attribute_dict=attribute_dict,attributes = attributes,
+                                                passage = text, entity_category= entity_category, 
+                                                attribute_category=attribute_category,format = format,
+                                                temperature = temperature, model = model, seed = seed, 
+                                                api_key = api_key, timeout = timeout)
             
             if format == 'json':
-                ratings = json.loads(raw_ratings)['data']
-                # Create a dictionary for the current passage's ratings
-                passage_data = {'Text': text}
-                for rating in ratings:
-                    attribute = rating[attribute_param]
-                    rating_value = rating['rating']
-                    if project_probs:
-                        rating_value = float(rating_value) / 100
-                        rating_value = 1 / (1 + np.exp(-24 * (rating_value - 0.5)))
-                    passage_data[attribute] = rating_value
+                ratings = json.loads(raw_ratings)
+                output_df = pd.DataFrame.from_dict(ratings, orient = 'index').T
+                output_df['Text'] = text
+                output_df = output_df.set_index('Text').reset_index()
+                 # passage_data = {'Text': text}
+                # for rating in ratings:
+                #     attribute = rating[attribute_param]
+                #     rating_value = rating['rating']
+                #     if project_probs:
+                #         rating_value = float(rating_value) / 100
+                #         rating_value = 1 / (1 + np.exp(-24 * (rating_value - 0.5)))
+                #     passage_data[attribute] = rating_value
 
-                dfs.append(passage_data)
-        except Exception as error:
-            print(error)
-        output_df = pd.DataFrame(dfs)
+        except:
+            output_df = None
         return output_df

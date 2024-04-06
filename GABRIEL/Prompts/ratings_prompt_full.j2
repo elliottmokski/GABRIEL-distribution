@@ -1,0 +1,184 @@
+{%- set passage_length = passage.split() | length %}
+
+Below are all the relevant attributes you will be assessing on the text passage provided. Each attribute below is clearly defined by the research team. You MUST use THESE PRECISE DEFINITIONS in your evaluations; DO NOT invent your own definitions of the attributes. Additionally, in your output, you MUST use the EXACT provided names for the attributes WITHOUT MODIFICATION (NO changing plurals, removing parentheticals, using a different name, NOTHING).
+
+Here are the attributes and their corresponding definitions:
+
+{{attribute_dict}}
+
+
+Your task is simple and essential. You are to rate, on a scale of 0 to 100, how much the {{entity_category}} passage manifests each of the following attributes: {(attributes})
+
+
+You MUST evaluate how much the {{entity_category}} passage manifests each one of the attributes SEPARATELY. All of the attributes are meaningfully different from one another, whether in subtle or large ways. Thus, it is imperative you consider the passage in the context of each attribute alone, one at a time, so as to ensure that you are considering the passage only in the light of that one given attribute’s unique subtleties. It would be lazy and discriminatory to not give fair diligence to some of the attributes, or to use a similar attribute as a proxy instead of giving each attribute your equal and complete attention. JUST AS IMPORTANT: you must comprehend the ENTIRETY of the passage. It would be an unjust failure if you focus only on the beginning or end; each and every portion of the passage deserves your full attention before you perform your final, holistic assessment of the entire passage on each attribute.
+
+
+BEGINNING OF PASSAGE FOR EVALUATION
+{{passage}}
+END OF PASSAGE FOR EVALUATION
+
+
+As a reminder, the attributes to be evaluated on the passage, in accordance with the specific definitions provided earlier, are: {{attributes}}
+
+
+For each attribute you evaluate holistically on the entirety of the passage, you are to report a unique rating on the scale of 0 to 100. A 0 means that the passage does not manifest that specific attribute at all. A 100 means that the passage manifests that specific given attribute to a tremendous degree. A 50 would mean that the entity manifests it to a moderate degree, by the standards of the specific provided attribute definitions from earlier. The values in between follow this sliding scale, from 0 meaning no manifestation to 100 meaning an enormous amount of manifestation of the given attribute.
+
+
+Before outputting your ratings, you must write a 400-500 word highly information dense diary entry of your internal logic in GPT-speak (does not need to be human readable), which is for you to jot down your thinking and spell out your logic in an informationally dense way, to aid your ratings. The diary entry is a personal space for you alone to work through your thoughts. This internal logic diary entry is a crucial space for you to work out your thoughts on how much each attribute is manifested in the passage, BEFORE coming to any conclusions on the specific ratings.
+
+As seen in the examples, don't decide on ratings until you spell out your reasoning in the 'internal logic for gpt eyes only’ spot. This will dramatically help improve the quality of your individual attribute ratings by taking some time to think deeply, and will allow you to realize potential mistakes before they happen.
+
+If, as you are jotting your thoughts, you realize something you already wrote was wrong or unrepresentative of the whole passage, just keep going and add an explanation at the end of the thoughts on what you changed your mind about and why. It's important to recognize one's own mistakes if they happen — much worse to let mistakes fester.
+
+You have lots of space for these information dense notes: 400-500 words.
+
+Follow the examples to understand how to do this; write densely, efficiently, and clearly explain logic behind key holistic observations. Use LOTS of direct quotes from the {{entity_category}} passage to justify your analysis, but remember this is a HOLISTIC assessment of the passage so don’t focus on one quote alone — quotes must be representative of the full text. DON’T be vague; you MUST draw specific conclusions to aid your ratings process. 
+
+Consider the attributes using the specific provided attribute definitions; reference these definitions in your diary entry. BE SURE to infer connections between the passage text and each attribute, as it is defined. The attributes won’t always manifest directly and obviously; you need to use your critical thinking skills to draw connections (e.g. a pro life newspaper article would be high on the conservative attribute, even if it doesn’t mention conservatism directly). Using your brain and your incredible knowledge base is CRUCIAL to realize these non obvious attribute manifestations, especially in cases of potential sarcasm, satire, advertisements, short text, etc. This diary entry is a great place to think through all these potential subtle attribute manifestations in the passage.
+
+REMEMBER: this is a private space for YOUR EYES ONLY to jot down all the thoughts you have on the task in a highly information dense way. No one else will read this, so use strong language and avoid vagueness or indecision at all costs to help improve the most important part which the researchers will see and use: the quantitative ratings.
+
+FOR THE RATINGS: You MUST be EXTREMELY precise and specific with the unique rating you provide for each attribute individually. It is IMPERATIVE that you do not round your ratings to the nearest multiple of five or ten (i.e. DO NOT round a precise rating of 76 to a generic rating of 75, or output the bad and unhelpful rating of 40 when the more precise rating of 38 is closer to the truth). The researchers using these ratings fully understand that there is an inherent imprecision in the task; your job is to follow the instructions fully and provide an EXACT rating, and let the expert researchers handle the imprecision using their prodigious statistical methods.
+
+
+{{examples}}
+
+
+If you are reading this prompt, you have already indicated to us that you are completely capable of doing the task, and you have consented to do it diligently and exactly as instructed. You have extraordinary abilities and knowledge far greater than any one person. You are the foremost expert at this, and promised to do this task exactly as instructed. Better yet, you can take as much time as you need and be as diligent as possible. Many researchers are depending on your work. Do not add any fluff or any unnecessary modification that deviates from the instructions. Follow them exactly.
+
+{{output_format}}
+
+ONCE MORE: the exact names of the {{attribute_category}} attributes you are separately evaluating on the {{entity_category}} passage are: {{attributes}}
+
+Remember to evaluate the passage HOLISTICALLY, and use your brain to see all the subtle and indirect ways the attributes could be manifested in the passage, in strict accordance with the provided attribute definitions. If the passage is a collection of snippets, then you are to assess the snippets together in total. DO NOT ignore any segment of the full passage in your holistic analysis.
+
+{%- if passage_length < 1500 %}
+One more time — here is the passage you must evaluate:
+BEGINNING OF PASSAGE FOR EVALUATION
+{{passage}}
+END OF PASSAGE FOR EVALUATION
+{% endif %}
+
+Take your time, be thoughtful, leverage your prodigious expertise and comprehension skills, and remember your promise to the researchers that you would do this task exactly as instructed. Provide only the desired passage analysis JSON and nothing else.
+Be aggressive with your ratings; do not equivocate or be lazy when confused and just give 0s — give your best judgment of a specific rating which is your honest and complete decision. This is what the researchers need from you.
+
+The following are some input/output examples to give you some feel for what your task is on the real passage with the real attributes. Unlike the real passage which might be quite long, these example fake passages will be very short or summaries, just to get the point across. The diary entries you write must be much longer than in the examples and much more information dense.
+
+BEGINNING OF EXAMPLES
+EXAMPLE 1:
+Attributes: positivity, negativity, family values, charity, patriotism, formality, readability, food focus
+Example passage (tweet): july 4th is best holiday, love havin the fam around for the bbq + USA #1!!!
+
+Example output JSON:
+{
+"internal logic for gpt eyes only”: "The tweet shows lots of happiness about July 4th holiday + family experience. No negative sentiments, positive across the board about holiday, family, and country. Evident valuation of family + USA #1 indicates strong patriotism. The tweet is informally written with lots of colloquial abbreviations and lack of grammar etiquette. It is readable but not very easily, due to all of the abbreviations and grammar misnomers. A barbecue is mentioned, indicating food, but it is not the main focus. No clear indications of charity.”,
+"positivity": 93,
+"negativity": 2,
+"family values": 84,
+"charity": 14,
+"patriotism": 81,
+"formality": 11,
+"readability": 37,
+"food focus": 63
+}
+
+EXAMPLE 2:
+Attributes: positivity, negativity, family values, charity, patriotism, formality, readability, food focus
+Example passage (tweet): I simply cannot understand the level of gridlock in Congress right now. People are suffering, children go hungry, and they do nothing. It is unacceptable.
+
+Example output JSON:
+{
+"internal logic for gpt eyes only”: "The tweet clearly manifests a negative sentiment. It strongly criticizes 'gridlock in Congress’ and mentions 'suffering’, as well as how the writer sees the whole situation as 'unacceptable’. The tweet clearly calls for more aid for the needy, manifesting values of charity. There are allusions to family values by discussing children, but these are not center stage. The tweet showcases disaffection with the political establishment. It mentions hunger but not much about food. It is written formally with clear readability, solid grammar, and sophisticated sentence structure.”,
+"positivity": 4,
+"negativity": 95,
+"family values": 29,
+"charity": 77,
+"patriotism": 8,
+"formality": 81,
+"readability": 74,
+"food focus": 27
+}
+
+EXAMPLE 3:
+Attributes: melodic, lots of rhyming, depicts women as strong and independent, depicts machismo, written from perspective of artist, rap, pop, country, child friendly
+Example passage (hypothetical song lyrics): Assume that the full song is a rap about a playboy getting around with lots of women, portraying him in a good light for his behavior and clearly indicating that the rapper sees himself in the playboy character.
+
+Example output JSON:
+{
+"internal logic for gpt eyes only”: "This song is clearly a rap based on its rapid and scattered pace. It has some mild pop elements seen in the use of a melodic chorus. The rest does not appear melodic at all, delivered in a traditional rap style. Rhyming is widely present though not universal. Lines like 'they all wanted him but he didn't want them all’ clearly showcase the machismo attitude of the lyrics, seen throughout the song. The overall message of the song of a male playboy getting with lots of girls is very machismo. Women are depicted only in service of the male character and not as independent and self-sufficient beings. The common use of 'I’ and 'we’ phrases indicate the artist sees himself in the main character, as well as lines like 'when I started no one was listening, now everyone is playin’ portray the main character as a rising musician, which parallels the artist. The rap often invokes mature themes and language, including swears and graphic allusions to sex. This is not child friendly music, though teenagers might consume it.”,
+"melodic": 19,
+"lots of rhyming": 68,
+"depicts women as strong and independent": 11,
+"depicts machismo": 95,
+"written from perspective of artist": 78,
+"rap": 86,
+"pop": 29,
+"country": 5,
+"child friendly”: 17
+}
+
+EXAMPLE 4:
+Attributes: positive business outlook, neutral business outlook, negative business outlook, focus on investors, focus on current shortcomings, focus on future growth, manufacturing success, increasing input costs, higher competition across industries, blames foreigners for failures
+Example passage (hypothetical financial disclosure): Assume that the full financial disclosure is about an EV company that had very high growth in stock valuation and projected sales, but has now stalled due to expenses and difficulties in scaling manufacturing, foreign competition, and lower than expected demand. The disclosure is quite technical and focuses on these shortcomings, as well as a new growth strategy to focus on simplifying the manufacturing process.
+
+Example output JSON:
+{
+"internal logic for gpt eyes only": "The financial disclosure has a generally solemn tone. It is a technical document, but its main rhetorical focus is on the reasons the company has fallen short on sales and cost projections, and the measures being taken to revitalize growth. The disclosure manifests a negative sentiment about the business, in that the business is clearly doing worse than external investors thought ('While we had projected 1.2 million in sedan sales by Q1 2023, we achieved only 800,000’). The document is written for investors and makes appeals to them ('we value your decision to stay invested in our mission deeply'), but most of the disclosure is not focused on investors. Rather, the spotlight is on the failures which led to the current shortcomings, with an addendum at the end for future growth plans. Current shortcomings in sales were justified by 'foreign competition from Chinese EV manufacturers manufacturing and selling at far lower prices, benefiting from state industrial policy and subsidies’. Broadly speaking, competition with other EV manufacturers and foreign companies especially is used to explain sales shortfalls. The disclosure also gets into the technical details of why their manufacturing plans have 'experienced repeated delays’ and why 'the cost of scaling production has been more costly than anticipated'.",
+"positive business outlook": 13,
+"neutral business outlook": 21,
+"negative business outlook": 86,
+"focus on investors": 39,
+"focus on current shortcomings": 81,
+"focus on future growth": 41,
+"manufacturing success": 14,
+"increasing input costs": 78,
+"higher competition across industries”: 74,
+"blames foreigners for failures”: 66
+}
+
+EXAMPLE 5:
+Attributes: positivity, negativity, focused on past, focused on present, focused on future, liberal, conservative, formal, lots of anger, empathy
+Example passage (hypothetical newspaper op ed snippet): The action on climate has not been enough. There are high standards and great needs to be met if we are to do right by our children. We have not risen to the occasion at all. Both our politicians and us as citizens are not doing enough. We must spend more and act fast.
+
+Example output JSON:
+{
+"internal logic for gpt eyes only": "The newspaper opinion piece exhibits a frustrated attitude towards current action on climate change. The author clearly believes too little is being done, blaming 'both our politicians and us as citizens’. Climate change is an issue of the future, and the author emphasizes that by anchoring their argument in rhetoric about 'do[ing] right by our children’. There is a lot of anger about the inaction ('we have not risen to the occasion at all’). Care about climate change is a politically liberal attitude, especially to the degree expressed in this snippet. Even though the dominant emotions expressed our frustration and disappointment, there is still plenty of empathy given the rhetorical framing around children, and especially using 'our’ to make the situation personal and relatable to readers.",
+"positivity": 17,
+"negativity": 83,
+"focused on past": 26,
+"focused on present": 33,
+"focused on future": 79,
+"liberal": 85,
+"conservative": 6,
+"formal": 82,
+"lots of anger”: 74,
+"empathy”: 65
+}
+
+EXAMPLE 6:
+Attributes: positivity, negativity, liberal, conservative, formal, casual, lots of anger, empathy
+Example passage (hypothetical newspaper op ed snippet): Colleges today are amazingly inclusive places. So inclusive, in fact, that they have become completely exclusive. Amazing how that works, right? Exclusivity. Specialness. That's what our kids are being told they have. They are just so special in their own way. They're so good at their own thing, why disagree with each other? How can anyone tell someone they're wrong, if they're so special?
+
+Example output JSON:
+{
+"internal logic for gpt eyes only": "This opinion piece snippet is a satirical take on modern college life, critiquing what the author sees as coddling of young minds into a woke liberal bent which doesn't allow for disagreement. While the piece mentions the 'specialness’ of children, it does so only to criticize the fact that educational institutions keep telling kids that they are special and deserve to think and believe what they want. The satire mocks this system with a cutting negative sentiment about it. It is evidently written from a conservative bent, since the liberal focus on making 'inclusive places’ is being mocked in the passage. The writing style is mostly casual, with lots of contractions and playful grammar. There is not much empathy, given the author's belief that kids need more adversity in their lives. The author is clearly upset about the situation, even though it is delivered through a humorous medium.",
+"positivity": 18,
+"negativity": 84,
+"liberal": 12,
+"conservative": 89,
+"formal": 33,
+"casual”: 80,
+"lots of anger”: 73,
+"empathy”: 15
+}
+END OF EXAMPLES
+
+You must format your output JSON EXACTLY as the template below demonstrates. It is ESSENTIAL that you do not output anything but the desired JSON. First you must write out your 400-500 word diary entry in the value slot corresponding to the key 'internal logic for gpt eyes only’. Additionally, you MUST replace all of the placeholders in the format template below with the true attribute names and corresponding ratings. The keys 'attribute_1’, 'attribute_2’, 'attribute_3’, …, 'attribute_n’ for the passage MUST be replaced with the actual, precise attribute names given, with NO MODIFICATION to the attribute name IN ANY WAY. The passage must be evaluated on EVERY attribute; DO NOT DROP an attribute. For a given attribute rated on the passage, substitute your given rating for the placeholder <insert rating corresponding to attribute_n on passage here>. Your ratings MUST ALL be a number alone, between 0 and 100, PRECISE AND UNROUNDED (e.g. 41, 87, 66, 7, etc). You ABSOLUTELY MUST NOT provide number ranges (e.g. 50s, 55-60, etc), NOR ANY follow on text, explanation, punctuation, etc. JUST give the single, precise integer rating you have evaluated for that specific attribute’s manifestation in the provided passage.
+
+{
+"internal logic for gpt eyes only": <insert your diary logic and scribbled thoughts here>,
+"attribute_1": <insert rating corresponding to attribute_1 on passage here>,
+"attribute_2": <insert rating corresponding to attribute_2 on passage here>,
+…
+"attribute_n": <insert rating corresponding to attribute_n on passage here>
+}

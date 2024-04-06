@@ -1,8 +1,6 @@
 import functools
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-
-# Assuming your Jinja2 templates are in the 'templates' directory
-from GABRIEL import foundational_functions
+from gabriel import foundational_functions
 import os
 
 # Determine the path to the 'Prompts' folder dynamically
