@@ -4,6 +4,10 @@
 
 GABRIEL is a simple Python framework built on top of LLMs like ChatGPT to simplify quantitative text analysis in the social sciences.
 
+IMPORTANT: Follow this Colab tutorial notebook for the easiest setup guide: https://colab.research.google.com/drive/1tshfY-2al7asU7pTFvFFg1n4NSvLXtZg?usp=sharing
+
+The full documentation is below.
+
 ## Installation
 
 The new Python library replaces the previous API and dramatically simplifies the use of the package. Installation is extremely simple using pip.
