@@ -33,7 +33,9 @@ from GABRIEL.Archangel import Archangel
 combined_assistant = Archangel(your_api_key)
 ```
 
-Once you create the object, you can run a simple ratings framework through the *rate_texts* function. You must supply a list of the texts to rate, *texts*; an *attributes_dict*, where the keys are your attributes, and the values are the definitions, and a *task_description*, which is a few sentence description of what you're trying to acccomplish (your data, your question, etc.). You can also specify a specific OpenAI model for your call, using the *model* parameter (the default is GPT-3.5-turbo). See below for the full list of parameters, and more detailed descriptions.
+Once you create the object, you can run a simple ratings framework through the *rate_texts* function. You must supply a list of the texts to rate, *texts*; an *attributes_dict*, where the keys are your attributes, and the values are the definitions, and a *task_description*, which is a few sentence description of what you're trying to acccomplish (your data, your question, etc.). In addition, we require a *save_folder* and a *file_name*, which is where the output from your run will be saved.
+
+You can also specify a specific OpenAI model for your call, using the *model* parameter (the default is GPT-3.5-turbo). See below for the full list of parameters, and more detailed descriptions.
 
 The simplest ratings call, which returns a Pandas dataframe, is just:
 
