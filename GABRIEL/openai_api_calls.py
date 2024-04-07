@@ -47,10 +47,10 @@ def retry_on_api_error(max_retries, delay=45):
             for attempt in range(max_retries):
                 try:
                     return func(*args, **kwargs)
-                except openai._exceptions.RateLimitError as e:
+                except openai.RateLimitError as e:
                     print(f"Rate limit error on attempt {attempt + 1}/{max_retries}. Retrying after delay.")
                     time.sleep(delay)  # Sleep and retry after delay
-                except openai._exceptions.OpenAIError as e:
+                except openai.OpenAIError as e:
                     print(f"OpenAI error on attempt {attempt + 1}/{max_retries}: {e}")
                     if attempt == max_retries - 1:
                         raise APIError("Failed after max retries due to OpenAI error.")
@@ -112,11 +112,10 @@ class ChatAssistant:
                 # else: # If the response format is 'json', handle accordingly
                     # response_message = response.choices[0].message
 
-            except openai._exceptions.RateLimitError:
-                time.sleep(45)
-                raise
-            except openai._exceptions.OpenAIError as e:
-                raise
+            except openai.RateLimitError as e:
+                raise e
+            except openai.OpenAIError as e:
+                raise e
             response_queue.put(response_message)
 
         # Start the thread to make the API call

@@ -22,12 +22,12 @@ class Archangel():
 
     def get_preset_params(self, preset='mazda'):
         if preset == 'mazda':
-            return {'model': 'gpt-3.5-turbo', 'n_parallel': 50, 'num_runs': 10, 'rate_first': False, 'temperature':0.8,
-                    'timeout': 75, 'truncate_len': 5000, 'seed': None, 'truncate':True, 'format':'json',"batch_len":50}
+            return {'model': 'gpt-3.5-turbo', 'n_parallel': 3, 'num_runs': 10, 'rate_first': False, 'temperature':0.8,
+                    'timeout': 75, 'truncate_len': 5000, 'seed': None, 'truncate':True, 'format':'json'}
         
         elif preset == 'tesla':
-            return {'model': 'gpt-4-turbo', 'n_parallel': 30, 'num_runs': 10, 'rate_first': False, 'temperature':0.8,
-                    'timeout': 75, 'truncate_len': 5000, 'seed': None, 'truncate':True, 'format':'json', "batch_len":50}
+            return {'model': 'gpt-4-turbo', 'n_parallel': 3, 'num_runs': 10, 'rate_first': False, 'temperature':0.8,
+                    'timeout': 75, 'truncate_len': 5000, 'seed': None, 'truncate':True, 'format':'json'}
         
     def get_attributes(self, attributes_dict=None, attribute_mode='compare'):
         attribute_dict = self.attributor.get_attributes(attributes_dict=attributes_dict, attribute_mode=attribute_mode)
@@ -44,7 +44,7 @@ class Archangel():
              save_folder=None, mode='rate', num_runs=None, rate_first=False, file_name = None,
              temperature = None, timeout = None, 
              truncate_len = None, seed = None,truncate = None, use_classification = False, 
-             format = None, project_probs = None, classification_clarification = None, batch_len = None, reset_files = False):
+             format = None, project_probs = None, classification_clarification = None, reset_files = False):
         
         if file_name == None:
             raise Exception('You must provide a file name to save to.')
@@ -72,41 +72,55 @@ class Archangel():
             texts = df['Text'].to_list()
         
         preset_params = self.get_preset_params(preset)
+        call_params = preset_params.copy()
 
-        #Override the ones without None
+
         for param in preset_params.keys():
-            if locals()[param] is None:
-                locals()[param] = preset_params[param]
+            if locals()[param] == None:
+                call_params[param] = preset_params[param]
+            else:
+                call_params[param] = locals()[param]
+
+        call_params['project_probs'] = False
+        call_params['api_key'] = self.api_key
         
         if task_description == None:
             raise Exception('Please provide a task_description')
         else:
             print(f'Extracting categories for task: {task_description}')
             categories = json.loads(identify_categories(task_description= task_description, api_key = self.api_key))
-            entity_category = categories['entity category']
-            attribute_category = categories['attribute category']
+            call_params['entity_category'] = categories['entity category']
+            call_params['attribute_category'] = categories['attribute category']
+            call_params['classification_clarification'] = classification_clarification
+            call_params['use_classification'] = use_classification
 
         if attribute_mode == 'rate':
             rating_function = self.attributor.rate_single_text
-            call_params = {'entity_category': entity_category, 'attribute_category': attribute_category, 'api_key': self.api_key,
-                      'model': preset_params['model'], 'temperature': preset_params['temperature'], 'use_classification': use_classification, 
-                      'format': preset_params['format'],'project_probs': False, 'truncate': preset_params['truncate'], 
-                      'seed': preset_params['seed'],'timeout': preset_params['timeout'], 'truncate_len': preset_params['truncate_len'],
-                      'classification_clarification': classification_clarification}
         elif attribute_mode == 'classify':
             rating_function = generate_simple_classification
         elif attribute_mode == 'compare':
             pass
 
         final = pd.DataFrame()  # Initialize the final DataFrame
-        processed_rows = 0  # Initialize the processed rows counter
+
+        # {'model': 'gpt-3.5-turbo', 'n_parallel': 10, 'num_runs': 10, 'rate_first': False, 'temperature':0.8,
+        #             'timeout': 75, 'truncate_len': 5000, 'seed': None, 'truncate':True, 'format':'json'}
+
+        # text, attribute_dict, entity_category, attribute_category, temperature,use_classification, format, classification_clarification, 
+        #                         project_probs, truncate, model, seed, api_key, truncate_len, timeout
+
+        batches = [texts[i:i + call_params['n_parallel']] for i in range(0, len(texts),call_params['n_parallel'])]  
+
+        del call_params['num_runs']
+        del call_params['rate_first']
 
         print('Here are the parameters for this run:\n')
-        print(json.dumps(preset_params, indent=4))
+        print(json.dumps(call_params, indent=4))
+        del call_params['n_parallel']
+
         print(f'The output file will be saved at: {save_folder}/{file_name}')
         print(f'''Rough estimated cost in dollars: {self.estimate_cost(texts, call_params['model'])}''')
 
-        batches = [texts[i:i + preset_params['batch_len']] for i in range(0, len(texts), preset_params['batch_len'])]  
         
         for batch in tqdm(batches, total=len(batches)):
             batch_results = []
