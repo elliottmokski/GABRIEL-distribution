@@ -19,6 +19,12 @@ def with_prompt(template_name):
             # Extract additional context for the template from kwargs
             context = kwargs.pop('template_context', {})
             
+            # Include all kwargs in the context for template rendering
+            context.update(kwargs)
+            
+            # Debug: Print the context dictionary
+            # print("Template Context:", context)
+            
             # Load and render the template
             template = env.get_template(f"{template_name}.j2")
             prompt = template.render(**context)

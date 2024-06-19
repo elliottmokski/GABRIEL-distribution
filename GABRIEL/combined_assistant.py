@@ -2,6 +2,7 @@ from gabriel.foundational_functions import *
 import json
 import pandas as pd
 import numpy as np
+import os
 
 class CombinedAssistant:
     def __init__(self, api_key, drive_folder = None, model='gpt-3.5-turbo-0125'):
@@ -88,7 +89,7 @@ class CombinedAssistant:
         return output_df
     
     def rate_single_text(self, text, attribute_dict, entity_category, attribute_category, temperature,use_classification, format, classification_clarification, 
-                                project_probs, truncate, model, seed, api_key, truncate_len, timeout):
+                                project_probs, truncate, model, seed, api_key, truncate_len, timeout, use_batch = False, batch_name = None, custom_id = None):
         
         if use_classification:
             rating_function = generate_simple_classification
@@ -103,30 +104,40 @@ class CombinedAssistant:
             except:
                 pass
         
+        # print(text)
+
         dfs = list()
         # descriptions = list(attribute_dict.values())
         attributes = list(attribute_dict.keys())
-        try:
+
+        if use_batch:
             raw_ratings = rating_function(attribute_dict=attribute_dict,attributes = attributes,
                                                 passage = text, entity_category= entity_category, 
                                                 attribute_category=attribute_category,format = format,
                                                 temperature = temperature, model = model, seed = seed, 
-                                                api_key = api_key, timeout = timeout)
-            
-            if format == 'json':
-                ratings = json.loads(raw_ratings)
-                output_df = pd.DataFrame.from_dict(ratings, orient = 'index').T
-                output_df['Text'] = text
-                output_df = output_df.set_index('Text').reset_index()
-                 # passage_data = {'Text': text}
-                # for rating in ratings:
-                #     attribute = rating[attribute_param]
-                #     rating_value = rating['rating']
-                #     if project_probs:
-                #         rating_value = float(rating_value) / 100
-                #         rating_value = 1 / (1 + np.exp(-24 * (rating_value - 0.5)))
-                #     passage_data[attribute] = rating_value
+                                                api_key = api_key, timeout = timeout, use_batch = use_batch, batch_name = batch_name, custom_id = custom_id)
+            return raw_ratings
+        else:
+            try:
+                raw_ratings = rating_function(attribute_dict=attribute_dict,attributes = attributes,
+                                                passage = text, entity_category= entity_category, 
+                                                attribute_category=attribute_category,format = format,
+                                                temperature = temperature, model = model, seed = seed, 
+                                                api_key = api_key, timeout = timeout, use_batch = use_batch, batch_name = batch_name, custom_id = custom_id)
+                if format == 'json':
+                    ratings = json.loads(raw_ratings)
+                    output_df = pd.DataFrame.from_dict(ratings, orient = 'index').T
+                    output_df['Text'] = text
+                    output_df = output_df.set_index('Text').reset_index()
+                    # passage_data = {'Text': text}
+                    # for rating in ratings:
+                    #     attribute = rating[attribute_param]
+                    #     rating_value = rating['rating']
+                    #     if project_probs:
+                    #         rating_value = float(rating_value) / 100
+                    #         rating_value = 1 / (1 + np.exp(-24 * (rating_value - 0.5)))
+                    #     passage_data[attribute] = rating_value
 
-        except:
-            output_df = None
-        return output_df
+            except:
+                output_df = None
+            return output_df
