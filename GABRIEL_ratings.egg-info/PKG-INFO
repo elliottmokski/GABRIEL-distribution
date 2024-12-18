@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: GABRIEL-ratings
-Version: 0.1.5
+Version: 0.1.6
 Summary: THE GABRIEL library for numerical analysis of texts in the social sciences.
 Home-page: https://github.com/elliottmokski/GABRIEL-distribution
 Author: Hemanth Asirvatham and Elliott Mokski
@@ -15,6 +15,9 @@ Requires-Dist: pandas>=1.0.0
 Requires-Dist: openai>=1.0.0
 Requires-Dist: Jinja2>=2.11.0
 Requires-Dist: tqdm>=4.42.0
+Requires-Dist: tiktoken>=0.2.0
+Requires-Dist: aiohttp>=3.7.0
+Requires-Dist: aiolimiter>=1.0.0
 
 # The Generalized Attribute Based Ratings Information Extraction Library (GABRIEL)
 

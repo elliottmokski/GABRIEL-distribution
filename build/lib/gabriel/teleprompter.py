@@ -12,7 +12,7 @@ class Teleprompter:
 
     def clean_json_prompt(self, dirty_json_output, format_template_name):
         format_template = self.env.get_template(format_template_name).render()
-        template = self.env.get_template('clean_json_prompt.j2')
+        template = self.env.get_template('clean_json_prompt.jinja2')
         prompt = template.render(dirty_json_output=dirty_json_output, format_template=format_template)
         return prompt
 
@@ -56,8 +56,8 @@ class Teleprompter:
         return prompt
 
     def generic_classification_prompt(self, entity_list, possible_classes, class_definitions, entity_category, output_format='json'):
-        format_template = self.env.get_template("type_of_tech_format.j2").render()
-        template = self.env.get_template('generic_classification_prompt.j2')
+        format_template = self.env.get_template("type_of_tech_format.jinja2").render()
+        template = self.env.get_template('generic_classification_prompt.jinja2')
         prompt = template.render(
             entity_list=entity_list,
             possible_classes=possible_classes,

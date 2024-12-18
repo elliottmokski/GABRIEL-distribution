@@ -1,262 +1,374 @@
-import functools
-import openai
-import queue
-import threading
+import aiohttp
+import asyncio
+import ast
+import math
 import time
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-from gabriel import foundational_functions
 import json
-import os
-import platform
 import pandas as pd
+import numpy as np
+import os
+from typing import Any, Dict, Optional, List, Tuple
+from aiolimiter import AsyncLimiter
+from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import tiktoken
 
-# Determine the path to the 'Prompts' folder dynamically
-package_dir = os.path.dirname(os.path.abspath(foundational_functions.__file__))
-templates_dir = os.path.join(package_dir, 'Prompts')
+openai_pricing = {
+    "gpt-4o": {"input": 2.50,"output":10.00,"cached_input":1.25},
+    "gpt-4o-mini": {"input":0.15,"output":0.60,"cached_input":0.075},
+    "o1-preview": {"input":15.00,"output":60.00,"cached_input":7.50},
+    "o1-mini": {"input":3.00,"output":12.00,"cached_input":1.50},
+    "text-embedding-3-small":{"input":0.020,"batch_input":0.010},
+    "text-embedding-3-large":{"input":0.130,"batch_input":0.065},
+    "ada-v2":{"input":0.10,"batch_input":0.050},
+    "gpt-3.5-turbo":{"input":1.50,"output":2.00},
+    "gpt-3.5-turbo-16k":{"input":3.00,"output":4.00},
+    "gpt-4":{"input":30.00,"output":60.00},
+    "gpt-4-32k":{"input":60.00,"output":120.00},
+    "gpt-4-turbo":{"input":10.00,"output":30.00},
+    "gpt-4-vision-preview":{"input":10.00,"output":30.00},
+    "whisper":{"input":0.006},
+    "tts":{"input":15.00,"hd":30.00},
+    "dall-e-3":{
+        "standard_1024x1024":0.04,
+        "standard_1792x1024":0.08,
+        "hd_1024x1024":0.08,
+        "hd_1792x1024":0.12
+    },
+    "dall-e-2":{
+        "256x256":0.016,
+        "512x512":0.018,
+        "1024x1024":0.020
+    }
+}
 
-env = Environment(
-    loader=FileSystemLoader(templates_dir),
-    autoescape=select_autoescape()
-)
+class OpenAIClient:
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+        self.openai_pricing = openai_pricing
 
-def get_default_save_path():
-    """Returns the default save path based on the operating system."""
-    home_dir = os.path.expanduser("~")
-    app_dir = "GABRIEL Batch Calls"
-    
-    if platform.system() == "Windows":
-        return os.path.join(home_dir, "AppData", "Local", app_dir)
-    elif platform.system() == "Darwin":  # macOS
-        return os.path.join(home_dir, "Library", "Application Support", app_dir)
-    else:  # Unix/Linux
-        return os.path.join(home_dir, ".local", "share", app_dir)
+    async def get_response(
+        self,
+        prompt: str,
+        model: str = 'gpt-4o-mini',
+        system_instruction: str = 'Please provide a helpful response.',
+        n: int = 1,
+        max_tokens: int = 1000,
+        temperature: float = 0.9,
+        json_mode: bool = False,
+        expected_schema: Optional[Dict[str, Any]] = None,
+        timeout: float = 60.0,
+        **kwargs
+    ) -> (List[str], float):
+        import aiohttp
+        import time
+        if json_mode:
+            system_instruction = system_instruction + " Output the response in JSON format."
 
-class APIError(Exception):
-    pass
+        messages = [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": prompt}
+        ]
 
-def with_prompt(template_name):
-    def decorator(func):
-        @functools.wraps(func)
-        def wrapper(**kwargs):
-            # The context for the template is now all arguments bound to their names
-            template_context = kwargs
-            
-            # Print the context for debugging purposes
-            # print("Template Context:", template_context)
-
-            # Load and render the template
-            template = env.get_template(f"{template_name}.j2")
-            rendered_prompt = template.render(**template_context)
-            
-            # print("Rendered Prompt:", rendered_prompt)
-            
-            # Execute the wrapped function with the rendered prompt and any remaining kwargs
-            return func(rendered_prompt=rendered_prompt, **kwargs)
-        return wrapper
-    return decorator
-
-def retry_on_api_error(max_retries, delay=45):
-    def decorator(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            for attempt in range(max_retries):
-                try:
-                    return func(*args, **kwargs)
-                except openai.RateLimitError as e:
-                    print(f"Rate limit error on attempt {attempt + 1}/{max_retries}. Retrying after delay.")
-                    time.sleep(delay)  # Sleep and retry after delay
-                except openai.OpenAIError as e:
-                    print(f"OpenAI error on attempt {attempt + 1}/{max_retries}: {e}")
-                    if attempt == max_retries - 1:
-                        raise APIError("Failed after max retries due to OpenAI error.")
-                except Exception as e:
-                    print(f"Unexpected error on attempt {attempt + 1}/{max_retries}: {e}")
-                    if attempt == max_retries - 1:
-                        raise APIError("Failed after max retries due to an unexpected error.")
-            return ""
-        return wrapper
-    return decorator
-
-def call_api(rendered_prompt, system_instruction, timeout, temperature, model,desired_response_format = 'text', seed = None, api_key = None, use_batch = False, **kwargs):
-    assistant = ChatAssistant(model=model, api_key= api_key)
-    
-    if use_batch:
-        # print('Batching')
-        response = assistant.generate_batch_call(
-            prompt=rendered_prompt,
-            system_instruction=system_instruction,
-            external_messages=kwargs.get('external_messages'),
-            seed=seed,
-            desired_response_format=desired_response_format,
-            temperature=temperature,
-            max_tokens=kwargs.get('max_tokens', 2000),
-            custom_id=kwargs.get('custom_id', 'request-1'),
-            file_name=kwargs.get('file_name', 'batch_requests')
-        )
-    else:
-        response = assistant.generate_response(
-            prompt=rendered_prompt,
-            system_instruction=system_instruction,
-            external_messages=kwargs.get('external_messages'),
-            timeout=timeout,
-            temperature=temperature,
-            max_tokens=kwargs.get('max_tokens', 2000),
-            desired_response_format=desired_response_format,
-            seed=seed
-        )
-    return response
-
-class ChatAssistant:
-    def __init__(self, model, api_key):
-        self.model = model
-        self.client = openai.OpenAI(api_key = api_key)
-
-    @retry_on_api_error(max_retries=3)
-    def generate_response(self, prompt, system_instruction, external_messages=None, timeout=100, 
-                          temperature=0.9, max_tokens=2000, desired_response_format='text', seed = None):
-        response_queue = queue.Queue()
-
-        def target():
-            nonlocal response_queue, external_messages
-
-            # Compose messages for the API call
-            messages = [{"role": "system", "content": system_instruction}]
-            if external_messages:
-                messages.extend(external_messages)
-            if prompt:
-                messages.append({"role": "user", "content": prompt})
-
-            # Convert the desired_response_format string to the correct dictionary format
-            response_format = {"type": desired_response_format}
-
-            try:
-                response = self.client.chat.completions.create(
-                    model=self.model,
-                    messages=messages,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                    response_format=response_format,
-                    seed = seed
-                )
-                # Extract the response content based on the specified format
-                # if desired_response_format == 'text':
-                response_message = response.choices[0].message.content
-                # else: # If the response format is 'json', handle accordingly
-                    # response_message = response.choices[0].message
-
-            except openai.RateLimitError as e:
-                raise e
-            except openai.OpenAIError as e:
-                raise e
-            response_queue.put(response_message)
-
-        # Start the thread to make the API call
-        thread = threading.Thread(target=target)
-        thread.start()
-        thread.join(timeout)
-
-        # Retrieve the response from the queue
-        if not response_queue.empty():
-            return response_queue.get()
-        else:
-            raise APIError("API call timed out.")
-        
-    def generate_batch_call(self, prompt, system_instruction, external_messages = None, seed = None, desired_response_format='text', temperature=0.9, max_tokens=2000, custom_id = 'request-1', file_name = 'batch_requests'):
-        batch_prompt = {"custom_id":custom_id,"method":"POST","url":"/v1/chat/completions"}
-        messages = [{"role": "system", "content": system_instruction}]
-        messages.append({"role": "user", "content": prompt})
-        response_format = {"type": desired_response_format}
-
-        batch_prompt["body"] = {
-            "model": self.model,
+        params = {
+            "model": model,
             "messages": messages,
-            "temperature": temperature,
             "max_tokens": max_tokens,
-            "seed": seed,
-            "response_format": response_format,
+            "temperature": temperature,
+            "n": n,
+        }
+        params.update(kwargs)
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}"
         }
 
-        save_path = get_default_save_path()
-        # batch_calls_dir = os.path.join(save_path, 'Batch Calls')
-        # Check if 'Batch Calls' directory exists, if not create it
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)
+        url = "https://api.openai.com/v1/chat/completions"
 
-        file_path = os.path.join(save_path, file_name) + '.jsonl'
-        # print(f"Saving batch request to {file_path}")
+        start_time = time.time()
 
-        json_line = json.dumps(batch_prompt)
-        with open(file_path, 'a') as f:
-            f.write(json_line + "\n") 
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, headers=headers, json=params, timeout=timeout) as resp:
+                    if resp.status != 200:
+                        raise Exception(f"API call failed: {resp.status}: {await resp.text()}")
+                    data = await resp.json()
+        except asyncio.TimeoutError:
+            raise Exception(f"API call timed out after {timeout} seconds")
+        except Exception as e:
+            raise Exception(f"API call resulted in exception: {e}")
 
-        return file_path
+        responses = []
+        for choice in data.get('choices', []):
+            response_message = choice['message']['content']
+            responses.append(response_message)
 
-class BatchRunner:
-    def __init__(self, api_key):
-        self.client = openai.OpenAI(api_key = api_key)
+        end_time = time.time()
+        total_time = end_time - start_time
 
-    def run_batch(self, batch_name, description):
-        file_path = os.path.join(get_default_save_path(), f"{batch_name}.jsonl")
-        batch_input_file = self.client.files.create(
-        file=open(file_path, "rb"),
-        purpose="batch"
+        return responses, total_time
+
+    async def get_all_responses(
+        self,
+        prompts: List[str],
+        identifiers: Optional[List[str]] = None,
+        n_parallels: int = 100,
+        save_path: str = "temp.csv",
+        reset_files: bool = False,
+        rich_print: bool = False,
+        n: int = 1,
+        max_tokens: int = 1000,
+        requests_per_minute: int = 40000,
+        tokens_per_minute: int = 1500000000,
+        rate_limit_factor: float = 0.8,
+        truncate_middle: bool = True,
+        timeout: int = 60,
+        max_retries: int = 7,
+        save_every_x_responses: int = 1000,
+        save_every_x_seconds: Optional[int] = None,
+        format_template: Optional[str] = None,
+        model="gpt-4o-mini",
+        system_instruction="Please provide a helpful response.",
+        temperature=0.9,
+        json_mode=False,
+        **kwargs,
+    ) -> pd.DataFrame:
+        # Similar logic as before, but worker uses self.get_response
+        from aiolimiter import AsyncLimiter
+        import aiohttp
+
+        if identifiers is None:
+            identifiers = prompts
+
+        print(f"Model used: {model}")
+
+        if os.path.exists(save_path) and not reset_files:
+            df = pd.read_csv(save_path)
+            existing_identifiers = set(df["Identifier"])
+            prompts_to_process = [
+                (p, id) for p, id in zip(prompts, identifiers) if id not in existing_identifiers
+            ]
+            df["Response"] = df["Response"].apply(
+                lambda x: ast.literal_eval(x) if isinstance(x, str) else x
+            )
+        else:
+            df = pd.DataFrame(columns=["Identifier", "Response", "Time Taken"])
+            prompts_to_process = list(zip(prompts, identifiers))
+
+        total_prompts = len(prompts_to_process)
+        print(f"Total prompts to process: {total_prompts}")
+
+        if total_prompts == 0:
+            print("No new prompts to process.")
+            return df
+
+        max_context_tokens = 128000
+        max_allowed_prompt_tokens = max_context_tokens - max_tokens
+        truncated_count = 0
+
+        def truncate_prompt(prompt: str) -> Tuple[str, bool]:
+            words = prompt.split()
+            num_tokens = int(math.ceil(len(words) * 1.5))
+            if num_tokens <= max_allowed_prompt_tokens:
+                return prompt, False
+            allowed_words_count = int(max_allowed_prompt_tokens / 1.5)
+            if allowed_words_count <= 0:
+                return "\n\n...\n\n", True
+            half = allowed_words_count // 2
+            truncated_prompt = " ".join(words[:half]) + "\n\n...\n\n" + " ".join(words[-half:])
+            return truncated_prompt, True
+
+        updated_prompts_to_process = []
+        for prompt, identifier in prompts_to_process:
+            truncated_prompt, was_truncated = (
+                truncate_prompt(prompt) if truncate_middle else (prompt, False)
+            )
+            if was_truncated:
+                truncated_count += 1
+            updated_prompts_to_process.append((truncated_prompt, identifier))
+
+        truncation_percent = (truncated_count / total_prompts) * 100 if total_prompts > 0 else 0
+        print(
+            f"Truncated {truncated_count} prompts out of {total_prompts} ({truncation_percent:.2f}%)."
         )
 
-        batch_input_file_id = batch_input_file.id
-        
-        val = self.client.batches.create(
-            input_file_id=batch_input_file_id,
-            endpoint="/v1/chat/completions",
-            completion_window="24h",
-            metadata={
-            "description": description
-            }
-    )
-        
-        return val
-    
-    def retrieve_batch(self, file_name, format = 'json'):
-        batch_save_path = file_name.split('.')[0] + '_batch_metadata.csv'
-        batch_metadata = pd.read_csv(batch_save_path, index_col = 0)
-        batch_id = batch_metadata.loc['id','Value']
-        batch_content = self.client.batches.retrieve(batch_id)
-        print('The status of your batch is:', batch_content.status)
-        if batch_content.status == 'completed':
-            id = batch_content.output_file_id
-            result = self.client.files.content(id).content
-            save_path = get_default_save_path()
-            result_file_name = os.path.join(save_path, file_name) + '_output.jsonl'
-            with open(result_file_name, 'wb') as file:
-                file.write(result)
+        effective_requests_per_minute = requests_per_minute * rate_limit_factor
+        effective_tokens_per_minute = tokens_per_minute * rate_limit_factor
 
-            results = []
-            with open(result_file_name, 'r') as file:
-                for line in file:
-                    # Parsing the JSON string into a dict and appending to the list of results
-                    json_object = json.loads(line.strip())
-                    results.append(json_object)
-            final_df = pd.DataFrame()
-            for res in results:
-                task_id = res['custom_id']
-                # Getting index from task id
-                # index = task_id.split('-')[-1]
-                try: 
-                    result = res['response']['body']['choices'][0]['message']['content']
-                    if format == 'json':
-                        ratings = json.loads(result)
-                        output_df = pd.DataFrame.from_dict(ratings, orient = 'index').T
-                        # print(ratings)
-                        # print(output_df)
-                        output_df['custom_id'] = task_id
-                        # output_df = output_df.set_index('Text').reset_index()
-                        final_df = pd.concat([final_df, output_df], axis=0)
-                # print(result)
-                except:
-                    pass
+        request_limiter = AsyncLimiter(max_rate=int(effective_requests_per_minute), time_period=60)
+        token_limiter = AsyncLimiter(max_rate=int(effective_tokens_per_minute), time_period=60)
 
-            raw_df = pd.read_csv(file_name)[['Text','custom_id']]
-            raw_df['custom_id'] = raw_df['custom_id'].astype(str)
-            final_df['custom_id'] = final_df['custom_id'].astype(str)
-            final_df = final_df.merge(raw_df, on = 'custom_id')
-            final_df.drop(columns = ['custom_id']).to_csv(file_name, index = False)
-            return final_df.drop(columns = ['custom_id'])
+        results = []
+        processed_responses = 0
+        last_save_time = time.time()
+
+        queue = asyncio.Queue()
+        for prompt, identifier in updated_prompts_to_process:
+            queue.put_nowait((prompt, identifier))
+
+        total_tasks = queue.qsize()
+
+        async def save_results():
+            nonlocal results, last_save_time, df
+            if results:
+                batch_df = pd.DataFrame(results)
+                df = pd.concat([df, batch_df], ignore_index=True)
+                df.to_csv(save_path, index=False)
+                results = []
+                last_save_time = time.time()
+                print(f"Results saved to {save_path}")
+
+        async def periodic_save():
+            while True:
+                await asyncio.sleep(save_every_x_seconds)
+                await save_results()
+
+        async def worker(worker_id: int):
+            nonlocal processed_responses
+            while True:
+                try:
+                    prompt, identifier = await queue.get()
+                except asyncio.CancelledError:
+                    break
+
+                base_timeout = timeout
+                if "o1" in model:
+                    if model == "o1":
+                        base_timeout *= 6
+                    else:
+                        base_timeout *= 3
+
+                attempt = 1
+                while attempt <= max_retries:
+                    attempt_timeout = base_timeout + 30 * (attempt - 1)
+                    try:
+                        prompt_words = prompt.split()
+                        prompt_tokens = int(math.ceil(len(prompt_words) * 1.5))
+                        total_tokens_for_request = (prompt_tokens + max_tokens)*n
+                        await request_limiter.acquire()
+                        await token_limiter.acquire(total_tokens_for_request)
+
+                        responses, time_taken = await asyncio.wait_for(
+                            self.get_response(
+                                prompt,
+                                model=model,
+                                system_instruction=system_instruction,
+                                n=n,
+                                max_tokens=max_tokens,
+                                temperature=temperature,
+                                json_mode=json_mode,
+                                timeout=attempt_timeout,
+                                **kwargs,
+                            ),
+                            timeout=attempt_timeout,
+                        )
+                        total_time_taken = time_taken
+
+                        if format_template is not None and "o1" in model:
+                            clean_responses = []
+                            from teleprompter import teleprompter
+                            for response in responses:
+                                cleaning_prompt = teleprompter.clean_json_prompt(
+                                    response, format_template
+                                )
+                                clean_response, clean_time_taken = await asyncio.wait_for(
+                                    self.get_response(
+                                        cleaning_prompt,
+                                        n=1,
+                                        max_tokens=max_tokens,
+                                        timeout=attempt_timeout,
+                                        model="gpt-4o-mini",
+                                        json_mode=True,
+                                        **kwargs,
+                                    ),
+                                    timeout=attempt_timeout,
+                                )
+                                total_time_taken += clean_time_taken
+                                clean_responses.append(clean_response)
+                            responses = clean_responses
+
+                        results.append(
+                            {
+                                "Identifier": identifier,
+                                "Response": responses,
+                                "Time Taken": total_time_taken,
+                            }
+                        )
+
+                        processed_responses += 1
+
+                        if processed_responses % save_every_x_responses == 0:
+                            await save_results()
+
+                        break  # Success
+                    except asyncio.TimeoutError:
+                        print(f"Worker {worker_id}, attempt {attempt}: Prompt {identifier} timed out.")
+                        attempt += 3
+                        if attempt > max_retries:
+                            print(f"Prompt {identifier} failed after max retries due to timeout.")
+                            results.append({"Identifier": identifier, "Response":None,"Time Taken":None})
+                            processed_responses+=1
+                            if processed_responses%save_every_x_responses==0:
+                                await save_results()
+                            break
+                        else:
+                            await asyncio.sleep(5)
+                    except Exception as e:
+                        print(f"Worker {worker_id}, Error for {identifier}, attempt {attempt}: {e}")
+                        attempt+=1
+                        if attempt>max_retries:
+                            results.append({"Identifier":identifier,"Response":None,"Time Taken":None})
+                            processed_responses+=1
+                            if processed_responses%save_every_x_responses==0:
+                                await save_results()
+                            break
+                        else:
+                            await asyncio.sleep(5)
+                queue.task_done()
+
+        workers = []
+        for i in range(n_parallels):
+            worker_task = asyncio.create_task(worker(i))
+            workers.append(worker_task)
+
+        if save_every_x_seconds is not None:
+            periodic_save_task = asyncio.create_task(periodic_save())
+
+        pbar = tqdm(total=total_tasks, desc="Processing prompts")
+        try:
+            while True:
+                await asyncio.sleep(1)
+                processed = processed_responses
+                pbar.n = processed
+                pbar.refresh()
+                if queue.empty() and processed>=total_tasks:
+                    break
+        except KeyboardInterrupt:
+            print("KeyboardInterrupt detected. Saving current progress.")
+            for worker_task in workers:
+                worker_task.cancel()
+            await save_results()
+            return df
+
+        await queue.join()
+
+        for worker_task in workers:
+            worker_task.cancel()
+
+        await save_results()
+        if save_every_x_seconds is not None:
+            periodic_save_task.cancel()
+
+        pbar.close()
+        print(f"All responses saved to {save_path}")
+
+        time_taken_series = df["Time Taken"].dropna()
+        if len(time_taken_series)>0:
+            percentiles=[0,10,25,50,75,90,95,99,100]
+            vals=np.percentile(time_taken_series,percentiles)
+            print("\nTime taken summary (seconds):")
+            for p,v in zip(percentiles,vals):
+                print(f"{p}th: {v:.2f}")
+
+        return df
