@@ -8,10 +8,6 @@ GABRIEL_ratings.egg-info/SOURCES.txt
 GABRIEL_ratings.egg-info/dependency_links.txt
 GABRIEL_ratings.egg-info/requires.txt
 GABRIEL_ratings.egg-info/top_level.txt
-dist/GABRIEL_ratings-0.1.5-py3-none-any.whl
-dist/GABRIEL_ratings-0.1.6-py3-none-any.whl
-dist/gabriel_ratings-0.1.5.tar.gz
-dist/gabriel_ratings-0.1.6.tar.gz
 gabriel/__init__.py
 gabriel/archangel.py
 gabriel/foundational_functions.py

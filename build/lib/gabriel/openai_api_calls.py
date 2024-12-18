@@ -267,7 +267,7 @@ class OpenAIClient:
 
                         if format_template is not None and "o1" in model:
                             clean_responses = []
-                            from teleprompter import teleprompter
+                            from gabriel.teleprompter import teleprompter
                             for response in responses:
                                 cleaning_prompt = teleprompter.clean_json_prompt(
                                     response, format_template

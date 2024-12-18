@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='GABRIEL-ratings',
-    version='0.1.6',  # increment version as needed
+    version='2.0.0',  # increment version as needed
     author='Hemanth Asirvatham and Elliott Mokski',
     author_email='elliottpmokski@gmail.com',
     description='THE GABRIEL library for numerical analysis of texts in the social sciences.',

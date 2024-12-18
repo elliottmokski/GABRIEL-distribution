@@ -1,12 +1,15 @@
 import os
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-
-prompt_path = "prompts/"
+from gabriel import foundational_functions  # Ensure foundational_functions.py is in the same package
 
 class Teleprompter:
     def __init__(self):
+        # Dynamically determine the path to the 'Prompts' folder
+        package_dir = os.path.dirname(os.path.abspath(foundational_functions.__file__))
+        templates_dir = os.path.join(package_dir, 'Prompts')
+
         self.env = Environment(
-            loader=FileSystemLoader(prompt_path),
+            loader=FileSystemLoader(templates_dir),
             autoescape=select_autoescape()
         )
 
