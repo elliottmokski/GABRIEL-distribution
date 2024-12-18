@@ -1,0 +1,17 @@
+{% if mode == 'item' %}
+List {{ n_items }} items in the category of {{ category }}{{ object_clarification }}.
+List only the items; don't add descriptions or opinions on each list item, follow on notes, or any other fluff.
+Be straightforward.
+For instance, if you are asked to generate 5 items in the category of countries, your response could be: United States, France, Germany, China, Mexico.
+Similarly, if asked to generate 11 items in the category of car brands, you could respond: BMW, Ford, Honda, Toyota, Peugeot, Renault, Tesla, Volkswagen, Dacia, Fiat, Ferrari.
+
+List:
+{% else %}
+List {{ n_items }} non-overlapping attributes/adjectives that are forms of {{ category }}{{ attribute_clarification }}.
+List only the attributes; don't add descriptions or any other fluff.
+Be straightforward.
+For instance, if you are asked to generate 5 attributes that are forms of taste, you could reply: sweet, sour, salty, bitter, umami.
+Similarly, if asked to generate 6 attributes that are forms of climate, you could reply: rainy, dry, cold, warm.
+
+List:
+{% endif %}

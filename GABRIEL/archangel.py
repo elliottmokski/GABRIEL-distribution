@@ -1,198 +1,357 @@
-from gabriel.foundational_functions import *
-from gabriel.combined_assistant import CombinedAssistant
-from tqdm import tqdm
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import pandas as pd
-import json
 import os
-import warnings
+import json
+import pandas as pd
+import numpy as np
+import asyncio
+from typing import List, Dict, Any, Optional
+from foundational_functions import identify_categories, ensure_no_duplicates
+from openai_api_calls import OpenAIClient
+from teleprompter import teleprompter
+import tiktoken
+
+def count_message_tokens(messages, model_name):
+    try:
+        encoding = tiktoken.encoding_for_model(model_name)
+    except KeyError:
+        encoding = tiktoken.get_encoding("cl100k_base")
+
+    total_tokens = 0
+    for message in messages:
+        total_tokens += len(encoding.encode(message["content"]))
+    return total_tokens
 
 class Archangel():
-    def __init__(self, api_key) -> None:
-        self.attributor = CombinedAssistant(api_key)
+    def __init__(self, api_key):
         self.api_key = api_key
+        self.client = OpenAIClient(api_key)
+        self.openai_pricing = self.client.openai_pricing
 
-    def estimate_cost(self, texts, model):
-        if 'gpt-3.5' in model:
-            return round(sum([(len(text.split()) + 3000 + 2000) for text in texts]) / 1000 / 1000 * 1.33 * 0.5, 3)
-        elif 'gpt-4' in model:
-            return round(sum([(len(text.split()) + 3000 + 2000) for text in texts]) / 1000 / 1000 * 1.33 * 20,3)
+    def ensure_no_duplicates(self, df):
+        return df.loc[:, ~df.columns.duplicated()]
+
+    def compute_final_results(self, df, mode, attributes, multiple_runs, n_responses):
+        if mode == 'classification':
+            if multiple_runs:
+                expected_label_runs = [f"label_run_{r}" for r in range(1, n_responses+1) if f"label_run_{r}" in df.columns]
+                def tie_break(row):
+                    labels = [row[c] for c in expected_label_runs if pd.notna(row[c])]
+                    if labels:
+                        label_counts = {}
+                        for lbl in labels:
+                            label_counts[lbl] = label_counts.get(lbl, 0) + 1
+                        max_count = max(label_counts.values())
+                        for lbl, count in label_counts.items():
+                            if count == max_count:
+                                return lbl
+                    return None
+                df['winning_label'] = df.apply(tie_break, axis=1)
         else:
-            return 'Unknown model'
+            # ratings mode
+            if multiple_runs:
+                for attr in attributes:
+                    run_cols = [c for c in df.columns if c.startswith(f"{attr}_run_")]
+                    if run_cols:
+                        for c in run_cols:
+                            df[c] = pd.to_numeric(df[c], errors='coerce')
+                        df[f"{attr}_average"] = df[run_cols].mean(axis=1, skipna=True)
 
-    def get_preset_params(self, preset='mazda'):
-        if preset == 'mazda':
-            return {'model': 'gpt-3.5-turbo', 'n_parallel': 3, 'num_runs': 10, 'rate_first': False, 'temperature':0.8,
-                    'timeout': 75, 'truncate_len': 5000, 'seed': None, 'truncate':True, 'format':'json'}
-        
-        elif preset == 'tesla':
-            return {'model': 'gpt-4-turbo', 'n_parallel': 3, 'num_runs': 10, 'rate_first': False, 'temperature':0.8,
-                    'timeout': 75, 'truncate_len': 5000, 'seed': None, 'truncate':True, 'format':'json'}
-        
-    def get_attributes(self, attributes_dict=None, attribute_mode='compare'):
-        attribute_dict = self.attributor.get_attributes(attributes_dict=attributes_dict, attribute_mode=attribute_mode)
-        return attributes_dict
+    async def run_analysis(self,
+                           texts: List[str],
+                           attribute_dict: Dict[str, str],
+                           mode: str = 'ratings',
+                           num_runs: int = 1,
+                           save_folder: str = '.',
+                           file_name: str = 'analysis_results.csv',
+                           model: str = 'gpt-4o-mini',
+                           n_parallels: int = 100,
+                           temperature: float = 0.8,
+                           timeout: int = 75,
+                           requests_per_minute: int = 40000,
+                           tokens_per_minute: int = 150000000,
+                           max_tokens: int = 1000,
+                           format: str = 'json',
+                           truncate_len: Optional[int] = None,
+                           seed: int = 42,
+                           truncate: bool = False,
+                           reset_files: bool = False,
+                           entity_category: str = 'entities',
+                           topic: str = '',
+                           guidance_template: Optional[str] = None,
+                           prompt_output_format: str = 'json',
+                           max_prompts_per_batch: int = 25000,
+                           terms_per_prompt: int = 40,
+                           task_description: Optional[str] = None) -> pd.DataFrame:
 
-    # def rate(self, preset='mazda', task_explainer=None, entities=None, attributes_dict=None, attribute_mode='compare',
-    #          model='gpt-3.5-turbo', examples=None, n_parallel=50,
-    #          save_folder=None, mode='base', num_runs=None, rate_first=False):
-    #     pass
-    #     return ratings
+        if mode not in ['ratings', 'classification']:
+            raise ValueError("mode must be either 'ratings' or 'classification'.")
 
-    def rate_texts(self, texts, preset='mazda', task_description=None, attribute_dict=None, attribute_mode='rate',
-             model=None, examples='', n_parallel=None,
-             save_folder=None, mode='rate', num_runs=None, rate_first=False, file_name = None,
-             temperature = None, timeout = None, 
-             truncate_len = None, seed = None,truncate = None, use_classification = False, 
-             format = None, project_probs = None, classification_clarification = None, reset_files = False,
-             use_batch = False):
-        
-        if use_batch:
-            print('''NOTE: You are using the batch API. Your request will be submitted now, and you can retrieve it in the next 24 hours when it is completed.
-                  You will NOT immediately get results.''')
+        if mode == 'ratings':
+            if not task_description or not isinstance(task_description, str) or not task_description.strip():
+                raise ValueError("task_description must be provided and non-empty for ratings mode.")
 
-        if file_name == None:
-            raise Exception('You must provide a file name to save to.')
+        attributes = list(attribute_dict.keys())
+        n_responses = num_runs if (num_runs and num_runs >0) else 1
+        multiple_runs = (n_responses>1)
 
         full_path = os.path.join(save_folder, file_name)
-        if not os.path.isdir(save_folder):
-            raise Exception('The save folder does not exist. Please provide a valid save_folder.')
+        responses_save_path = full_path.replace('.csv', '_responses.csv')
 
-        if reset_files:
-            warnings.warn("Reset Files is set to True. Your files will be overwritten.")
+        if reset_files and os.path.isfile(full_path):
+            os.remove(full_path)
+        if reset_files and os.path.isfile(responses_save_path):
+            os.remove(responses_save_path)
 
-        # Check if the file exists
-        if os.path.isfile(full_path) and not reset_files and not use_batch:
-            # File exists, so load the DataFrame from it
+        if not os.path.isfile(full_path):
+            if mode == 'classification':
+                df = pd.DataFrame({'Text': texts})
+            else:
+                if multiple_runs:
+                    df = pd.DataFrame({'Text': texts})
+                else:
+                    df = pd.DataFrame(columns=['Text']+attributes)
+                    df['Text'] = texts
+            df['ID']=df.index
+            df.to_csv(full_path, index=False)
+            print(f'Creating a new file at {full_path}')
+        else:
             df = pd.read_csv(full_path)
             print('File exists. DataFrame loaded from the file.')
-            texts = list(df.loc[df.isna().any(axis=1)]['Text'])
+            if 'ID' not in df.columns:
+                df['ID']=df.index
+                df.to_csv(full_path,index=False)
 
-        elif os.path.isfile(full_path) and use_batch:
-            raise Exception('''You are using batch mode, but you have provided an existing file name, which is not supported. 
-                  Provide a new, unique file name to save the batch results to.''')
+        df = self.ensure_no_duplicates(df)
+
+        if mode=='ratings':
+            # pass self.client to identify_categories
+            cats_json = await identify_categories(task_description=task_description, format='json', client=self.client)
+            cats = json.loads(cats_json)
+            entity_category_ = cats['entity category']
+            attribute_category_ = cats['attribute category']
         else:
-            # File does not exist, create an empty DataFrame and save it
-            df = pd.DataFrame(columns = ['Text'] + list(attribute_dict.keys()) + ['internal logic for gpt eyes only'])
-            df['Text'] = texts
-            df.to_csv(full_path, index = False)
-            df = pd.read_csv(full_path)
-            print(f'Creating a new file at {full_path}')
-            texts = df['Text'].to_list()
-        
-        preset_params = self.get_preset_params(preset)
-        call_params = preset_params.copy()
+            entity_category_ = entity_category if entity_category else 'entities'
+            attribute_category_=None
 
-        for param in preset_params.keys():
-            if locals()[param] == None:
-                call_params[param] = preset_params[param]
+        if mode=='classification':
+            if multiple_runs:
+                expected_label_runs = [f"label_run_{r}" for r in range(1,n_responses+1)]
+                for col in expected_label_runs:
+                    if col not in df.columns:
+                        df[col]=np.nan
             else:
-                call_params[param] = locals()[param]
-
-        call_params['project_probs'] = False
-        call_params['api_key'] = self.api_key
-        
-        if task_description == None:
-            raise Exception('Please provide a task_description')
+                if 'winning_label' not in df.columns:
+                    df['winning_label']=np.nan
         else:
-            print(f'Extracting categories for task: {task_description}')
-            categories = json.loads(identify_categories(task_description= task_description, api_key = self.api_key))
-            call_params['entity_category'] = categories['entity category']
-            call_params['attribute_category'] = categories['attribute category']
-            call_params['classification_clarification'] = classification_clarification
-            call_params['use_classification'] = use_classification
+            if multiple_runs:
+                for attr in attributes:
+                    for r in range(1,n_responses+1):
+                        run_col=f"{attr}_run_{r}"
+                        if run_col not in df.columns:
+                            df[run_col]=np.nan
+            else:
+                for attr in attributes:
+                    if attr not in df.columns:
+                        df[attr]=np.nan
 
-        if attribute_mode == 'rate':
-            rating_function = self.attributor.rate_single_text
-        elif attribute_mode == 'classify':
-            rating_function = generate_simple_classification
-        elif attribute_mode == 'compare':
-            pass
+        df = self.ensure_no_duplicates(df)
 
-        final = pd.DataFrame()  # Initialize the final DataFrame
-
-        # {'model': 'gpt-3.5-turbo', 'n_parallel': 10, 'num_runs': 10, 'rate_first': False, 'temperature':0.8,
-        #             'timeout': 75, 'truncate_len': 5000, 'seed': None, 'truncate':True, 'format':'json'}
-
-        # text, attribute_dict, entity_category, attribute_category, temperature,use_classification, format, classification_clarification, 
-        #                         project_probs, truncate, model, seed, api_key, truncate_len, timeout
-
-        if use_batch:
-            batch_name = file_name.split('.')[0]
-            del call_params['num_runs']
-            del call_params['rate_first']
-
-            print('Here are the parameters for this run:\n')
-            print(json.dumps(call_params, indent=4))
-            del call_params['n_parallel']
-
-            df['custom_id'] = df.reset_index(drop = True).index.astype(str)
-            df.to_csv(full_path, index=False)
-            for idx, row in df.loc[df.isna().any(axis=1)].iterrows():
-                text = row['Text']
-                custom_id = row['custom_id']
-                path = rating_function(text = text, attribute_dict = attribute_dict, use_batch = use_batch, batch_name = batch_name, custom_id = custom_id, **call_params)
-            print(f"Your raw batch information has been saved to: {path}")
-            print('Beginning batch request.')
-            runner = BatchRunner(self.api_key)
-            batch_params = runner.run_batch(batch_name, task_description)
-            batch_save_path = full_path.split('.')[0] + '_batch_metadata.csv'
-            print(f'Your batch information will be saved to {batch_save_path}. Your results file at {full_path} will be populated when you retrieve the batch.')
-            batch_df = create_batch_info_dataframe(batch_params)
-            print(batch_df)
-            batch_df.to_csv(batch_save_path)
-
+        if mode=='classification':
+            if multiple_runs:
+                expected_label_runs = [f"label_run_{r}" for r in range(1,n_responses+1)]
+                rows_to_process = df.loc[df[expected_label_runs].isna().any(axis=1)]
+            else:
+                rows_to_process = df.loc[df['winning_label'].isna()]
         else:
-            batches = [texts[i:i + call_params['n_parallel']] for i in range(0, len(texts),call_params['n_parallel'])]  
+            if multiple_runs:
+                expected_run_cols=[f"{attr}_run_{r}" for attr in attributes for r in range(1,n_responses+1)]
+                rows_to_process = df.loc[df[expected_run_cols].isna().any(axis=1)]
+            else:
+                if attributes:
+                    rows_to_process = df.loc[df[attributes].isna().all(axis=1)]
+                else:
+                    rows_to_process = df
 
-            del call_params['num_runs']
-            del call_params['rate_first']
+        if not isinstance(texts, list):
+            texts = list(texts)
 
-            print('Here are the parameters for this run:\n')
-            print(json.dumps(call_params, indent=4))
-            del call_params['n_parallel']
-
-            print(f'The output file will be saved at: {save_folder}/{file_name}')
-            print(f'''Rough estimated cost in dollars: {self.estimate_cost(texts, call_params['model'])}''')
-
-            for batch in tqdm(batches, total=len(batches)):
-                batch_results = []
-                with ThreadPoolExecutor(max_workers=len(batch)) as executor:
-                    futures = {executor.submit(rating_function, text = text, attribute_dict = attribute_dict, **call_params): text for text in batch}
-                    for future in as_completed(futures):
-                        text = futures[future]
-                        try:
-                            ranking_results = future.result()
-                            if ranking_results is not None:
-                                # Store the results for each group to process later
-                                batch_results.append(ranking_results)
-                        except Exception as exc:
-                            print(f"Generated an exception for text: {text[:100]}: {exc}")
-                curr_df = pd.concat(batch_results, axis=0).reset_index(drop=True)
-                df, curr_df = update_dataframe(df, curr_df, list(attribute_dict.keys()) + ['internal logic for gpt eyes only'])
-                df.to_csv(full_path, index=False)
-
+        if rows_to_process.empty:
+            print("No new texts to process.")
+            self.compute_final_results(df, mode, attributes, multiple_runs, n_responses)
+            df.to_csv(full_path,index=False)
             return df
-        # with ThreadPoolExecutor(max_workers=preset_params['n_parallel']) as executor:
-        #     # Pass the parameters along with the text to the rating_function
-        #     futures = []
-        #     for text in texts:
-        #         # Adjust call_params for each text
-        #         text_specific_params = call_params.copy()
-        #         text_specific_params['text'] = text
-        #         future = executor.submit(rating_function, attribute_dict = attribute_dict, **text_specific_params)
-        #         futures.append(future)
 
-        #     for future in tqdm(as_completed(futures), total=len(futures)):
-        #         result = future.result()
-        #         if not result.empty:
-        #             final = pd.concat([final, result], axis=0).reset_index(drop=True)
-        #         processed_rows += 1
+        process_ids=rows_to_process['ID'].tolist()
+        process_texts=rows_to_process['Text'].tolist()
 
-        #         final.to_csv(f'{save_folder}/{file_name}', index=False)
+        if truncate and truncate_len:
+            process_texts=[' '.join(txt.split()[:truncate_len]) for txt in process_texts]
 
-        #     return final
+        if mode=='classification':
+            system_instruction="Please output precise classification as requested, following the detailed JSON template."
+        else:
+            system_instruction="Please output precise ratings as requested, following the detailed JSON template."
 
-    # def rate_with_your_prompt(self, prompt, attributes_dict=None, save_folder=None, mode='base'):
-    #     pass
-    #     return ratings
+        prompts=[]
+        prompt_identifiers=[]
+
+        for text_id,text_val in zip(process_ids,process_texts):
+            if mode=='classification':
+                possible_classes=list(attribute_dict.keys())
+                class_definitions_str=""
+                for cls,definition in attribute_dict.items():
+                    class_definitions_str+=f"'{cls}': {definition}\n\n"
+                prompt=teleprompter.generic_classification_prompt(
+                    entity_list=[text_val],
+                    possible_classes=possible_classes,
+                    class_definitions=class_definitions_str,
+                    entity_category=entity_category_,
+                    output_format=prompt_output_format
+                )
+            else:
+                prompt=teleprompter.ratings_prompt_full(
+                    attribute_dict=attribute_dict,
+                    passage=text_val,
+                    entity_category=entity_category_,
+                    attribute_category=attribute_category_ if attribute_category_ else "N/A",
+                    attributes=attributes,
+                    format=format
+                )
+
+            prompts.append(prompt)
+            prompt_identifiers.append(f"id_{text_id}")
+
+        if not prompts:
+            print("No new prompts to process.")
+            self.compute_final_results(df,mode,attributes,multiple_runs,n_responses)
+            df.to_csv(full_path,index=False)
+            return df
+
+        model_name=model
+        input_tokens_total=0
+        for prompt in prompts:
+            messages=[{"role":"system","content":system_instruction},{"role":"user","content":prompt}]
+            # Use the local count_message_tokens function defined at top of archangel.py
+            input_tokens=count_message_tokens(messages,model_name)
+            input_tokens_total+=input_tokens
+
+        number_of_prompts=len(prompts)
+        output_tokens_total=max_tokens*number_of_prompts*n_responses
+
+        if model_name not in self.openai_pricing:
+            input_rate=0.0
+            output_rate=0.0
+        else:
+            pricing_info=self.openai_pricing[model_name]
+            input_rate=pricing_info.get('input',0.0)
+            output_rate=pricing_info.get('output',0.0)
+
+        input_cost=(input_tokens_total/1_000_000.0)*input_rate
+        output_cost=(output_tokens_total/1_000_000.0)*output_rate
+        total_cost=input_cost+output_cost
+        print(f'Estimated cost: {total_cost:.3f} USD')
+
+        get_response_kwargs={
+            "system_instruction":system_instruction,
+            "model":model,
+            "max_tokens":2000,
+            "temperature":temperature,
+            "n":n_responses
+        }
+
+        responses_df=await self.client.get_all_responses(
+            prompts=prompts,
+            identifiers=prompt_identifiers,
+            n_parallels=n_parallels,
+            save_path=responses_save_path,
+            reset_files=reset_files,
+            **get_response_kwargs
+        )
+
+        if responses_df is None or responses_df.empty:
+            print("No responses returned.")
+            self.compute_final_results(df,mode,attributes,multiple_runs,n_responses)
+            df.to_csv(full_path,index=False)
+            return df
+
+        parsed_rows=[]
+        for idx,row in responses_df.iterrows():
+            identifier=row['Identifier']
+            response_list=row['Response']
+            if not response_list:
+                continue
+            text_id=int(identifier.split('_')[-1])
+            row_data={'ID':text_id}
+            idx_in_process=process_ids.index(text_id)
+            text_val=process_texts[idx_in_process]
+
+            if mode=='classification':
+                for run_num,response_str in enumerate(response_list, start=1):
+                    try:
+                        response_dict=json.loads(response_str) if response_str else {}
+                        label=response_dict.get(text_val,None)
+                        if multiple_runs:
+                            run_col=f"label_run_{run_num}"
+                            if pd.isna(df.loc[df['ID']==text_id,run_col].values[0]) and label is not None:
+                                row_data[run_col]=label
+                        else:
+                            if pd.isna(df.loc[df['ID']==text_id,'winning_label'].values[0]) and label is not None:
+                                row_data['winning_label']=label
+                    except Exception as e:
+                        print(f"Failed to parse run {run_num} for {identifier}: {e}")
+                        if multiple_runs:
+                            run_col=f"label_run_{run_num}"
+                            row_data[run_col]=None
+                        else:
+                            row_data['winning_label']=None
+            else:
+                for run_num,response_str in enumerate(response_list,start=1):
+                    try:
+                        response_dict=json.loads(response_str) if response_str else {}
+                        attr_ratings={}
+                        for attr in attributes:
+                            val=response_dict.get(attr,None)
+                            if val is not None:
+                                try:val=float(val)
+                                except:pass
+                                attr_ratings[attr]=val
+                        if multiple_runs:
+                            for attr in attributes:
+                                run_col=f"{attr}_run_{run_num}"
+                                val=attr_ratings.get(attr,None)
+                                if val is not None and pd.isna(df.loc[df['ID']==text_id,run_col].values[0]):
+                                    row_data[run_col]=val
+                        else:
+                            for attr in attributes:
+                                val=attr_ratings.get(attr,None)
+                                if val is not None and pd.isna(df.loc[df['ID']==text_id,attr].values[0]):
+                                    row_data[attr]=val
+                    except Exception as e:
+                        print(f"Failed to parse run {run_num} for {identifier}: {e}")
+
+            parsed_rows.append(row_data)
+
+        if not parsed_rows:
+            print("No valid responses parsed.")
+            self.compute_final_results(df,mode,attributes,multiple_runs,n_responses)
+            df.to_csv(full_path,index=False)
+            return df
+
+        parsed_df=pd.DataFrame(parsed_rows)
+        parsed_df=self.ensure_no_duplicates(parsed_df)
+
+        for i,new_row in parsed_df.iterrows():
+            row_id=new_row['ID']
+            mask=(df['ID']==row_id)
+            if mask.any():
+                for col in new_row.index:
+                    if col=='ID':
+                        continue
+                    val=new_row[col]
+                    if val is not None and pd.isna(df.loc[mask,col].values[0]):
+                        df.loc[mask,col]=val
+
+        df=self.ensure_no_duplicates(df)
+
+        self.compute_final_results(df,mode,attributes,multiple_runs,n_responses)
+        df.to_csv(full_path,index=False)
+        return df

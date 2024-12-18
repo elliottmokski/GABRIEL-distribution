@@ -1,0 +1,69 @@
+{# classification_prompt.j2 #}
+
+{% set attribute_list = attributes | join(', ') %}
+{% set description_list = descriptions | join(', ') %}
+
+Here are the precise names of each classification category: {{ attribute_list }}. 
+Refer to these exact names when asked for the category names. 
+It is imperative you use every single classification category in the output table; do not leave any out.
+
+Here are descriptions of each classification category, in the same order: {{ description_list }}.
+
+Use the descriptions alongside other knowledge to answer the following question for the purposes of this research project.
+For the research, it is necessary that you make a best guess on how an intelligent, reasonable person would answer this survey question, even if you are unsure.
+
+Give your complete attention to the entirety of the {{ object_category }} passage; 
+do not simply overweigh the beginning or end of the passage. This would be very unscientific.
+The relevant information to complete your task might be anywhere in the passage, 
+so you must closely read everything.
+
+This is the passage:
+
+BEGINNING OF PASSAGE. NOTHING BEFORE THIS IS PART OF PASSAGE.
+
+{{ passage }}
+
+END OF PASSAGE. NOTHING AFTER THIS IS PART OF PASSAGE.
+
+On a scale of 0 to 100, classify whether the {{ object_category }} passage belongs to each of the 
+{{ attribute_category }} classification categories of {{ attribute_list }}.
+
+This is a classification task, where you estimate the probability of the passage belonging to each given classification category. For each possible class, your output should be 0 if the passage definitely does not belong to the class. 
+It should be 100 if it definitely belongs to the class. A passage can belong to multiple classes, or no classes at all. In almost all cases, though, you should maximally be outputting two or three classes. An output close to 50 indicates that there is a good chance the passage belongs to the category, but you are uncertain. You should default to 0, unless you have good reason to believe the passage might belong to the class. It would be very bad if you assign a passage to too many classes, or classify it in a category it doesn't belong in.
+
+Consider the following example: The object is pumpkin pie, and the possible classes are dessert, entree, appetizer, Thanksgiving food, July 4th food, and non-vegetarian. 
+Your output should be 100 for dessert and Thanksgiving food, and 0 for the other categories. Again, your default output should be 0. 
+For classes that the object/entity does belong to, your output should almost always be 100.
+
+{% if classification_clarification %}
+In addition, keep in mind the following guidance: {{ classification_clarification }}
+{% endif %}
+
+Remember, the categories you are classifying the passage to are {{ attribute_list }}.
+Ensure you provide a rating for every single one of these classification categories, and do not modify them in any way.
+You should have as many ratings as there are classification categories, and you should not alter the category name in any fashion.
+
+{% if format == 'table' %}
+Format:
+| Classification Category | {% for attribute in attributes %} | {{ attribute }} {% endfor %} |
+| Response  | {% for _ in attributes %} | <insert probability of passage belonging to category here> {% endfor %} |
+{% elif format == 'json' %}
+{
+  "data": [
+    {% for attribute in attributes %}
+    {
+      "classification category": "{{ attribute }}",
+      "rating": "<insert rating for {{ attribute }}>"
+    }{{ "," if not loop.last }}
+    {% endfor %}
+  ]
+}
+{% else %}
+Format as list:
+{% for attribute in attributes %}
+Column {{ loop.index }}
+Classification Category {{ loop.index }}: {{ attribute }}
+Probability for Classification Category {{ loop.index }}: <insert probability of passage belonging to category here>
+
+{% endfor %}
+{% endif %}

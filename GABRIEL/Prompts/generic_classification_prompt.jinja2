@@ -1,0 +1,30 @@
+The following is a list of entities, which are potentially instances of {{entity_category}}. 
+Here is the list. 
+
+{{entity_list}}.
+
+Your task is to classify each of the entities, separately, into the following classes. You can only choose one classification per entity, so pick wisely. 
+
+The options are {{possible_classes}}. 
+
+Below, the classification options are defined; perform your classification task using these definitions exactly.
+
+{{class_definitions}}
+
+Once again, the entities to classify are {{entity_list}}.
+
+The possible classes are {{possible_classes}}.
+
+It is essential, for each entity, you choose one and only one class. Always choose one, never multiple. If more than one fit, choose the best one, airing on the side of choosing the tech related category. All entities irrelevant to tech should go into the 'other' category, as described precisely above. DO NOT create new classes or change the names of the classes in ANY way. Use ONLY these class choices with no modifications.
+
+Your output should be in JSON format, as follows, substituting 'entity_n' for the respective entity name and <insert correct class for entity_n here> with its corresponding singular class choice:
+
+{{output_format}}
+
+Once again: the entities are {{entity_list}}.
+
+The classification choices are {{possible_classes}}
+
+Use the EXACT class definitions from above; the examples will be VERY helpful. Don't drop any entities. Ensure you classify ALL entities, SEPARATELY and INDEPENDENTLY. Each entity must get one and ONLY one of the classes. ABSOLUTELY no modifying the class names or creating new ones. Comply exactly with these instructions.
+Critically, look at the ENTIRE wording of the entity.  Classify the FULL entity, not just a portion of it.
+It is imperative each entity is classified separately from the others; there must be NO influence of one entity on another's classification.
