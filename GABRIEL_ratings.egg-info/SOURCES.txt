@@ -9,7 +9,9 @@ GABRIEL_ratings.egg-info/dependency_links.txt
 GABRIEL_ratings.egg-info/requires.txt
 GABRIEL_ratings.egg-info/top_level.txt
 dist/GABRIEL_ratings-0.1.5-py3-none-any.whl
+dist/GABRIEL_ratings-0.1.6-py3-none-any.whl
 dist/gabriel_ratings-0.1.5.tar.gz
+dist/gabriel_ratings-0.1.6.tar.gz
 gabriel/__init__.py
 gabriel/archangel.py
 gabriel/foundational_functions.py
@@ -18,7 +20,9 @@ gabriel/teleprompter.py
 gabriel/Prompts/__init__.py
 gabriel/Prompts/attribute_description_prompt.j2
 gabriel/Prompts/classification_prompt.j2
+gabriel/Prompts/generic_classification_prompt.j2
 gabriel/Prompts/identify_categories_prompt.j2
 gabriel/Prompts/list_generation_prompt.j2
 gabriel/Prompts/ratings_prompt.j2
 gabriel/Prompts/ratings_prompt_full.j2
+gabriel/Prompts/type_of_tech_format.j2

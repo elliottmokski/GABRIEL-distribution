@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from typing import Any, Dict, Optional
 
-from teleprompter import teleprompter
+from gabriel.teleprompter import teleprompter
 
 # Instead of directly calling get_response, we will accept a `client` argument that has `get_response`.
 async def async_get_single_response(prompt, system_instruction, timeout, temperature, model, client, max_tokens=1000):

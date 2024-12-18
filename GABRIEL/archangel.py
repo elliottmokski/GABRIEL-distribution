@@ -4,9 +4,9 @@ import pandas as pd
 import numpy as np
 import asyncio
 from typing import List, Dict, Any, Optional
-from foundational_functions import identify_categories, ensure_no_duplicates
-from openai_api_calls import OpenAIClient
-from teleprompter import teleprompter
+from gabriel.foundational_functions import identify_categories, ensure_no_duplicates
+from gabriel.openai_api_calls import OpenAIClient
+from gabriel.teleprompter import teleprompter
 import tiktoken
 
 def count_message_tokens(messages, model_name):
