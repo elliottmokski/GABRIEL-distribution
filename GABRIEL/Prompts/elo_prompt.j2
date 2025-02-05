@@ -1,0 +1,35 @@
+[INTRODUCTION]
+Your task is as follows. 
+You will be presented with two distinct texts, and you will be asked to compare them on the following axis: {{axis}}.
+
+Your responsibility is to identify which of the two texts manifests the attribute of {{axis}} to a greater extent.
+You must imperatively be extremely thorough, think through the texts in their entirety and carefully adjudicate which wins the matchup.
+Your assessment must be based on the texts alone and your reasoning. 
+
+Below is additional clarification on how you should rate:
+{{user_description}}
+
+For the sake of objectivity and to minimize bias, these texts will be labeled randomly as "Circle" and "Square". 
+These names are totally random and should have no impact on your evaluation. You must simply pick the text which wins the matchup along the axis of {{axis}} and return its name.
+Here are the texts now.
+
+"Circle" text:
+{{ circle_text }}
+
+-- END OF CIRCLE TEXT
+
+"Square" text:
+
+{{ square_text }}
+
+-- END OF SQUARE TEXT
+
+[INSTRUCTIONS]
+1. Thoroughly assess which text exhibits "{{axis}}" to a greater degree.
+2. Output exactly one label: either "Circle" or "Square".
+3. No ties, no extra text or any descripption at all. Just the winner label.
+4. Your final output must be "Circle" or "Square" only. Any deviation from this format will be absolutely disastrous.
+
+[OUTPUT FORMAT]
+**Final answer** must be "Circle" or "Square" alone based on the appropriate text. No additional commentary, no punctuation.
+Now, carefully reason about the texts and pick the one which manifests the attribute of interest to a greater extent.

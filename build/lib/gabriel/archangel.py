@@ -248,7 +248,7 @@ class Archangel():
         input_cost=(input_tokens_total/1_000_000.0)*input_rate
         output_cost=(output_tokens_total/1_000_000.0)*output_rate
         total_cost=input_cost+output_cost
-        print(f'Estimated cost: {total_cost:.3f} USD')
+        print(f'Estimated cost: {total_cost:.3f} USD [EXCLUDING REASONING]')
 
         get_response_kwargs={
             "system_instruction":system_instruction,

@@ -10,12 +10,14 @@ GABRIEL_ratings.egg-info/requires.txt
 GABRIEL_ratings.egg-info/top_level.txt
 gabriel/__init__.py
 gabriel/archangel.py
+gabriel/elo_ratings_code.py
 gabriel/foundational_functions.py
 gabriel/openai_api_calls.py
 gabriel/teleprompter.py
 gabriel/Prompts/__init__.py
 gabriel/Prompts/attribute_description_prompt.j2
 gabriel/Prompts/classification_prompt.j2
+gabriel/Prompts/elo_prompt.j2
 gabriel/Prompts/generic_classification_prompt.j2
 gabriel/Prompts/identify_categories_prompt.j2
 gabriel/Prompts/list_generation_prompt.j2

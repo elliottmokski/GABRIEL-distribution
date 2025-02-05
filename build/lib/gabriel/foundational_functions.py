@@ -67,7 +67,7 @@ async def generate_full_ratings(attribute_dict, passage, entity_category, attrib
 
 async def generate_simple_classification(attributes, descriptions, passage, object_category, attribute_category, format='json',
                                          classification_clarification=None,
-                                         timeout=90, temperature=0.8, model='gpt-3.5-turbo-0125',
+                                         timeout=90, temperature=0.8, model='gpt-4o-mini',
                                          client=None, **kwargs):
     if format == 'json':
         system_instruction = 'Please output precise ratings as requested, following the detailed JSON template.'
@@ -79,7 +79,7 @@ async def generate_simple_classification(attributes, descriptions, passage, obje
     return response
 
 async def identify_categories(task_description, format='json',
-                              timeout=90, temperature=0.8, model='gpt-3.5-turbo-0125',
+                              timeout=90, temperature=0.8, model='gpt-4o-mini',
                               client=None, **kwargs):
     if format == 'json':
         system_instruction = 'Please output well-defined categories as requested, following the detailed JSON template.'

@@ -1,0 +1,21 @@
+Identifier,Response,Time Taken
+round0_match1,['Square'],0.9061460494995116
+round0_match0,['Square'],0.9810402393341064
+round1_match0,['Square'],0.3008370399475097
+round1_match1,['Circle'],2.8301329612731934
+round2_match1,['Square'],0.4216420650482178
+round2_match0,['Square'],0.4227070808410644
+round3_match0,['Circle'],0.4799633026123047
+round3_match1,['Square'],1.5047309398651123
+round4_match1,['Square'],0.3815429210662842
+round4_match0,['Circle'],0.4661669731140136
+round5_match0,['Square'],0.2955329418182373
+round5_match1,['Square'],0.3405947685241699
+round6_match1,['Circle'],0.2912089824676513
+round6_match0,['Square'],0.3611021041870117
+round7_match0,['Circle'],0.3078229427337646
+round7_match1,['Square'],0.3428807258605957
+round8_match1,['Square'],0.4079291820526123
+round8_match0,['Circle'],0.4470250606536865
+round9_match1,['Square'],0.3516349792480469
+round9_match0,['Square'],0.5504992008209229
