@@ -81,32 +81,10 @@ class OpenAIClient:
     ) -> float:
         """
         Estimate the cost (in USD) for a single prompt/model call *before* actually running it.
-
-        - If `reasoning_model` is True, add cost for additional "reasoning tokens" which we assume
-          equals `reasoning_token_scaling * total_output_tokens`, billed at the same rate as output.
-
-        Args:
-            prompt (str): The user prompt for which to estimate cost.
-            model (str, optional): The model used. Defaults to "gpt-4o-mini".
-            system_instruction (str, optional): System instruction for the AI model.
-            n (int, optional): Number of responses (affects output tokens multiplied).
-            max_tokens (int, optional): The maximum tokens in the response. Defaults to 4000.
-            temperature (float, optional): Sampling temperature. Unused for cost, 
-                                           but included for completeness.
-            json_mode (bool, optional): If True, modifies system_instruction for JSON.
-            expected_schema (Dict[str, Any], optional): Unused for cost, but included for completeness.
-            reasoning_model (bool, optional): If True, we add additional "reasoning" token costs.
-            reasoning_token_scaling (float, optional): Multiplier for extra "reasoning" tokens,
-                                                       default = 1.0 (same amount as output tokens).
-            **kwargs: Additional parameters that do not affect token count in this example.
-
-        Returns:
-            float: Estimated cost in USD.
         """
         if json_mode:
             system_instruction = system_instruction + " Output the response in JSON format."
 
-        # Prepare chat messages similarly to get_response
         if model.startswith("o"):
             messages = [
                 {"role": "user", "content": prompt},
@@ -117,9 +95,7 @@ class OpenAIClient:
                 {"role": "user", "content": prompt},
             ]
 
-        # --- Count tokens (approximation or with tiktoken if possible) ---
         def approximate_token_count(text: str) -> int:
-            # Very rough approximation: 1 word ~ 1.5 tokens
             words = text.split()
             return int(math.ceil(len(words) * 1.5))
 
@@ -127,24 +103,17 @@ class OpenAIClient:
             encoding = tiktoken.encoding_for_model(model)
             total_input_tokens = 0
             for msg in messages:
-                # Role + message content
                 total_input_tokens += len(encoding.encode(msg["role"]))
                 total_input_tokens += len(encoding.encode(msg["content"]))
-                # A few tokens overhead per message
                 total_input_tokens += 4
-            # Add final reply separator tokens
             total_input_tokens += 2
         except:
-            # Fallback to approximate
             concatenated = " ".join([m["content"] for m in messages])
             total_input_tokens = approximate_token_count(concatenated)
 
-        # The output tokens are at most `max_tokens` for each of the n responses
         total_output_tokens = max_tokens * n
 
-        # Look up model pricing
         if model not in self.openai_pricing:
-            # If not found, default to 0 cost
             return 0.0
 
         input_rate = self.openai_pricing[model].get("input", 0.0)
@@ -153,8 +122,6 @@ class OpenAIClient:
         cost_input = (total_input_tokens / 1_000_000) * input_rate
         cost_output = (total_output_tokens / 1_000_000) * output_rate
 
-        # If reasoning_model is True, add cost for "reasoning tokens"
-        # reasoning tokens = reasoning_token_scaling * total_output_tokens (billed at output rate)
         if reasoning_model:
             reasoning_tokens = reasoning_token_scaling * total_output_tokens
             cost_reasoning = (reasoning_tokens / 1_000_000) * output_rate * n
@@ -163,7 +130,7 @@ class OpenAIClient:
         return cost_input + cost_output
 
     async def get_response(
-        self, 
+        self,
         prompt: str,
         model: str = "gpt-4o-mini",
         system_instruction: str = "Please provide a helpful response to this inquiry for purposes of academic research.",
@@ -172,39 +139,19 @@ class OpenAIClient:
         temperature: float = 0.9,
         json_mode: bool = False,
         expected_schema: Optional[Dict[str, Any]] = None,
-        timeout: float = 60.0,  # Timeout in seconds
+        timeout: float = 60.0,
+        exclude_system_prompt: bool = False,  # parameter
         **kwargs,
     ) -> Tuple[List[str], float]:
         """
         Fetches responses from the OpenAI API based on the provided prompt and parameters.
-        This version uses asynchronous execution with aiohttp and supports multiple responses.
-        JSON schema is optional even if json_mode is True.
-
-        Args:
-            prompt (str): The user prompt to send to the API.
-            model (str, optional): The model to use. Defaults to 'gpt-4o-mini'.
-            system_instruction (str, optional): The system instruction for the AI model.
-                                                Defaults to a predefined instruction.
-            n (int, optional): Number of responses to generate. Defaults to 1.
-            max_tokens (int, optional): The maximum number of tokens in the response. Defaults to 4000.
-            temperature (float, optional): The sampling temperature. Defaults to 0.9.
-            json_mode (bool, optional): If True, expects the response in JSON format.
-            expected_schema (Dict[str, Any], optional): A dictionary defining the expected JSON schema of the response.
-            timeout (float, optional): Timeout in seconds for the API call.
-            **kwargs: Additional optional parameters for the OpenAI API.
-
-        Returns:
-            Tuple[List[str], float]: The list of AI model's responses and the time taken to retrieve them.
-
-        Raises:
-            Exception: If the API call fails or encounters an exception.
+        Uses `exclude_system_prompt` (or model starting with "o") to determine whether 
+        to include a system message.
         """
-
         if json_mode:
             system_instruction = system_instruction + " Output the response in JSON format."
 
-        # Prepare the messages for the API call
-        if model.startswith("o"):
+        if model.startswith("o") or exclude_system_prompt:
             messages = [{"role": "user", "content": prompt}]
             params = {
                 "model": model,
@@ -223,10 +170,8 @@ class OpenAIClient:
                 "temperature": temperature,
                 "n": n,
             }
-        # Additional parameters
         params.update(kwargs)
 
-        # Handle JSON mode (hypothetical usage; not an actual OpenAI param)
         if json_mode:
             if expected_schema is not None:
                 params["response_format"] = {"type": "json_schema", "json_schema": expected_schema}
@@ -239,8 +184,9 @@ class OpenAIClient:
             "Authorization": f"Bearer {self.api_key}",
         }
 
-        start_time = time.time()
+        # print(params)  # For debugging
 
+        start_time = time.time()
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, headers=headers, json=params, timeout=timeout) as resp:
@@ -254,19 +200,16 @@ class OpenAIClient:
         except Exception as e:
             raise Exception(f"API call resulted in exception: {e}")
 
-        # Extract the responses
         responses = []
         for choice in data.get("choices", []):
             response_message = choice["message"]["content"]
             responses.append(response_message)
 
-        end_time = time.time()
-        total_time = end_time - start_time
-
+        total_time = time.time() - start_time
         return responses, total_time
 
     async def get_all_responses(
-        self, 
+        self,
         prompts: List[str],
         identifiers: Optional[List[str]] = None,
         n_parallels: int = 100,
@@ -291,20 +234,17 @@ class OpenAIClient:
         Processes prompts using an asyncio.Queue and a fixed number of worker coroutines.
         """
         if identifiers is None:
-            identifiers = prompts  # Use prompts as identifiers if none provided
+            identifiers = prompts
 
         model = get_response_kwargs.get("model", "gpt-4o-mini")
         print(f"Model used: {model}")
 
-        # Load existing data if save_path exists
         if os.path.exists(save_path) and not reset_files:
             df = pd.read_csv(save_path)
             existing_identifiers = set(df["Identifier"])
             prompts_to_process = [
                 (p, id) for p, id in zip(prompts, identifiers) if id not in existing_identifiers
             ]
-
-            # Parse the 'Response' column back into lists
             df["Response"] = df["Response"].apply(
                 lambda x: ast.literal_eval(x) if isinstance(x, str) else x
             )
@@ -319,53 +259,38 @@ class OpenAIClient:
             print("No new prompts to process.")
             return df
 
-        # Prompt truncation
         max_context_tokens = 128000
         max_allowed_prompt_tokens = max_context_tokens - max_tokens
         truncated_count = 0
 
         def truncate_prompt(prompt: str) -> Tuple[str, bool]:
             words = prompt.split()
-            num_tokens = int(math.ceil(len(words) * 1.5))  # Approx tokens
-
+            num_tokens = int(math.ceil(len(words) * 1.5))
             if num_tokens <= max_allowed_prompt_tokens:
                 return prompt, False
-
             allowed_words_count = int(max_allowed_prompt_tokens / 1.5)
-
             if allowed_words_count <= 0:
                 return "\n\n...\n\n", True
-
             half = allowed_words_count // 2
             truncated_prompt = " ".join(words[:half]) + "\n\n...\n\n" + " ".join(words[-half:])
             return truncated_prompt, True
 
         updated_prompts_to_process = []
         for prompt, identifier in prompts_to_process:
-            truncated_prompt, was_truncated = (
-                truncate_prompt(prompt) if truncate_middle else (prompt, False)
-            )
+            truncated_prompt, was_truncated = (truncate_prompt(prompt) if truncate_middle else (prompt, False))
             if was_truncated:
                 truncated_count += 1
             updated_prompts_to_process.append((truncated_prompt, identifier))
 
         truncation_percent = (truncated_count / total_prompts) * 100 if total_prompts > 0 else 0
-        print(
-            f"Truncated {truncated_count} prompts out of {total_prompts} ({truncation_percent:.2f}%)."
-        )
+        print(f"Truncated {truncated_count} prompts out of {total_prompts} ({truncation_percent:.2f}%).")
 
-        # Rate limits
         effective_requests_per_minute = requests_per_minute * rate_limit_factor
         effective_tokens_per_minute = tokens_per_minute * rate_limit_factor
 
-        request_limiter = AsyncLimiter(
-            max_rate=int(effective_requests_per_minute), time_period=60
-        )
-        token_limiter = AsyncLimiter(
-            max_rate=int(effective_tokens_per_minute), time_period=60
-        )
+        request_limiter = AsyncLimiter(int(effective_requests_per_minute), time_period=60)
+        token_limiter = AsyncLimiter(int(effective_tokens_per_minute), time_period=60)
 
-        # Storage
         results = []
         processed_responses = 0
         last_save_time = time.time()
@@ -373,7 +298,6 @@ class OpenAIClient:
         queue = asyncio.Queue()
         for prompt, identifier in updated_prompts_to_process:
             queue.put_nowait((prompt, identifier))
-
         total_tasks = queue.qsize()
 
         async def worker(worker_id: int):
@@ -386,8 +310,6 @@ class OpenAIClient:
 
                 base_timeout = timeout
                 model_name = get_response_kwargs.get("model", "gpt-4o-mini")
-
-                # Increase timeout for certain "o"-models
                 if model_name.startswith("o"):
                     if model_name in ["o1", "o3"]:
                         base_timeout *= 6
@@ -398,11 +320,9 @@ class OpenAIClient:
                 while attempt <= max_retries:
                     attempt_timeout = base_timeout + 30 * (attempt - 1)
                     try:
-                        # Rate limiting
                         prompt_words = prompt.split()
                         prompt_tokens = int(math.ceil(len(prompt_words) * 1.5))
                         total_tokens_for_request = (prompt_tokens + max_tokens) * n
-
                         await request_limiter.acquire()
                         await token_limiter.acquire(total_tokens_for_request)
 
@@ -417,32 +337,21 @@ class OpenAIClient:
                             timeout=attempt_timeout,
                         )
 
-                        results.append(
-                            {
-                                "Identifier": identifier,
-                                "Response": responses,
-                                "Time Taken": time_taken,
-                            }
-                        )
-
+                        results.append({
+                            "Identifier": identifier,
+                            "Response": responses,
+                            "Time Taken": time_taken,
+                        })
                         processed_responses += 1
                         if processed_responses % save_every_x_responses == 0:
                             await save_results()
-
-                        break  # success
-
+                        break
                     except asyncio.TimeoutError:
-                        print(
-                            f"Worker {worker_id}, attempt {attempt}: Prompt {identifier} timed out after {attempt_timeout} seconds."
-                        )
+                        print(f"Worker {worker_id}, attempt {attempt}: Prompt {identifier} timed out after {attempt_timeout} seconds.")
                         attempt += 3
                         if attempt > max_retries:
-                            print(
-                                f"Prompt {identifier} failed after {max_retries} attempts due to timeout."
-                            )
-                            results.append(
-                                {"Identifier": identifier, "Response": None, "Time Taken": None}
-                            )
+                            print(f"Prompt {identifier} failed after {max_retries} attempts due to timeout.")
+                            results.append({"Identifier": identifier, "Response": None, "Time Taken": None})
                             processed_responses += 1
                             if processed_responses % save_every_x_responses == 0:
                                 await save_results()
@@ -450,14 +359,10 @@ class OpenAIClient:
                         else:
                             await asyncio.sleep(5)
                     except Exception as e:
-                        print(
-                            f"Worker {worker_id}, Error for Identifier {identifier}, attempt {attempt}: {e}"
-                        )
+                        print(f"Worker {worker_id}, Error for Identifier {identifier}, attempt {attempt}: {e}")
                         attempt += 1
                         if attempt > max_retries:
-                            results.append(
-                                {"Identifier": identifier, "Response": None, "Time Taken": None}
-                            )
+                            results.append({"Identifier": identifier, "Response": None, "Time Taken": None})
                             processed_responses += 1
                             if processed_responses % save_every_x_responses == 0:
                                 await save_results()
@@ -472,7 +377,7 @@ class OpenAIClient:
                 batch_df = pd.DataFrame(results)
                 df = pd.concat([df, batch_df], ignore_index=True)
                 df.to_csv(save_path, index=False)
-                results = []
+                results.clear()
                 last_save_time = time.time()
                 print(f"Results saved to {save_path}")
 
@@ -481,7 +386,6 @@ class OpenAIClient:
                 await asyncio.sleep(save_every_x_seconds)
                 await save_results()
 
-        # Start workers
         workers = []
         for i in range(n_parallels):
             worker_task = asyncio.create_task(worker(i))
@@ -491,14 +395,12 @@ class OpenAIClient:
             periodic_save_task = asyncio.create_task(periodic_save())
 
         pbar = tqdm(total=total_tasks, desc="Processing prompts")
-
         try:
             while True:
                 await asyncio.sleep(1)
-                processed = processed_responses
-                pbar.n = processed
+                pbar.n = processed_responses
                 pbar.refresh()
-                if queue.empty() and processed >= total_tasks:
+                if queue.empty() and processed_responses >= total_tasks:
                     break
         except KeyboardInterrupt:
             print("KeyboardInterrupt detected. Saving current progress and stopping.")
@@ -507,10 +409,8 @@ class OpenAIClient:
             await save_results()
             return df
 
-        # Wait for queue to empty
         await queue.join()
 
-        # Cancel worker tasks
         for worker_task in workers:
             worker_task.cancel()
 
@@ -521,12 +421,10 @@ class OpenAIClient:
         pbar.close()
         print(f"All responses saved to {save_path}")
 
-        # Time summary
         time_taken_series = df["Time Taken"].dropna()
         if len(time_taken_series) > 0:
             percentiles = [0, 10, 25, 50, 75, 90, 95, 99, 100]
             percentile_values = np.percentile(time_taken_series, percentiles)
-
             print("\nTime taken summary (in seconds):")
             for p, val in zip(percentiles, percentile_values):
                 print(f"{p}th percentile: {val:.2f}")

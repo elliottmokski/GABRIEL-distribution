@@ -17,6 +17,7 @@ gabriel/teleprompter.py
 gabriel/Prompts/__init__.py
 gabriel/Prompts/attribute_description_prompt.j2
 gabriel/Prompts/classification_prompt.j2
+gabriel/Prompts/clean_json_prompt.j2
 gabriel/Prompts/elo_prompt.j2
 gabriel/Prompts/generic_classification_prompt.j2
 gabriel/Prompts/identify_categories_prompt.j2

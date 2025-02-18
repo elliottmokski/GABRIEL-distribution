@@ -8,33 +8,37 @@ from typing import Any, Dict, Optional
 from gabriel.teleprompter import teleprompter
 
 # Instead of directly calling get_response, we will accept a `client` argument that has `get_response`.
-async def async_get_single_response(prompt, system_instruction, timeout, temperature, model, client, max_tokens=1000):
+async def async_get_single_response(prompt, system_instruction, timeout, temperature, model, client, max_tokens=1000,
+                                    exclude_system_prompt=False):
     responses, time_taken = await client.get_response(
-        prompt, 
-        model=model, 
-        system_instruction=system_instruction, 
-        max_tokens=max_tokens, 
+        prompt,
+        model=model,
+        system_instruction=system_instruction,
+        max_tokens=max_tokens,
         temperature=temperature,
         json_mode=False,
-        timeout=timeout
+        timeout=timeout,
+        exclude_system_prompt=exclude_system_prompt
     )
     return responses[0]
 
 async def get_description_for_attribute(attribute, attribute_category, description_length,
-                                        timeout=75, temperature=0.8, model='gpt-4o-mini', client=None, **kwargs):
+                                        timeout=75, temperature=0.8, model='gpt-4o-mini', client=None,
+                                        exclude_system_prompt=False, **kwargs):
     system_instruction = "Please provide a brief description."
     prompt = teleprompter.attribute_description_prompt(attribute, attribute_category, description_length)
-    response = await async_get_single_response(prompt, system_instruction, timeout, temperature, model, client)
+    response = await async_get_single_response(prompt, system_instruction, timeout, temperature,
+                                               model, client, exclude_system_prompt=exclude_system_prompt)
     return response.strip()
 
-async def generate_category_items(category, n_items, mode='item', 
-                                  object_clarification=None, attribute_clarification=None, 
-                                  timeout=90, temperature=0.8, model='gpt-3.5-turbo-0125', 
-                                  client=None, **kwargs):
+async def generate_category_items(category, n_items, mode='item',
+                                  object_clarification=None, attribute_clarification=None,
+                                  timeout=90, temperature=0.8, model='gpt-4o-mini',
+                                  client=None, exclude_system_prompt=False, **kwargs):
     system_instruction = "Please list the items or attributes."
     prompt = teleprompter.list_generation_prompt(category, n_items, mode, object_clarification, attribute_clarification)
-    response = await async_get_single_response(prompt, system_instruction, timeout, temperature, model, client)
-
+    response = await async_get_single_response(prompt, system_instruction, timeout, temperature,
+                                               model, client, exclude_system_prompt=exclude_system_prompt)
     items = re.split(r',\s|\n', response)
     items = [re.sub(r'\d+\.\s', '', item).strip() for item in items if item.strip()]
     items = [re.sub(r'[^a-zA-Z0-9\s]', '', item) for item in items]
@@ -42,54 +46,59 @@ async def generate_category_items(category, n_items, mode='item',
 
 async def generate_simple_ratings(attributes, descriptions, passage, object_category, attribute_category, format='json',
                                   classification_clarification=None,
-                                  timeout=90, temperature=0.8, model='gpt-3.5-turbo-0125', client=None, **kwargs):
+                                  timeout=90, temperature=0.8, model='gpt-4o-mini', client=None,
+                                  exclude_system_prompt=False, **kwargs):
     if format == 'json':
         system_instruction = 'Please output precise ratings as requested, following the detailed JSON template.'
     else:
         system_instruction = 'Please output precise ratings as requested, using the provided format.'
 
-    prompt = teleprompter.ratings_prompt(attributes, descriptions, passage, object_category, attribute_category, classification_clarification, format=format)
-    response = await async_get_single_response(prompt, system_instruction, timeout, temperature, model, client)
+    prompt = teleprompter.ratings_prompt(attributes, descriptions, passage, object_category, attribute_category,
+                                         classification_clarification, format=format)
+    response = await async_get_single_response(prompt, system_instruction, timeout, temperature,
+                                               model, client, exclude_system_prompt=exclude_system_prompt)
     return response
 
-
 async def generate_full_ratings(attribute_dict, passage, entity_category, attribute_category, attributes, format='json',
-                                timeout=90, temperature=0.8, model='gpt-3.5-turbo-0125',
-                                client=None, **kwargs):
+                                timeout=90, temperature=0.8, model='gpt-4o-mini',
+                                client=None, exclude_system_prompt=False, **kwargs):
     if format == 'json':
         system_instruction = 'Please output precise ratings as requested, following the detailed JSON template.'
     else:
         system_instruction = 'Please output precise ratings as requested, using the provided format.'
 
     prompt = teleprompter.ratings_prompt_full(attribute_dict, passage, entity_category, attribute_category, attributes, format=format)
-    response = await async_get_single_response(prompt, system_instruction, timeout, temperature, model, client)
+    response = await async_get_single_response(prompt, system_instruction, timeout, temperature,
+                                               model, client, exclude_system_prompt=exclude_system_prompt)
     return response
 
 async def generate_simple_classification(attributes, descriptions, passage, object_category, attribute_category, format='json',
                                          classification_clarification=None,
                                          timeout=90, temperature=0.8, model='gpt-4o-mini',
-                                         client=None, **kwargs):
+                                         client=None, exclude_system_prompt=False, **kwargs):
     if format == 'json':
         system_instruction = 'Please output precise ratings as requested, following the detailed JSON template.'
     else:
         system_instruction = 'Please output precise ratings as requested, using the provided format.'
 
-    prompt = teleprompter.classification_prompt(attributes, descriptions, passage, object_category, attribute_category, classification_clarification, format=format)
-    response = await async_get_single_response(prompt, system_instruction, timeout, temperature, model, client)
+    prompt = teleprompter.classification_prompt(attributes, descriptions, passage, object_category, attribute_category,
+                                                classification_clarification, format=format)
+    response = await async_get_single_response(prompt, system_instruction, timeout, temperature,
+                                               model, client, exclude_system_prompt=exclude_system_prompt)
     return response
 
 async def identify_categories(task_description, format='json',
                               timeout=90, temperature=0.8, model='gpt-4o-mini',
-                              client=None, **kwargs):
+                              client=None, exclude_system_prompt=False, **kwargs):
     if format == 'json':
         system_instruction = 'Please output well-defined categories as requested, following the detailed JSON template.'
     else:
         system_instruction = 'Please output well-defined categories as requested, using the provided format.'
 
     prompt = teleprompter.identify_categories_prompt(task_description, format=format)
-    response = await async_get_single_response(prompt, system_instruction, timeout, temperature, model, client)
+    response = await async_get_single_response(prompt, system_instruction, timeout, temperature,
+                                               model, client, exclude_system_prompt=exclude_system_prompt)
     return response
-
 
 def ensure_no_duplicates(df):
     df = df.loc[:, ~df.columns.duplicated()]
@@ -152,3 +161,61 @@ def create_batch_info_dataframe(batch_instance):
     }
     df = pd.DataFrame.from_dict(data, orient='index', columns=['Value'])
     return df
+
+# NEW robust JSON loader
+async def robust_json_loads(
+    json_str: str,
+    client=None,
+    json_model: str = "gpt-4o-mini",
+    max_tokens: int = 2000,
+    temperature: float = 0.0,
+    clean_json_prompt_file: str = "clean_json_prompt.j2"
+) -> dict:
+    """
+    Attempt to parse JSON robustly:
+      1) Try direct json.loads()
+      2) If that fails, try extracting the largest {...} via regex and parse
+      3) If that fails, call the client with a 'clean_json_prompt.j2' template prompt
+         (passing the entire dirty JSON), then parse again.
+
+    Returns a dict (empty if all attempts fail).
+    """
+    # Step 1: Direct parse
+    try:
+        return json.loads(json_str)
+    except:
+        pass
+
+    # Step 2: Attempt regex extraction of a JSON object
+    match = re.search(r"\{[\s\S]*\}", json_str)
+    if match:
+        candidate = match.group(0)
+        try:
+            return json.loads(candidate)
+        except:
+            pass
+
+    # Step 3: Use the LLM to repair the JSON, if a client is provided
+    if client:
+        from gabriel.teleprompter import teleprompter
+        system_instruction = "Please fix the JSON so that it is valid JSON. Return only valid JSON with no extra text."
+        prompt = teleprompter.render_template(clean_json_prompt_file, {"dirty_json_output": json_str})
+        try:
+            responses, _ = await client.get_response(
+                prompt=prompt,
+                model=json_model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                exclude_system_prompt=True
+            )
+            if responses:
+                for r in responses:
+                    try:
+                        return json.loads(r)
+                    except:
+                        continue
+        except:
+            pass
+
+    # If all else fails, return empty
+    return {}
