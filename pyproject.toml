@@ -24,3 +24,5 @@ dependencies = [
 packages = [
     {include = "gabriel", from = "src"}
 ]
+include = ["src/gabriel/prompts/*.jinja2", "src/gabriel/prompts/*.yaml"]
+

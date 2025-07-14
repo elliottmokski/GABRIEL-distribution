@@ -12,6 +12,42 @@ from aiolimiter import AsyncLimiter
 from tqdm import tqdm
 import openai
 
+# single connection pool per process, created lazily
+client_async: Optional[openai.AsyncOpenAI] = None
+
+
+def _build_params(
+    *,
+    model: str,
+    input_data: List[Dict[str, str]],
+    max_tokens: int,
+    system_instruction: str,
+    temperature: float,
+    json_mode: bool,
+    expected_schema: Optional[Dict[str, Any]],
+    **extra: Any,
+) -> Dict[str, Any]:
+    params = {
+        "model": model,
+        "input": input_data,
+        "max_output_tokens": max_tokens,
+        "truncation": "auto",
+    }
+
+    if json_mode:
+        params["text"] = (
+            {"format": {"type": "json_schema", "schema": expected_schema}}
+            if expected_schema
+            else {"format": {"type": "json_object"}}
+        )
+
+    if model.startswith("o"):
+        params["reasoning"] = {"effort": "medium"}
+    else:
+        params["temperature"] = temperature
+
+    params.update(extra)
+    return params
 
 async def get_response(
     prompt: str,
@@ -21,24 +57,53 @@ async def get_response(
     max_tokens: int = 256,
     timeout: float = 90.0,
     temperature: float = 0.0,
+    json_mode: bool = False,
+    expected_schema: Optional[Dict[str, Any]] = None,
     use_dummy: bool = False,
     **kwargs: Any,
 ) -> Tuple[List[str], float]:
-    """Minimal async call to OpenAI or dummy response."""
+    """Minimal async call to OpenAI's /responses endpoint or dummy response."""
     if use_dummy:
         return [f"DUMMY {prompt}" for _ in range(max(n, 1))], 0.0
 
-    client = openai.AsyncOpenAI()
-    start = time.time()
-    resp = await client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        n=n,
-        max_tokens=max_tokens,
-        temperature=temperature,
+    system_instruction = (
+        "Please provide a helpful response to this inquiry for purposes of academic research."
     )
-    texts = [choice.message.content for choice in resp.choices]
-    return texts, time.time() - start
+
+    input_data = (
+        [{"role": "user", "content": prompt}]
+        if model.startswith("o")
+        else [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": prompt},
+        ]
+    )
+
+    params = _build_params(
+        model=model,
+        input_data=input_data,
+        max_tokens=max_tokens,
+        system_instruction=system_instruction,
+        temperature=temperature,
+        json_mode=json_mode,
+        expected_schema=expected_schema,
+        **kwargs,
+    )
+
+    global client_async
+    if client_async is None:
+        client_async = openai.AsyncOpenAI()
+
+    start = time.time()
+    tasks = [client_async.responses.create(**params, timeout=timeout) for _ in range(max(n, 1))]
+    try:
+        raw = await asyncio.gather(*tasks)
+    except asyncio.TimeoutError:
+        raise Exception(f"API call timed out after {timeout} s")
+    except Exception as e:
+        raise Exception(f"API call resulted in exception: {e}")
+
+    return [r.output_text for r in raw], time.time() - start
 
 
 def _ser(x: Any) -> Optional[str]:
