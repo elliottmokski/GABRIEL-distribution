@@ -6,6 +6,7 @@ import os
 from ..utils.openai_utils import get_all_responses, get_response
 
 
+
 class LLMClient(ABC):
     """Minimal interface for language model providers."""
 
@@ -13,7 +14,6 @@ class LLMClient(ABC):
     async def acall(self, messages: List[Dict[str, str]], **kwargs: Any) -> str:
         """Asynchronously call the LLM with provided messages."""
         raise NotImplementedError
-
 
 class OpenAIClient(LLMClient):
     """Concrete LLM client leveraging :func:`get_response`."""
@@ -31,3 +31,4 @@ class OpenAIClient(LLMClient):
     async def get_all_responses(self, **kwargs: Any):
         """Convenience wrapper around :func:`get_all_responses`."""
         return await get_all_responses(**kwargs)
+
