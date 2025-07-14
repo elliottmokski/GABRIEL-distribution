@@ -32,11 +32,6 @@ Remember, the attributes you are rating are {{ attribute_list }}.
 Ensure you provide a rating for every single one of these attributes, and do not modify them in any way.
 You should have as many ratings as there are attributes, and you should not alter the attribute name in any fashion.
 
-{% if format == 'table' %}
-Format:
-| Attribute | {% for attribute in attributes %} | {{ attribute }} {% endfor %} |
-| Response  | {% for _ in attributes %} | <insert rating for attribute> {% endfor %} |
-{% elif format == 'json' %}
 {
   "data": [
     {% for attribute in attributes %}
@@ -47,12 +42,3 @@ Format:
     {% endfor %}
   ]
 }
-{% else %}
-Format as list:
-{% for attribute in attributes %}
-Column {{ loop.index }}
-Attribute {{ loop.index }}: {{ attribute }}
-Rating for Attribute {{ loop.index }}: <insert rating for attribute here>
-
-{% endfor %}
-{% endif %}
