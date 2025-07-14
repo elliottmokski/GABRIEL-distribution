@@ -4,7 +4,6 @@ from importlib import resources
 from jinja2 import Template
 from typing import Dict
 
-
 @dataclass
 class PromptTemplate:
     """Simple Jinja2-based prompt template."""

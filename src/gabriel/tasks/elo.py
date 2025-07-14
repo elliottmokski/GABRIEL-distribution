@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import ast
 import json
+
 import os
 import random
 from dataclasses import dataclass
@@ -428,7 +429,6 @@ class EloRater:
                         )
                     )
                     ids.append(f"{rnd}|{batch_idx}|{pair_idx}|{id_a}|{id_b}")
-
             resp_df = await get_all_responses(
                 prompts=prompts,
                 identifiers=ids,
@@ -441,7 +441,6 @@ class EloRater:
                 timeout=self.cfg.timeout,
                 print_example_prompt=self.cfg.print_example_prompt,
             )
-
             for ident, resp in zip(resp_df.Identifier, resp_df.Response):
                 try:
                     rnd_i, batch_idx, pair_idx, a_id, b_id = ident.split("|")
@@ -587,7 +586,6 @@ class EloRater:
                 if self.cfg.compute_se:
                     row[f"{attr}_se"] = se_store[attr].get(i, np.nan)
             rows.append(row)
-
         df_out = pd.DataFrame(rows)
         df_out.to_csv(final_path, index=False)
         return df_out

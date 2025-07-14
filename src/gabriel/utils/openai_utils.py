@@ -49,7 +49,6 @@ def _build_params(
     params.update(extra)
     return params
 
-
 async def get_response(
     prompt: str,
     *,

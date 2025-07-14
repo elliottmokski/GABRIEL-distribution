@@ -4,8 +4,6 @@ from typing import Any, Dict, List, Optional
 import os
 
 from ..utils.openai_utils import get_all_responses, get_response
-
-
 class LLMClient(ABC):
     """Minimal interface for language model providers."""
 
@@ -13,7 +11,6 @@ class LLMClient(ABC):
     async def acall(self, messages: List[Dict[str, str]], **kwargs: Any) -> str:
         """Asynchronously call the LLM with provided messages."""
         raise NotImplementedError
-
 
 class OpenAIClient(LLMClient):
     """Concrete LLM client leveraging :func:`get_response`."""

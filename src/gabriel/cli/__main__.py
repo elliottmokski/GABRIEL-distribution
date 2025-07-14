@@ -3,6 +3,7 @@ import argparse
 from ..tasks import SimpleRating, EloRater, Identification
 
 
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="gabriel")
     parser.add_argument("command", choices=["rate", "elo", "identify"])
