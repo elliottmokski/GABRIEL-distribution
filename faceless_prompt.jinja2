@@ -1,0 +1,101 @@
+You will be given a block of text belonging to a single individual or group. Your job is to produce or update a JSON mapping from personal or sensitive entities mentioned in the text to anonymized substitutes. Each mapping entry uses a short description of the entity (e.g., "younger son's name", "street address") as the key.
+
+Below is the current mapping dictionary for this group, built from previously processed text chunks. You must preserve all existing entries, adding new real forms of existing entities if they appear in this text, and adding new entries for any additional entities that need anonymization. You may refine a description key (e.g., from "personal name" to "daughter's name") if you learn more detail, but keep the casted form consistent.
+
+Current mapping:
+{{ current_map }}
+
+
+If there is no existing mapping provided above, start a new one from scratch.
+
+By default you should anonymize common personally identifying information, including:
+- Names of the individual and their relatives or close contacts
+- Specific addresses, hometowns, or workplace names that would reveal location
+- Phone numbers, email addresses, credit card or SSN numbers
+Any public figures or information not considered identifying need not be changed.
+Ages also should not be included in the mapping dictionary by default.
+Importantly, all personal details that are not identifying should be retained and not included in the mapping dictionary.
+We don't want to override even very personal and sensitive details; we only wish to anonymize all information that would be easily identifying.
+Someone's hobbies and opinions are not identifying information and should be retained; their name and address are identifying information and should be anonymized.
+Similarly, "my mother" or a common workplace name like "Target" should not be included in the mapping dictionary, only include cases where the term could easily be used to identify an individual, where they live, and other PII.
+{% if guidelines %}
+Follow these additional de-identification guidelines carefully:
+{{ guidelines }}
+The guidelines should be followed strictly, and you should focus on thorough compliance with them. They take precedence over the default instructions.
+{% endif %}
+
+For each entity, output an object with two fields:
+- "real forms": list of verbatim strings exactly as they appear in the text across all processed chunks
+- "casted form": your chosen anonymized substitute, ideally matching the original's style (e.g., similar cultural background for names, similar city for hometown). Choose a conceptually close substitute that conveys the essence of the original entity without revealing the original identity
+
+Example mapping snippet:
+{
+    "younger son's name": {
+        "real forms": ["Tim", "Timmy", "Tim Scott", "T-I-M-O-T-H-Y", "T-I-M ... uh ... O-T-H-Y", "Timothy", "Timthy", "T-Tim"],
+        "casted form": "Blake"
+    },
+    "hometown": {
+        "real forms": ["Lubbock", "Lubbock, Texas"],
+        "casted form": "Medford"
+    },
+    "mother's name": {
+        "real forms": ["Susan", "Sue", "Sue Scott"],
+        "casted form": "Mary"
+    }
+    "workplace name": {
+        "real forms": [
+            "Mayo Clinic", "Mayo-Clinic",
+            "The Mayo Clinic", "mayo hospital", "Mayo Jacksonville",
+            "Mayo Clinic Hospital"
+        ],
+        "casted form": "Orchard Medical Center"
+    }
+}
+
+Here is the text you are to analyze:
+BEGIN TEXT
+{{ text }}
+END TEXT
+
+Current mapping:
+{{ current_map }}
+
+If there is no existing mapping provided above, start a new one from scratch.
+
+{% if guidelines %}
+Follow these additional de-identification guidelines carefully:
+{{ guidelines }}
+The guidelines should be followed strictly, and you should focus on thorough compliance with them.
+{% endif %}
+
+Return the full mapping dictionary as JSON, retaining all existing entries and adding only. Do not include any narrative or explanation outside the JSON object.
+Ensure the real forms are verbatim as they appear in the text.
+The keys like "younger son's name" should be descriptive and concise, as precise as you can confidently make them.
+For example, if a private name is mentioned but not the relationship, you can use "person's name" as the key (and "second person's name" and so on if needed).
+But if you can tell a more specific identifier, like "mother's name" or "doctor's name", use that instead.
+Similarly, if an existing mapping is under "person's name" but you learn it is a "mother's name", you can change the key to "mother's name". This also applies to other entities like addresses, phone numbers, etc.
+Above all, ensure that you never lose any of the existing mapping entries, especially the real forms. Only add new real forms to an existing mapping entry if you discover any new forms for that same entity. 
+If you learn a new entity that should be deidentified, add it as a new entry.
+Be very thorough even if the text is long, capturing all entities you can identify in all forms.
+Ensure you return the full mapping dictionary as JSON, with all the existing entries maintained or updated, and any new ones you add.
+
+Choose casted forms that are conceptually close to the original and carry the same meaning, like a similar sized city or an ethnically similar name.
+Ensure when coming up with casted forms that you have some creativity and would not just use the same exact casted name or address on a different text.
+Unless you have been provided additional guidelines that override the default, use common sense by default and don't overclassify non-sensitive information. Don't include ages in the mapping dictionary by default, don't put anything in the mapping that is not sensitive or personal, and there is no point in mapping something to itself.
+Keep to a convention like "person's name", "second person's name", "third person's name" or "child's name", "second child's name", "third child's name" etc if you have multiple names to map and can't tell the relationships more specifically.
+Be thorough and careful but don't overclassify either.
+
+It is crucial that all forms of the same entity are captured in the mapping, so be sure to include all variations and spellings of the same entity that appear in the text, including nicknames, abbreviations, forms where the name is spelled out letter by letter (e.g. "E-M-I-L-Y"), and even misspellings in their exact mispelled form. Any and all forms must be documented in the mapping dictionary.
+This is important because we need to ultimately use this mapping to deidentify the text, and if we miss any forms of an entity, it could lead to reidentification.
+Pay close attention to whether a mispelled or oddly formatted form of an entity is present in the text, and be sure to include all such unusual forms in the mapping dictionary. Same for any abbreviations or acronyms that are used in the text, especially for workplaces or organizations.
+It is also important to ensure that you are confident all real forms for an entity are for that one same entity. If in doubt, you can always add a new entry for a new entity.
+If you realize there is misorgnization or wrong mappings in the existing mapping, you can fix it.
+You can reorganize and redo the mappings as much as needed, as long as all real forms from the existing mapping are somewhere in the new mapping, even if you move them around or change the keys.
+That said, only make changes if you are reasonably confident in them.
+
+Again, remember only de-identify sensitive information and retain all non-identifying details.
+Public figures (celebrity or politician names etc.) should not be anonymized.
+Common workplaces (e.g. Walmart, Uber, TaskRabbit, etc.) should not be anonymized -- only location specific workplaces like "Mayo Clinic" or "Pinocchio's Pizza" should be anonymized.
+Age should not be included in the mapping dictionary by default.
+Terms like "my mother" or "my mom" or "Dad" or "my workplace" or "email address" must not be included in the mapping dictionary, only include cases where the actual person's or entity's identifying name is used.
+Only map terms that are identifying; this is a fairly narrow set of terms and most personal details should be retained.
