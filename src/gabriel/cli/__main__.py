@@ -1,6 +1,7 @@
 """Command line interface for GABRIEL."""
 import argparse
-from ..tasks import SimpleRating, EloRating, Identification
+from ..tasks import SimpleRating, EloRater, Identification
+
 
 
 def main() -> None:

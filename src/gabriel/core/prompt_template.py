@@ -1,7 +1,8 @@
 """Prompt template utilities."""
 from dataclasses import dataclass
 from importlib import resources
-
+from jinja2 import Template
+from typing import Dict
 
 @dataclass
 class PromptTemplate:

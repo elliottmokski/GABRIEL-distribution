@@ -4,9 +4,6 @@ from typing import Any, Dict, List, Optional
 import os
 
 from ..utils.openai_utils import get_all_responses, get_response
-
-
-
 class LLMClient(ABC):
     """Minimal interface for language model providers."""
 
@@ -31,4 +28,3 @@ class OpenAIClient(LLMClient):
     async def get_all_responses(self, **kwargs: Any):
         """Convenience wrapper around :func:`get_all_responses`."""
         return await get_all_responses(**kwargs)
-

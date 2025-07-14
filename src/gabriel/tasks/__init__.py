@@ -1,7 +1,7 @@
 """Task implementations for GABRIEL."""
 
 from .simple_rating import SimpleRating
-from .elo import EloRating
+from .elo import EloRater
 from .identification import Identification
 
-__all__ = ["SimpleRating", "EloRating", "Identification"]
+__all__ = ["SimpleRating", "EloRater", "Identification"]

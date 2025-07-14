@@ -17,4 +17,3 @@ def test_openai_client_dummy():
 
     df = asyncio.run(run())
     assert not df.empty
-
