@@ -1,8 +1,8 @@
-"""Simple rating task."""
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Dict, List, Optional
 
 import pandas as pd
 
@@ -11,7 +11,9 @@ from ..utils.openai_utils import get_all_responses
 
 
 @dataclass
-class RatingConfig:
+class RatingsConfig:
+    """Configuration for :class:`Ratings`."""
+
     attributes: Dict[str, str]
     model: str = "gpt-3.5-turbo"
     n_parallels: int = 50
@@ -20,16 +22,26 @@ class RatingConfig:
     timeout: float = 60.0
 
 
-class SimpleRating:
-    """LLM-based attribute rating for single passages."""
+class Ratings:
+    """Rate passages on a set of attributes."""
 
-    def __init__(self, cfg: RatingConfig, template: PromptTemplate | None = None) -> None:
+    def __init__(self, cfg: RatingsConfig, template: PromptTemplate | None = None) -> None:
         self.cfg = cfg
         self.template = template or PromptTemplate.from_package("ratings_prompt.jinja2")
 
-    async def predict(self, texts: List[str]) -> pd.DataFrame:
-        prompts = []
-        ids = []
+    @staticmethod
+    def _parse_json(txt: str) -> Optional[List[Dict[str, str]]]:
+        try:
+            data = json.loads(txt)
+            if isinstance(data, dict):
+                return data.get("data")
+        except Exception:
+            pass
+        return None
+
+    async def run(self, texts: List[str]) -> pd.DataFrame:
+        prompts: List[str] = []
+        ids: List[str] = []
         for idx, passage in enumerate(texts):
             prompts.append(
                 self.template.render(
@@ -52,4 +64,12 @@ class SimpleRating:
             timeout=self.cfg.timeout,
             json_mode=True,
         )
+
+        ratings_data = []
+        for resp in df["Response"]:
+            main = resp[0] if isinstance(resp, list) and resp else ""
+            parsed = self._parse_json(main) or []
+            ratings_data.append(parsed)
+
+        df = df.assign(ratings=ratings_data)
         return df

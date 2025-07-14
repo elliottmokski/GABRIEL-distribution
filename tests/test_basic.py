@@ -1,9 +1,12 @@
 import asyncio
+import pandas as pd
 
 from gabriel.core.prompt_template import PromptTemplate
 from gabriel.utils.teleprompter import Teleprompter
 from gabriel.utils import openai_utils
 from gabriel.tasks.simple_rating import SimpleRating, RatingConfig
+from gabriel.tasks.ratings import Ratings, RatingsConfig
+from gabriel.tasks.deidentification import Deidentifier, DeidentifyConfig
 from gabriel.tasks.identification import Identification, IdentificationConfig
 
 
@@ -39,6 +42,21 @@ def test_simple_rating_dummy(tmp_path):
     task = SimpleRating(cfg)
     df = asyncio.run(task.predict(["hello"]))
     assert not df.empty
+
+
+def test_ratings_dummy(tmp_path):
+    cfg = RatingsConfig(attributes={"helpfulness": ""}, save_path=str(tmp_path/"ratings.csv"), use_dummy=True)
+    task = Ratings(cfg)
+    df = asyncio.run(task.run(["hello"]))
+    assert not df.empty
+
+
+def test_deidentifier_dummy(tmp_path):
+    cfg = DeidentifyConfig(save_path=str(tmp_path/"deid.csv"), use_dummy=True)
+    task = Deidentifier(cfg)
+    data = pd.DataFrame({"text": ["John went to Paris."]})
+    df = asyncio.run(task.run(data, text_column="text"))
+    assert "deidentified_text" in df.columns
 
 
 def test_identification_dummy(tmp_path):
