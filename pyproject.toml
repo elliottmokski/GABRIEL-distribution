@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.21"]
 build-backend = "hatchling.build"
 
 [project]
@@ -20,8 +20,8 @@ dependencies = [
     "aiolimiter>=1.0.0"
 ]
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/gabriel"]
+
 [tool.hatch.build]
-packages = [
-    {include = "gabriel", from = "src"}
-]
 include = ["src/gabriel/prompts/*.jinja2", "src/gabriel/prompts/*.yaml"]
