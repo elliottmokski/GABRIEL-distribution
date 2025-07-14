@@ -1,0 +1,41 @@
+You will be shown two passages labelled *passage circle* and *passage square*. For each attribute listed below, decide which passage expresses that attribute more strongly. Do not leave any attribute undecided.
+{% if instructions %}
+**Additional instructions**
+{{ instructions }}
+{% endif %}
+
+**Passage circle**
+BEGIN CIRCLE
+{{ text_circle }}
+END CIRCLE
+
+**Passage square**
+BEGIN SQUARE
+{{ text_square }}
+END SQUARE
+
+**Attributes**
+Compare the two passages on the following attributes. For each attribute, use the provided definition to guide your judgment and anchor the specific definition of the attribute in question.
+
+{% for attribute, definition in attributes.items() %}
+- "{{ attribute }}": {{ definition }}
+{% endfor %}
+
+**Output format**
+Return a JSON object mapping each attribute to either "square" or "circle", which indicates which passage expresses that attribute more strongly. 
+If passage square manifests/exhibits the attribute more strongly than passage circle, then the value for that attribute should be "square". 
+If passage circle manifests/exhibits the attribute more strongly than passage square, then the value for that attribute should be "circle".
+Remember to consider each attribute independently and make a decision based on the provided definition.
+Don't conflate the attributes, even if they are similar. Consider each attribute separately and thoroughly.
+Example:
+
+{
+    "<insert attribute 1 verbatim here>": "square",
+    "<insert attribute 2 verbatim here>": "circle",
+    "<insert attribute 3 verbatim here>": "square",
+    ...
+}
+
+Again, remember the attributes you are considering are: {{ attributes.keys() }}
+Read both passages carefully and don't leave any attribute undecided or left out.
+Once more: you must consider every one of these attributes: {{ attributes.keys() }}
