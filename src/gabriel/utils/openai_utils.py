@@ -23,8 +23,13 @@ def _build_params(
     max_tokens: int,
     system_instruction: str,
     temperature: float,
-    json_mode: bool,
-    expected_schema: Optional[Dict[str, Any]],
+    tools: Optional[List[dict]] = None,
+    tool_choice: Optional[dict] = None,
+    web_search: bool = False,
+    search_context_size: str = "medium",
+    json_mode: bool = False,
+    expected_schema: Optional[Dict[str, Any]] = None,
+    reasoning_effort: str = "medium",
     **extra: Any,
 ) -> Dict[str, Any]:
     params = {
@@ -41,8 +46,16 @@ def _build_params(
             else {"format": {"type": "json_object"}}
         )
 
+    all_tools = list(tools) if tools else []
+    if web_search:
+        all_tools.append({"type": "web_search_preview", "search_context_size": search_context_size})
+    if all_tools:
+        params["tools"] = all_tools
+    if tool_choice is not None:
+        params["tool_choice"] = tool_choice
+
     if model.startswith("o"):
-        params["reasoning"] = {"effort": "medium"}
+        params["reasoning"] = {"effort": reasoning_effort}
     else:
         params["temperature"] = temperature
 
@@ -52,13 +65,18 @@ def _build_params(
 async def get_response(
     prompt: str,
     *,
-    model: str = "gpt-3.5-turbo",
+    model: str = "gpt-4.1-mini",
     n: int = 1,
-    max_tokens: int = 256,
+    max_tokens: int = 25_000,
     timeout: float = 90.0,
-    temperature: float = 0.0,
+    temperature: float = 0.9,
     json_mode: bool = False,
     expected_schema: Optional[Dict[str, Any]] = None,
+    tools: Optional[List[dict]] = None,
+    tool_choice: Optional[dict] = None,
+    web_search: bool = False,
+    search_context_size: str = "medium",
+    reasoning_effort: str = "medium",
     use_dummy: bool = False,
     **kwargs: Any,
 ) -> Tuple[List[str], float]:
@@ -85,8 +103,13 @@ async def get_response(
         max_tokens=max_tokens,
         system_instruction=system_instruction,
         temperature=temperature,
+        tools=tools,
+        tool_choice=tool_choice,
+        web_search=web_search,
+        search_context_size=search_context_size,
         json_mode=json_mode,
         expected_schema=expected_schema,
+        reasoning_effort=reasoning_effort,
         **kwargs,
     )
 
@@ -144,10 +167,19 @@ async def get_all_responses(
     save_every_x_seconds: Optional[int] = None,
     use_dummy: bool = False,
     print_example_prompt: bool = False,
+    use_web_search: bool = False,
+    search_context_size: str = "medium",
+    tools: Optional[List[dict]] = None,
+    tool_choice: Optional[dict] = None,
     **get_response_kwargs: Any,
 ) -> pd.DataFrame:
     if identifiers is None:
         identifiers = prompts
+
+    get_response_kwargs.setdefault("web_search", use_web_search)
+    get_response_kwargs.setdefault("search_context_size", search_context_size)
+    get_response_kwargs.setdefault("tools", tools)
+    get_response_kwargs.setdefault("tool_choice", tool_choice)
 
     if os.path.exists(save_path) and not reset_files:
         df = pd.read_csv(save_path)
