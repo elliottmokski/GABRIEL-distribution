@@ -152,3 +152,4 @@ class EloRating:
         df_out = pd.DataFrame(rows)
         df_out.to_csv(final_path, index=False)
         return df_out
+
