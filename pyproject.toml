@@ -21,6 +21,4 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["gabriel"]
-[tool.hatch.build.sources]          # ← add this block
-gabriel = "src/gabriel"             # import-name   :   filesystem-path
+packages = ["src/gabriel"]
