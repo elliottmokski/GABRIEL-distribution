@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import re
+from collections import defaultdict
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, DefaultDict, Dict, List, Optional
 
 import pandas as pd
 
@@ -25,57 +28,66 @@ class RatingsConfig:
 class Ratings:
     """Rate passages on a set of attributes."""
 
+    _FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.S)
+
     def __init__(self, cfg: RatingsConfig, template: PromptTemplate | None = None) -> None:
         self.cfg = cfg
         self.template = template or PromptTemplate.from_package("ratings_prompt.jinja2")
 
     @staticmethod
-    def _parse_json(txt: str | dict | list | bytes | bytearray) -> Optional[List[Dict[str, str]]]:
-        """Best-effort JSON parsing for model responses."""
-        if not txt:
-            return None
-
+    def _safe_json(txt: Any) -> Optional[dict]:
+        """Best-effort JSON parser."""
         candidate: Any = txt
-
-        # unwrap common containers and code fences
+        if candidate is None:
+            return None
         if isinstance(candidate, list) and len(candidate) == 1:
             candidate = candidate[0]
         if isinstance(candidate, (bytes, bytearray)):
             candidate = candidate.decode()
         if isinstance(candidate, str):
-            cleaned = candidate.strip()
-            if cleaned.startswith("```") and cleaned.endswith("```"):
-                cleaned = cleaned.strip("`")
-                if cleaned.lstrip().startswith("json"):
-                    cleaned = cleaned.split("\n", 1)[-1]
-            candidate = cleaned
-
-        # direct parse
-        try:
-            data = json.loads(candidate)
-        except Exception:
-            # try to locate a JSON object within the text
+            m = Ratings._FENCE_RE.search(candidate)
+            cleaned = m.group(1) if m else candidate
+            cleaned = cleaned.strip()
             try:
-                import re
-
-                match = re.search(r"\{[\s\S]*\}", str(candidate))
-                if match:
-                    data = json.loads(match.group(0))
-                else:
-                    return None
+                return json.loads(cleaned)
             except Exception:
-                return None
-
-        if isinstance(data, dict):
-            content = data.get("data")
-            if isinstance(content, list):
-                return content
+                pass
+            try:
+                match = re.search(r"\{[\s\S]*\}", cleaned)
+                if match:
+                    return json.loads(match.group(0))
+            except Exception:
+                pass
+            return None
+        if isinstance(candidate, dict):
+            return candidate
         return None
+
+    def _parse(self, txt: Any) -> Dict[str, Optional[float]]:
+        data = self._safe_json(txt) or {}
+        items = data.get("data") if isinstance(data, dict) else None
+        out: Dict[str, Optional[float]] = {}
+        if isinstance(items, list):
+            for entry in items:
+                if not isinstance(entry, dict):
+                    continue
+                attr = str(entry.get("attribute", "")).strip()
+                val = entry.get("rating")
+                try:
+                    out[attr] = float(val)
+                except Exception:
+                    out[attr] = None if val is None else str(val)
+        return out
 
     async def run(self, texts: List[str]) -> pd.DataFrame:
         prompts: List[str] = []
-        ids: List[str] = []
-        for idx, passage in enumerate(texts):
+        unique_ids: List[str] = []
+        id_to_rows: DefaultDict[str, List[int]] = defaultdict(list)
+        for row, passage in enumerate(texts):
+            key = hashlib.sha1(passage.encode()).hexdigest()[:8]
+            id_to_rows[key].append(row)
+            if len(id_to_rows[key]) > 1:
+                continue
             prompts.append(
                 self.template.render(
                     attributes=list(self.cfg.attributes.keys()),
@@ -85,11 +97,11 @@ class Ratings:
                     attribute_category="attributes",
                 )
             )
-            ids.append(str(idx))
+            unique_ids.append(key)
 
         df = await get_all_responses(
             prompts=prompts,
-            identifiers=ids,
+            identifiers=unique_ids,
             n_parallels=self.cfg.n_parallels,
             model=self.cfg.model,
             save_path=self.cfg.save_path,
@@ -98,11 +110,14 @@ class Ratings:
             json_mode=True,
         )
 
-        ratings_data = []
-        for resp in df["Response"]:
-            main = resp[0] if isinstance(resp, list) and resp else ""
-            parsed = self._parse_json(main) or []
-            ratings_data.append(parsed)
+        id_to_ratings: Dict[str, Dict[str, Optional[float]]] = {}
+        for ident, resp in zip(df["Identifier"], df["Response"]):
+            main = resp[0] if isinstance(resp, list) and resp else resp
+            id_to_ratings[ident] = self._parse(main)
 
-        df = df.assign(ratings=ratings_data)
-        return df
+        ratings_list: List[Dict[str, Optional[float]]] = []
+        for row in range(len(texts)):
+            sha = hashlib.sha1(texts[row].encode()).hexdigest()[:8]
+            ratings_list.append(id_to_ratings.get(sha, {}))
+
+        return pd.DataFrame({"text": texts, "ratings": ratings_list})
