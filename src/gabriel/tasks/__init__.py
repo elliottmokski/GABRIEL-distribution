@@ -3,11 +3,9 @@
 from importlib import import_module
 
 _lazy_imports = {
-    "SimpleRating": ".simple_rating",
     "Ratings": ".ratings",
     "Deidentifier": ".deidentification",
     "EloRater": ".elo",
-    "Identification": ".identification",
     "BasicClassifier": ".basic_classifier",
 }
 
