@@ -21,7 +21,6 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/gabriel"]
-
+packages = ["gabriel"] 
 [tool.hatch.build]
 include = ["src/gabriel/prompts/*.jinja2", "src/gabriel/prompts/*.yaml"]
