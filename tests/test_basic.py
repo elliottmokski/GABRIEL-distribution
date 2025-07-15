@@ -7,6 +7,8 @@ from gabriel.utils import openai_utils
 from gabriel.tasks.ratings import Ratings, RatingsConfig
 from gabriel.tasks.deidentification import Deidentifier, DeidentifyConfig
 from gabriel.tasks.basic_classifier import BasicClassifier, BasicClassifierConfig
+from gabriel.tasks.regional import Regional, RegionalConfig
+from gabriel.tasks.county_counter import CountyCounter
 
 
 def test_prompt_template():
@@ -57,4 +59,27 @@ def test_basic_classifier_dummy(tmp_path):
     df = pd.DataFrame({"txt": ["a", "b"]})
     res = asyncio.run(task.run(df, text_column="txt"))
     assert "yes" in res.columns
+
+
+def test_regional_dummy(tmp_path):
+    data = pd.DataFrame({"county": ["A", "B"]})
+    cfg = RegionalConfig(save_dir=str(tmp_path), use_dummy=True)
+    task = Regional(data, "county", topics=["economy"], cfg=cfg)
+    df = asyncio.run(task.run())
+    assert "economy" in df.columns
+
+
+def test_county_counter_dummy(tmp_path):
+    data = pd.DataFrame({"county": ["A"], "fips": ["00001"]})
+    counter = CountyCounter(
+        data,
+        county_col="county",
+        topics=["econ"],
+        fips_col="fips",
+        save_dir=str(tmp_path),
+        use_dummy=True,
+        n_elo_rounds=1,
+    )
+    df = asyncio.run(counter.run())
+    assert "econ" in df.columns
 
