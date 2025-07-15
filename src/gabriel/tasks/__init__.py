@@ -1,15 +1,24 @@
 """Task implementations for GABRIEL."""
 
-from .simple_rating import SimpleRating
-from .ratings import Ratings
-from .deidentification import Deidentifier
-from .elo import EloRater
-from .identification import Identification
+from importlib import import_module
 
-__all__ = [
-    "SimpleRating",
-    "Ratings",
-    "Deidentifier",
-    "EloRater",
-    "Identification",
-]
+_lazy_imports = {
+    "SimpleRating": ".simple_rating",
+    "Ratings": ".ratings",
+    "Deidentifier": ".deidentification",
+    "EloRater": ".elo",
+    "Identification": ".identification",
+}
+
+__all__ = list(_lazy_imports.keys())
+
+
+def __getattr__(name: str):
+    if name in _lazy_imports:
+        module = import_module(_lazy_imports[name], __name__)
+        return getattr(module, name)
+    raise AttributeError(name)
+
+
+def __dir__() -> list[str]:
+    return __all__
