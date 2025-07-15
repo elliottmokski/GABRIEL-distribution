@@ -19,7 +19,7 @@ from ..utils.openai_utils import get_all_responses
 class BasicClassifierConfig:
     labels: Dict[str, str]
     save_dir: str = "classifier"
-    model: str = "gpt-3.5-turbo"
+    model: str = "o4-mini"
     n_parallels: int = 400
     additional_instructions: str = ""
     use_dummy: bool = False

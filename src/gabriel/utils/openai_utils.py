@@ -65,7 +65,7 @@ def _build_params(
 async def get_response(
     prompt: str,
     *,
-    model: str = "gpt-4.1-mini",
+    model: str = "o4-mini",
     n: int = 1,
     max_tokens: int = 25_000,
     timeout: float = 90.0,

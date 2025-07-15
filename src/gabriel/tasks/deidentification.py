@@ -16,7 +16,7 @@ from ..utils.openai_utils import get_all_responses
 class DeidentifyConfig:
     """Configuration for :class:`Deidentifier`."""
 
-    model: str = "gpt-3.5-turbo"
+    model: str = "o4-mini"
     n_parallels: int = 50
     save_path: str = "deidentified.csv"
     use_dummy: bool = False
