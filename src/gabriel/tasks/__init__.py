@@ -8,6 +8,7 @@ _lazy_imports = {
     "Deidentifier": ".deidentification",
     "EloRater": ".elo",
     "Identification": ".identification",
+    "BasicClassifier": ".basic_classifier",
 }
 
 __all__ = list(_lazy_imports.keys())

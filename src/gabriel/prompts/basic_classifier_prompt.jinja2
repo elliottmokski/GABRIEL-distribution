@@ -1,0 +1,45 @@
+Your task is to read the following passage and decide which, if any, of the following classification labels apply to it.
+
+**Passage:** 
+
+BEGIN PASSAGE
+{{ text }}
+END PASSAGE
+
+**Classification labels:**
+
+Here is a list of the classification labels you can choose from: {{ labels.keys() }}
+
+{% set has_definitions = labels.values() | select | list | length > 0 %}
+{% if has_definitions %}
+Here are the definitions of each label:
+{% for label, definition in labels.items() %}
+- "{{ label }}" – {{ definition }}
+{% endfor %}
+
+Ground your analysis in the definitions provided above.
+Interpret whether the label applies to the passage based on the specific definition provided, not the general meaning of the label.
+{% endif %}
+
+{% if additional_instructions %}
+
+**Additional instructions:**
+{{ additional_instructions }}
+{% endif %}
+
+**Output format:**
+Return a JSON object mapping each label to either true or false. Example format:
+
+{
+    "label one": true,
+    "label two": false,
+    ...
+}
+
+You must substitute "label one" etc with the exact verbatim label term from the list above. Just the term, exactly as it appears in the list, not the definition.
+You must perform a thorough, independent classification on each and every label; do not leave any label out.
+Again, the list of labels you are considering are: {{ labels.keys() }}
+All could be false (meaning none of the labels apply), all could be true (meaning all of the labels apply), or some combination of true and false.
+Be diligent in thinking hard about each label and whether it applies to the passage.
+Ensure every label is verbatim used as the keys in the output JSON, and the values are boolean (true or false) based on whether the label applies to the passage.
+One more time: the labels you are evaluating on the passage are: {{ labels.keys() }}
