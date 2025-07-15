@@ -1,5 +1,11 @@
+# src/gabriel/tasks/ratings.py
+# ---------------------------------------------------------------------
+# Robust “rate-a-passage” task – now shares the same parsing philosophy
+# as BasicClassifier, so no more empty {} rows 🎉
+# ---------------------------------------------------------------------
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
 import re
@@ -13,62 +19,92 @@ from ..core.prompt_template import PromptTemplate
 from ..utils.openai_utils import get_all_responses
 
 
+# ---------------------------------------------------------------------
+# Config
+# ---------------------------------------------------------------------
 @dataclass
 class RatingsConfig:
     """Configuration for :class:`Ratings`."""
 
-    attributes: Dict[str, str]
-    model: str = "gpt-3.5-turbo"
+    attributes: Dict[str, str]          # {"clarity": "desc", ...}
+    model: str = "gpt-4o-mini"
     n_parallels: int = 50
     save_path: str = "ratings.csv"
     use_dummy: bool = False
     timeout: float = 60.0
 
-
+# ---------------------------------------------------------------------
+# Main task
+# ---------------------------------------------------------------------
 class Ratings:
-    """Rate passages on a set of attributes."""
+    """Rate passages on a set of attributes (0-100)."""
 
     _FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.S)
 
+    # -----------------------------------------------------------------
+    # Helpers copied from BasicClassifier for identical robustness
+    # -----------------------------------------------------------------
+    @staticmethod
+    def _safe_json(txt: Any) -> dict:
+        """Best-effort JSON → dict conversion (handles strings, lists…)."""
+        try:
+            if isinstance(txt, dict):
+                return txt
+            if isinstance(txt, list):
+                if txt and isinstance(txt[0], dict):
+                    return txt[0]
+                if txt and isinstance(txt[0], str):
+                    txt = txt[0]
+            cleaned = str(txt).strip()
+            if (cleaned.startswith('"') and cleaned.endswith('"')) or (
+                cleaned.startswith("'") and cleaned.endswith("'")
+            ):
+                cleaned = cleaned[1:-1]
+            try:
+                return json.loads(cleaned)
+            except Exception:
+                try:
+                    return ast.literal_eval(cleaned)
+                except Exception:
+                    return {}
+        except Exception:
+            return {}
+        return {}
+
+    # -----------------------------------------------------------------
+    # Init
+    # -----------------------------------------------------------------
     def __init__(self, cfg: RatingsConfig, template: PromptTemplate | None = None) -> None:
         self.cfg = cfg
         self.template = template or PromptTemplate.from_package("ratings_prompt.jinja2")
 
-    @staticmethod
-    def _safe_json(txt: Any) -> Optional[dict]:
-        """Best-effort JSON parser."""
-        candidate: Any = txt
-        if candidate is None:
-            return None
-        if isinstance(candidate, list) and len(candidate) == 1:
-            candidate = candidate[0]
-        if isinstance(candidate, (bytes, bytearray)):
-            candidate = candidate.decode()
-        if isinstance(candidate, str):
-            m = Ratings._FENCE_RE.search(candidate)
-            cleaned = m.group(1) if m else candidate
-            cleaned = cleaned.strip()
-            try:
-                return json.loads(cleaned)
-            except Exception:
-                pass
-            try:
-                match = re.search(r"\{[\s\S]*\}", cleaned)
-                if match:
-                    return json.loads(match.group(0))
-            except Exception:
-                pass
-            return None
-        if isinstance(candidate, dict):
-            return candidate
-        return None
+    # -----------------------------------------------------------------
+    # Parsing – now mirrors classifier logic + numeric handling
+    # -----------------------------------------------------------------
+    def _parse(self, raw: Any) -> Dict[str, Optional[float]]:
+        """Convert raw LLM output to {attribute: float}."""
+        # unwrap single-element lists / bytes
+        if isinstance(raw, list) and len(raw) == 1:
+            raw = raw[0]
+        if isinstance(raw, (bytes, bytearray)):
+            raw = raw.decode()
 
-    def _parse(self, txt: Any) -> Dict[str, Optional[float]]:
-        data = self._safe_json(txt) or {}
-        items = data.get("data") if isinstance(data, dict) else None
+        # strip markdown/code fences
+        if isinstance(raw, str):
+            m = self._FENCE_RE.search(raw)
+            if m:
+                raw = m.group(1).strip()
+
+        obj = self._safe_json(raw)
         out: Dict[str, Optional[float]] = {}
-        if isinstance(items, list):
-            for entry in items:
+
+        # -- Shape A: {"data":[{"attribute":"clarity","rating":77},…]}
+        if isinstance(obj, dict) and isinstance(obj.get("data"), list):
+            obj = obj["data"]
+
+        # -- Shape B: [{"attribute":"clarity","rating":77},…]
+        if isinstance(obj, list):
+            for entry in obj:
                 if not isinstance(entry, dict):
                     continue
                 attr = str(entry.get("attribute", "")).strip()
@@ -76,18 +112,40 @@ class Ratings:
                 try:
                     out[attr] = float(val)
                 except Exception:
-                    out[attr] = None if val is None else str(val)
+                    out[attr] = None
+            return out
+
+        # -- Shape C: {"clarity":77, "humor":12}
+        if isinstance(obj, dict):
+            for attr, val in obj.items():
+                try:
+                    out[attr] = float(val)
+                except Exception:
+                    out[attr] = None
+            return out
+
+        # -- Shape D: fallback regex "clarity: 77"
+        text = str(raw)
+        for attr in self.cfg.attributes:
+            m = re.search(rf"{re.escape(attr)}\s*[:=]\s*([0-9]+(?:\.[0-9]+)?)", text, re.I)
+            out[attr] = float(m.group(1)) if m else None
         return out
 
+    # -----------------------------------------------------------------
+    # Run
+    # -----------------------------------------------------------------
     async def run(self, texts: List[str]) -> pd.DataFrame:
+        """Call the LLM on every unique passage and return a DataFrame."""
         prompts: List[str] = []
         unique_ids: List[str] = []
         id_to_rows: DefaultDict[str, List[int]] = defaultdict(list)
+
+        # Build prompts (deduplicate identical passages by SHA-1)
         for row, passage in enumerate(texts):
-            key = hashlib.sha1(passage.encode()).hexdigest()[:8]
-            id_to_rows[key].append(row)
-            if len(id_to_rows[key]) > 1:
-                continue
+            sha8 = hashlib.sha1(passage.encode()).hexdigest()[:8]
+            id_to_rows[sha8].append(row)
+            if len(id_to_rows[sha8]) > 1:
+                continue  # duplicate passage, no need to re-prompt
             prompts.append(
                 self.template.render(
                     attributes=list(self.cfg.attributes.keys()),
@@ -97,9 +155,29 @@ class Ratings:
                     attribute_category="attributes",
                 )
             )
-            unique_ids.append(key)
+            unique_ids.append(sha8)
 
-        df = await get_all_responses(
+        # JSON schema hint improves compliance
+        schema = {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "attribute": {"type": "string"},
+                            "rating": {"type": "number"},
+                        },
+                        "required": ["attribute", "rating"],
+                    },
+                }
+            },
+            "required": ["data"],
+            "additionalProperties": False,
+        }
+
+        df_resp = await get_all_responses(
             prompts=prompts,
             identifiers=unique_ids,
             n_parallels=self.cfg.n_parallels,
@@ -108,16 +186,19 @@ class Ratings:
             use_dummy=self.cfg.use_dummy,
             timeout=self.cfg.timeout,
             json_mode=True,
+            expected_schema=schema,
         )
 
+        # Map responses back to all rows
         id_to_ratings: Dict[str, Dict[str, Optional[float]]] = {}
-        for ident, resp in zip(df["Identifier"], df["Response"]):
+        for ident, resp in zip(df_resp["Identifier"], df_resp["Response"]):
             main = resp[0] if isinstance(resp, list) and resp else resp
             id_to_ratings[ident] = self._parse(main)
 
         ratings_list: List[Dict[str, Optional[float]]] = []
-        for row in range(len(texts)):
-            sha = hashlib.sha1(texts[row].encode()).hexdigest()[:8]
-            ratings_list.append(id_to_ratings.get(sha, {}))
+        for passage in texts:
+            sha8 = hashlib.sha1(passage.encode()).hexdigest()[:8]
+            ratings_list.append(id_to_ratings.get(sha8, {}))
 
         return pd.DataFrame({"text": texts, "ratings": ratings_list})
+
