@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -30,13 +30,46 @@ class Ratings:
         self.template = template or PromptTemplate.from_package("ratings_prompt.jinja2")
 
     @staticmethod
-    def _parse_json(txt: str) -> Optional[List[Dict[str, str]]]:
+    def _parse_json(txt: str | dict | list | bytes | bytearray) -> Optional[List[Dict[str, str]]]:
+        """Best-effort JSON parsing for model responses."""
+        if not txt:
+            return None
+
+        candidate: Any = txt
+
+        # unwrap common containers and code fences
+        if isinstance(candidate, list) and len(candidate) == 1:
+            candidate = candidate[0]
+        if isinstance(candidate, (bytes, bytearray)):
+            candidate = candidate.decode()
+        if isinstance(candidate, str):
+            cleaned = candidate.strip()
+            if cleaned.startswith("```") and cleaned.endswith("```"):
+                cleaned = cleaned.strip("`")
+                if cleaned.lstrip().startswith("json"):
+                    cleaned = cleaned.split("\n", 1)[-1]
+            candidate = cleaned
+
+        # direct parse
         try:
-            data = json.loads(txt)
-            if isinstance(data, dict):
-                return data.get("data")
+            data = json.loads(candidate)
         except Exception:
-            pass
+            # try to locate a JSON object within the text
+            try:
+                import re
+
+                match = re.search(r"\{[\s\S]*\}", str(candidate))
+                if match:
+                    data = json.loads(match.group(0))
+                else:
+                    return None
+            except Exception:
+                return None
+
+        if isinstance(data, dict):
+            content = data.get("data")
+            if isinstance(content, list):
+                return content
         return None
 
     async def run(self, texts: List[str]) -> pd.DataFrame:
