@@ -1,12 +1,12 @@
 [build-system]
-requires = ["hatchling>=1.21"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "gabriel"
 version = "0.1.0"
 description = "LLM-based social-science analysis library"
-authors = [{name = "GABRIEL Contributors", email = ""}]
+authors = [{name = "GABRIEL Contributors"}]
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.8"
@@ -20,5 +20,9 @@ dependencies = [
     "aiolimiter>=1.0.0"
 ]
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/gabriel"]
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["gabriel*"]
