@@ -8,6 +8,7 @@ from gabriel.tasks.simple_rating import SimpleRating, RatingConfig
 from gabriel.tasks.ratings import Ratings, RatingsConfig
 from gabriel.tasks.deidentification import Deidentifier, DeidentifyConfig
 from gabriel.tasks.identification import Identification, IdentificationConfig
+from gabriel.tasks.basic_classifier import BasicClassifier, BasicClassifierConfig
 
 
 def test_prompt_template():
@@ -64,3 +65,11 @@ def test_identification_dummy(tmp_path):
     task = Identification(cfg)
     df = asyncio.run(task.classify(["who"]))
     assert not df.empty
+
+def test_basic_classifier_dummy(tmp_path):
+    cfg = BasicClassifierConfig(labels={"yes": ""}, save_dir=str(tmp_path), use_dummy=True)
+    task = BasicClassifier(cfg)
+    df = pd.DataFrame({"txt": ["a", "b"]})
+    res = asyncio.run(task.run(df, text_column="txt"))
+    assert "yes" in res.columns
+
