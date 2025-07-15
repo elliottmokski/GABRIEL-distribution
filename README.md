@@ -72,7 +72,7 @@ The full list of parameters for the function is as follows.
 -**`truncate_len`** (optional, defaults to 5000) the amount of text to keep. 
 - **`project_probs`** (optional, defaults to False): Whether to project the probabilities from 0 to 100 to a 0 to 1 scale.
 - **`api_key`** (mandatory): Your OpenAI API key.
-- **`model`** (optional): Backend model, default = `gpt-3.5-turbo-1106`.
+- **`model`** (optional): Backend model, default = `o4-mini`.
 - **`seed`** (optional, RECOMMENDED): Set a seed for cross-run replicability. For instance, `seed = 0`.
 
 ## Citation
