@@ -4,10 +4,8 @@ import pandas as pd
 from gabriel.core.prompt_template import PromptTemplate
 from gabriel.utils.teleprompter import Teleprompter
 from gabriel.utils import openai_utils
-from gabriel.tasks.simple_rating import SimpleRating, RatingConfig
 from gabriel.tasks.ratings import Ratings, RatingsConfig
 from gabriel.tasks.deidentification import Deidentifier, DeidentifyConfig
-from gabriel.tasks.identification import Identification, IdentificationConfig
 from gabriel.tasks.basic_classifier import BasicClassifier, BasicClassifierConfig
 
 
@@ -38,13 +36,6 @@ def test_get_all_responses_dummy(tmp_path):
     assert len(df) == 2
 
 
-def test_simple_rating_dummy(tmp_path):
-    cfg = RatingConfig(attributes={"helpfulness": ""}, save_path=str(tmp_path/"out.csv"), use_dummy=True)
-    task = SimpleRating(cfg)
-    df = asyncio.run(task.predict(["hello"]))
-    assert not df.empty
-
-
 def test_ratings_dummy(tmp_path):
     cfg = RatingsConfig(attributes={"helpfulness": ""}, save_path=str(tmp_path/"ratings.csv"), use_dummy=True)
     task = Ratings(cfg)
@@ -59,12 +50,6 @@ def test_deidentifier_dummy(tmp_path):
     df = asyncio.run(task.run(data, text_column="text"))
     assert "deidentified_text" in df.columns
 
-
-def test_identification_dummy(tmp_path):
-    cfg = IdentificationConfig(classes={"yes": "y"}, save_path=str(tmp_path/"out.csv"), use_dummy=True)
-    task = Identification(cfg)
-    df = asyncio.run(task.classify(["who"]))
-    assert not df.empty
 
 def test_basic_classifier_dummy(tmp_path):
     cfg = BasicClassifierConfig(labels={"yes": ""}, save_dir=str(tmp_path), use_dummy=True)

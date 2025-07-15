@@ -1,6 +1,5 @@
 """Command line interface for GABRIEL."""
 import argparse
-from ..tasks import SimpleRating, EloRater, Identification
 
 
 
