@@ -2,38 +2,17 @@
 
 from importlib.metadata import PackageNotFoundError, version as _v
 
+from . import tasks as _tasks
+
 try:
     __version__ = _v("gabriel")
 except PackageNotFoundError:  # pragma: no cover - package not installed
-    __version__ = "0.0.0"
+    from ._version import __version__
 
-__all__ = [
-    "SimpleRating",
-    "EloRater",
-    "Ratings",
-    "Deidentifier",
-    "Identification",
-]
+__all__ = list(_tasks.__all__)
+
 
 def __getattr__(name: str):
-    if name == "SimpleRating":
-        from .tasks.simple_rating import SimpleRating
-
-        return SimpleRating
-    if name == "EloRater":
-        from .tasks.elo import EloRater
-
-        return EloRater
-    if name == "Ratings":
-        from .tasks.ratings import Ratings
-
-        return Ratings
-    if name == "Deidentifier":
-        from .tasks.deidentification import Deidentifier
-
-        return Deidentifier
-    if name == "Identification":
-        from .tasks.identification import Identification
-
-        return Identification
+    if name in _tasks.__all__:
+        return getattr(_tasks, name)
     raise AttributeError(name)
