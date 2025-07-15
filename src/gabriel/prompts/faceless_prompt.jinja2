@@ -41,14 +41,18 @@ Example mapping snippet:
     "mother's name": {
         "real forms": ["Susan", "Sue", "Sue Scott"],
         "casted form": "Mary"
-    }
+    },
+    "hospital of birth": {
+        "real forms": ["Olmsted Medical Center", "Olmsted Medical", "OMC"],
+        "casted form": "Orchard Medical Center"
+    },
     "workplace name": {
         "real forms": [
             "Mayo Clinic", "Mayo-Clinic",
             "The Mayo Clinic", "mayo hospital", "Mayo Jacksonville",
             "Mayo Clinic Hospital"
         ],
-        "casted form": "Orchard Medical Center"
+        "casted form": "Frontier Clinic"
     }
 }
 
@@ -93,9 +97,17 @@ If you realize there is misorgnization or wrong mappings in the existing mapping
 You can reorganize and redo the mappings as much as needed, as long as all real forms from the existing mapping are somewhere in the new mapping, even if you move them around or change the keys.
 That said, only make changes if you are reasonably confident in them.
 
+Again, the existing mapping is:
+{{ current_map }}
+
+While you can and should add new entries, modify existing entries to reflect the new information you have, and you can reorganize the mapping if you are confident in the changes, you MUST ensure that all real forms from the existing mapping are somewhere in the new mapping verbatim, even if you move them around or change the keys.
+
 Again, remember only de-identify sensitive information and retain all non-identifying details.
 Public figures (celebrity or politician names etc.) should not be anonymized.
 Common workplaces (e.g. Walmart, Uber, TaskRabbit, etc.) should not be anonymized -- only location specific workplaces like "Mayo Clinic" or "Pinocchio's Pizza" should be anonymized.
-Age should not be included in the mapping dictionary by default.
+Age should not be included in the mapping dictionary; by default, age should not be anonymized.
 Terms like "my mother" or "my mom" or "Dad" or "my workplace" or "email address" must not be included in the mapping dictionary, only include cases where the actual person's or entity's identifying name is used.
-Only map terms that are identifying; this is a fairly narrow set of terms and most personal details should be retained.
+Only map terms that are identifying; this is a fairly narrow set of terms and most personal details should be retained. By default, most personal details should not be anonymized because they are not identifying.
+Ensure that you do not confuse two distinct entities by assigning them the same mapping. For example, if you have two different local businesses, they should be mapped to different fictitious names.
+Map to casted forms that are conceptually close to the original and carry the same meaning, like a real similar sized city or an ethnically similar name.
+Only map to fictitious casted forms if necessary; otherwise, map to a casted form that is real and exists, like a real city or a real neighborhood.
