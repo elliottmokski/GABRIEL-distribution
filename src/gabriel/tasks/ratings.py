@@ -162,28 +162,6 @@ class Ratings:
             )
             ids.append(sha8)
 
-        print(prompts)
-
-        # schema hint
-        schema = {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "attribute": {"type": "string"},
-                            "rating": {"type": "number"},
-                        },
-                        "required": ["attribute", "rating"],
-                    },
-                }
-            },
-            "required": ["data"],
-            "additionalProperties": False,
-        }
-
         df_resp = await get_all_responses(
             prompts=prompts,
             identifiers=ids,
@@ -193,7 +171,6 @@ class Ratings:
             use_dummy=self.cfg.use_dummy,
             timeout=self.cfg.timeout,
             json_mode=True,
-            expected_schema=schema,
         )
 
         # optional debug dump
