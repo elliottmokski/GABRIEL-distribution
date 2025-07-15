@@ -27,13 +27,12 @@ On a scale of 0‑100, rate how much the {{ object_category }} passage manifests
 
 ---
 
-### ⬇️  **Return format – follow exactly** ⬇️  
+### **Return format – follow exactly**
 Return **only** the JSON object below (no markdown, no code fences, no commentary).
 
 {
-  "data": [
-    {% for attribute in attributes -%}
-    { "attribute": "{{ attribute }}", "rating": 0 }{{ "," if not loop.last }}
-    {%- endfor %}
-  ]
+  "<insert attribute 1>": <insert integer rating for how much attribute 1 is manifested in the passage (0-100)>,
+  "<insert attribute 2>": <insert integer rating for how much attribute 2 is manifested in the passage (0-100)>,
+  ...,
+  "<insert attribute n>": <insert integer rating for how much attribute n is manifested in the passage (0-100)>,
 }
