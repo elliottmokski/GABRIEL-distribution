@@ -162,6 +162,8 @@ class Ratings:
             )
             ids.append(sha8)
 
+        print(prompts)
+
         # schema hint
         schema = {
             "type": "object",
