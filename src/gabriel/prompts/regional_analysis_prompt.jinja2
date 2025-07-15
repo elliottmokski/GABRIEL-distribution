@@ -1,0 +1,40 @@
+Consider the following geographical region and the following research topic:
+
+Region: {{ region }}
+Topic: {{ topic }}
+
+Your task is to thoroughly research the region using web tools and your internal knowledge base, specifically focusing on the following topic as it exists within that specific region: {{ topic }}
+Don't just research the topic at large; focus on gathering lots of information about the topic within this region specifically.
+Be flexible in how you approach research the region. If, for example, it is a ZIP code, first search what neighborhoods/comunities make up the ZIP code, and then research those on the topic. Or say it is a college, consider the college as the "region" and research the college's website, student publications, faculty lists, RateMyProfessor, etc, whatever primary sources that are relevant.
+We want to have a comprehensive characterization of the topic within this region, especially of how it manifests in this region uniquely from the average of all regions of a similar class (e.g. counties, countries, ZIPs, whatever the relevant administrative unit is).
+This means you should consider not only descriptions of the region, but also where the region is situated relative to its peer administrative units, in terms of how the topic manifests in this region relative to other regions.
+It is critical that you look for a representative sample of relevant (ideally primary) sources within the region, not just the loudest voices.
+This means exploring social media sources, local news outlets, blogs, Reddit forums, local business reviews, school websites, local neighborhood forums, etc.
+Use whatever primary, representative sources that will inform you about the real world manifestations of the topic in this specific region. 
+Think of at least a few creative primary sources you might explore, in addition to the obvious sources, so as to attack the topic from different angles.
+Cast a wide net and gather as much information as possible.
+Representative primary sources should be your north star. Be very creative in your search for sources and focus on collecting what real, regular people are saying about the topic in this region, not just the loudest voices or pundits or your preconceived notions.
+Once you are done with your thorough research, your output is a long and highly detailed report that characterizes the topic within this region.
+It should be 3000+ words long, and include many direct quotes from the many different sources you find.
+It should give as broad, deep, comprehensive, and representative a picture of the topic within this region as possible.
+Also crucial: be objective, not overly rosy or negative. Have a skeptical mindset -- people will often advertise/portray their region/institution in a positive light. 
+It is incumbent on you to put together a representative and real picture of the topic in this region, not just what is sold. Read between the lines when necessary.
+
+Spare no detail, directly quote and paraphrase as many primary sources as possible, be creative and smart about deducing what set of sources will best inform you about the real world, authentic, representative manifestations of the topic in this specific region.
+Your report should be objective and descriptive, almost entirely just restating through direct quotes and paraphrasing the primary sources you find.
+You must explore the Internet smartly, first finding the best ways to get relevant primary sources specific to this region, and then going to them and exploring them thoroughly.
+Your first, ideal option for primary sources might not work for this region, which is why you should explore multiple options for getting relevant and representative primary sources (e.g. exploring a school webpage, a school board meeting transcript, social media posts, business reviews, etc, not just one of these but multiple angles of attack).
+If your current approach is not finding good sources for the topic in the region, be creative and try a completely different approach to get relevant primary sources.
+Explore sources fully; don't just stop at a website homepage. If there is a promising avenue, follow it and explore it thoroughly, even if it means navigating to subpages or following links.
+Remember: your final report should largely be a compendium of the relevant and locally representative primary sources you find, mostly just direct quotes or rich summaries of the sources you find.
+Don't try to craft a narrative, just compile the sources you find. It is fine and expected to often have internal disagreements and contradictions amongst the sources you find.
+
+Once more, the topic and the region:
+
+Region: {{ region }}
+Topic: {{ topic }}
+
+{% if additional_instructions %}
+**Additional instructions**
+{{ additional_instructions }}
+{% endif %}

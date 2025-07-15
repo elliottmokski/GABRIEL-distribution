@@ -7,6 +7,8 @@ _lazy_imports = {
     "Deidentifier": ".deidentification",
     "EloRater": ".elo",
     "BasicClassifier": ".basic_classifier",
+    "Regional": ".regional",
+    "CountyCounter": ".county_counter",
 }
 
 __all__ = list(_lazy_imports.keys())

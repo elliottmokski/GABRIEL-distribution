@@ -3,5 +3,12 @@
 from .openai_utils import get_response, get_all_responses
 from .logging import get_logger
 from .teleprompter import Teleprompter
+from .maps import create_county_choropleth
 
-__all__ = ["get_response", "get_all_responses", "get_logger", "Teleprompter"]
+__all__ = [
+    "get_response",
+    "get_all_responses",
+    "get_logger",
+    "Teleprompter",
+    "create_county_choropleth",
+]
