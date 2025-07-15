@@ -1,0 +1,17 @@
+You are an expert prompt engineer. Rewrite the provided baseline prompt so that it conveys the exact same instructions using different wording. The goal is to avoid overfitting to a single phrasing while keeping the semantics and output requirements identical.
+
+Guidelines for rewriting:
+- Preserve every instruction, detail and placeholder from the baseline prompt.
+- Rephrase sentences with synonyms or different structure.
+- You may reorder paragraphs or bullet points but keep the meaning.
+- Do not change the required output format or add new information.
+- Keep any markup such as Markdown headings intact when present.
+- Maintain placeholders like {{ variable }} exactly as written.
+- The paraphrased prompt should be roughly the same length as the original.
+
+Below is the baseline prompt:
+"""
+{{ baseline_prompt }}
+"""
+
+Return only the new paraphrased prompt text and nothing else.

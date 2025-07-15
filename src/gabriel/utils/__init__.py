@@ -4,6 +4,7 @@ from .openai_utils import get_response, get_all_responses
 from .logging import get_logger
 from .teleprompter import Teleprompter
 from .maps import create_county_choropleth
+from .prompt_paraphraser import PromptParaphraser, PromptParaphraserConfig
 
 __all__ = [
     "get_response",
@@ -11,4 +12,6 @@ __all__ = [
     "get_logger",
     "Teleprompter",
     "create_county_choropleth",
+    "PromptParaphraser",
+    "PromptParaphraserConfig",
 ]

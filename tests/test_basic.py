@@ -9,6 +9,7 @@ from gabriel.tasks.deidentification import Deidentifier, DeidentifyConfig
 from gabriel.tasks.basic_classifier import BasicClassifier, BasicClassifierConfig
 from gabriel.tasks.regional import Regional, RegionalConfig
 from gabriel.tasks.county_counter import CountyCounter
+from gabriel.utils import PromptParaphraser, PromptParaphraserConfig
 
 
 def test_prompt_template():
@@ -82,4 +83,16 @@ def test_county_counter_dummy(tmp_path):
     )
     df = asyncio.run(counter.run())
     assert "econ" in df.columns
+
+
+def test_prompt_paraphraser_ratings(tmp_path):
+    cfg = RatingsConfig(
+        attributes={"quality": ""},
+        save_path=str(tmp_path / "rat.csv"),
+        use_dummy=True,
+    )
+    parap_cfg = PromptParaphraserConfig(n_variants=2, save_dir=str(tmp_path / "para"), use_dummy=True)
+    paraphraser = PromptParaphraser(parap_cfg)
+    df = asyncio.run(paraphraser.run(Ratings, cfg, ["hello"]))
+    assert set(df.prompt_variant) == {"baseline", "variant_1", "variant_2"}
 
