@@ -22,8 +22,13 @@ BEGINNING OF PASSAGE. NOTHING BEFORE THIS IS PART OF PASSAGE.
 
 END OF PASSAGE. NOTHING AFTER THIS IS PART OF PASSAGE.
 
-On a scale of 0‑100, rate how much the {{ object_category }} passage manifests the
+On a scale of {{ rating_scale }}, rate how much the {{ object_category }} passage manifests the
 {{ attribute_category }} attributes of {{ attribute_list }}.
+
+{% if additional_guidelines %}
+In addition, please take the following into account:
+{{ additional_guidelines }}
+{% endif %}
 
 ---
 
@@ -31,8 +36,8 @@ On a scale of 0‑100, rate how much the {{ object_category }} passage manifests
 Return **only** the JSON object below (no markdown, no code fences, no commentary).
 
 {
-  "<insert attribute 1>": <insert integer rating for how much attribute 1 is manifested in the passage (0-100)>,
-  "<insert attribute 2>": <insert integer rating for how much attribute 2 is manifested in the passage (0-100)>,
+  "<insert attribute 1>": <insert integer rating for how much attribute 1 is manifested in the passage ({{ rating_scale }})>,
+  "<insert attribute 2>": <insert integer rating for how much attribute 2 is manifested in the passage ({{ rating_scale }})>,
   ...,
-  "<insert attribute n>": <insert integer rating for how much attribute n is manifested in the passage (0-100)>,
+  "<insert attribute n>": <insert integer rating for how much attribute n is manifested in the passage ({{ rating_scale }})>,
 }

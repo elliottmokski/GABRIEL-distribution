@@ -21,6 +21,7 @@ class Teleprompter:
         text_square: str,
         attributes: Union[Dict[str, str], List[str]],
         instructions: str = "",
+        additional_guidelines: str = "",
     ) -> str:
         """Render the generic elo comparison prompt."""
         if isinstance(attributes, list):
@@ -31,4 +32,5 @@ class Teleprompter:
             text_square=text_square,
             attributes=attributes,
             instructions=instructions,
+            additional_guidelines=additional_guidelines,
         )

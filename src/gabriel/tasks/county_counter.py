@@ -33,6 +33,8 @@ class CountyCounter:
         use_dummy: bool = False,
         additional_instructions: str = "",
         elo_instructions: str = "",
+        additional_guidelines: str = "",
+        elo_guidelines: str = "",
         z_score_choropleth: bool = True,
         elo_attributes: dict | None = None,
     ) -> None:
@@ -47,6 +49,8 @@ class CountyCounter:
         self.use_dummy = use_dummy
         self.additional_instructions = additional_instructions
         self.elo_instructions = elo_instructions
+        self.additional_guidelines = additional_guidelines
+        self.elo_guidelines = elo_guidelines
         self.reasoning_effort = reasoning_effort
         self.search_context_size = search_context_size
         self.z_score_choropleth = z_score_choropleth
@@ -62,6 +66,7 @@ class CountyCounter:
             n_parallels=self.n_parallels,
             use_dummy=self.use_dummy,
             additional_instructions=self.additional_instructions,
+            additional_guidelines=self.additional_guidelines,
             reasoning_effort=self.reasoning_effort,
             search_context_size=self.search_context_size,
             print_example_prompt=True,
@@ -83,18 +88,19 @@ class CountyCounter:
                 attributes = self.elo_attributes
             else:
                 attributes = [topic]
-            cfg = EloConfig(
-                attributes=attributes,
-                n_rounds=self.n_elo_rounds,
-                n_parallels=self.n_parallels,
-                model=self.model_elo,
-                save_dir=self.save_path,
-                run_name=f"elo_{topic}",
-                use_dummy=self.use_dummy,
-                instructions=self.elo_instructions,
-                print_example_prompt=False,
-                timeout=self.elo_timeout,
-            )
+                cfg = EloConfig(
+                    attributes=attributes,
+                    n_rounds=self.n_elo_rounds,
+                    n_parallels=self.n_parallels,
+                    model=self.model_elo,
+                    save_dir=self.save_path,
+                    run_name=f"elo_{topic}",
+                    use_dummy=self.use_dummy,
+                    instructions=self.elo_instructions,
+                    additional_guidelines=self.elo_guidelines,
+                    print_example_prompt=False,
+                    timeout=self.elo_timeout,
+                )
             rater = EloRater(self.tele, cfg)
             elo_df = await rater.run(df_topic, text_col="text", id_col="identifier")
             elo_df["identifier"] = elo_df["identifier"].astype(str)

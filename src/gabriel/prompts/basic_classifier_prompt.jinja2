@@ -27,6 +27,11 @@ Interpret whether the label applies to the passage based on the specific definit
 {{ additional_instructions }}
 {% endif %}
 
+{% if additional_guidelines %}
+In addition, please take the following into account:
+{{ additional_guidelines }}
+{% endif %}
+
 **Output format:**
 Return a JSON object mapping each label to either true or false. Example format:
 

@@ -17,6 +17,11 @@ The possible classes are {{possible_classes}}.
 
 It is essential, for each entity, you choose one and only one class. Always choose one, never multiple. If more than one fit, choose the best one, airing on the side of choosing the tech related category. All entities irrelevant to tech should go into the 'other' category, as described precisely above. DO NOT create new classes or change the names of the classes in ANY way. Use ONLY these class choices with no modifications.
 
+{% if additional_guidelines %}
+In addition, please take the following into account:
+{{ additional_guidelines }}
+{% endif %}
+
 Your output should be in JSON format, as follows, substituting 'entity_n' for the respective entity name and <insert correct class for entity_n here> with its corresponding singular class choice:
 
 {{output_format}}

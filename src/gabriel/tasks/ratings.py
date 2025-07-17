@@ -1,6 +1,6 @@
 # src/gabriel/tasks/ratings.py
 # ════════════════════════════════════════════════════════════════════
-# Robust 0-100 passage-rating task with optional debug logging.
+# Robust passage-rating task with optional debug logging.
 # ════════════════════════════════════════════════════════════════════
 from __future__ import annotations
 
@@ -29,6 +29,8 @@ class RatingsConfig:
     save_path: str = "ratings.csv"
     use_dummy: bool = False
     timeout: float = 60.0
+    rating_scale: str = "0-100"
+    additional_guidelines: str = ""
 
 
 # ────────────────────────────
@@ -158,6 +160,8 @@ class Ratings:
                     passage=passage,
                     object_category="text",
                     attribute_category="attributes",
+                    rating_scale=self.cfg.rating_scale,
+                    additional_guidelines=self.cfg.additional_guidelines,
                 )
             )
             ids.append(sha8)
