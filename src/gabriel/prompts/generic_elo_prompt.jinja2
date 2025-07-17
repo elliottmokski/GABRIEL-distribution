@@ -4,6 +4,11 @@ You will be shown two passages labelled *passage circle* and *passage square*. F
 {{ instructions }}
 {% endif %}
 
+{% if additional_guidelines %}
+In addition, please take the following into account:
+{{ additional_guidelines }}
+{% endif %}
+
 **Passage circle**
 BEGIN CIRCLE
 {{ text_circle }}

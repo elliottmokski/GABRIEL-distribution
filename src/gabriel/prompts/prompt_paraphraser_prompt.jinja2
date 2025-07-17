@@ -14,4 +14,9 @@ Below is the baseline prompt:
 {{ baseline_prompt }}
 """
 
+{% if additional_guidelines %}
+In addition, please take the following into account:
+{{ additional_guidelines }}
+{% endif %}
+
 Return only the new paraphrased prompt text and nothing else.

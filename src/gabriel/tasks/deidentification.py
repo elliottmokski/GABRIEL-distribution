@@ -23,6 +23,7 @@ class DeidentifyConfig:
     timeout: float = 60.0
     max_words_per_call: int = 7500
     guidelines: str = ""
+    additional_guidelines: str = ""
 
 
 class Deidentifier:
@@ -98,6 +99,7 @@ class Deidentifier:
                             text=segs[rnd],
                             current_map=json.dumps(group_to_map[gid], ensure_ascii=False),
                             guidelines=self.cfg.guidelines,
+                            additional_guidelines=self.cfg.additional_guidelines,
                         )
                     )
                     identifiers.append(f"{gid}_seg_{rnd}")

@@ -46,6 +46,7 @@ class EloConfig:
     timeout: float = 45.0
     print_example_prompt: bool = True
     instructions: str = ""
+    additional_guidelines: str = ""
     save_dir: str = os.path.expanduser("~/Documents/runs")
     run_name: str = f"elo_{datetime.now():%Y%m%d_%H%M%S}"
     seed: Optional[int] = None
@@ -426,6 +427,7 @@ class EloRater:
                             text_square=t_b,
                             attributes=attr_def_map,
                             instructions=self.cfg.instructions,
+                            additional_guidelines=self.cfg.additional_guidelines,
                         )
                     )
                     ids.append(f"{rnd}|{batch_idx}|{pair_idx}|{id_a}|{id_b}")

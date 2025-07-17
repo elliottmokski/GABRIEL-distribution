@@ -24,6 +24,11 @@ Follow these additional de-identification guidelines carefully:
 The guidelines should be followed strictly, and you should focus on thorough compliance with them. They take precedence over the default instructions.
 {% endif %}
 
+{% if additional_guidelines %}
+In addition, please take the following into account:
+{{ additional_guidelines }}
+{% endif %}
+
 For each entity, output an object with two fields:
 - "real forms": list of verbatim strings exactly as they appear in the text across all processed chunks
 - "casted form": your chosen anonymized substitute, ideally matching the original's style (e.g., similar cultural background for names, similar city for hometown). Choose a conceptually close substitute that conveys the essence of the original entity without revealing the original identity
@@ -66,6 +71,11 @@ If there is no existing mapping provided above, start a new one from scratch.
 Follow these additional de-identification guidelines carefully:
 {{ guidelines }}
 The guidelines should be followed strictly, and you should focus on thorough compliance with them.
+{% endif %}
+
+{% if additional_guidelines %}
+In addition, please take the following into account:
+{{ additional_guidelines }}
 {% endif %}
 
 Return the full mapping dictionary as JSON, retaining all existing entries and adding only. Do not include any narrative or explanation outside the JSON object.

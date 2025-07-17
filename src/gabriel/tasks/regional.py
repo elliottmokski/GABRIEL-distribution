@@ -21,6 +21,7 @@ class RegionalConfig:
     run_name: str | None = None
     use_dummy: bool = False
     additional_instructions: str = ""
+    additional_guidelines: str = ""
     reasoning_effort: str = "medium"
     search_context_size: str = "medium"
     print_example_prompt: bool = True
@@ -57,6 +58,7 @@ class Regional:
                         region=region,
                         topic=topic,
                         additional_instructions=self.cfg.additional_instructions,
+                        additional_guidelines=self.cfg.additional_guidelines,
                     )
                 )
                 ids.append(f"{region}|{topic}")

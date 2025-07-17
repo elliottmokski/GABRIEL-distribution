@@ -22,6 +22,7 @@ class BasicClassifierConfig:
     model: str = "o4-mini"
     n_parallels: int = 400
     additional_instructions: str = ""
+    additional_guidelines: str = ""
     use_dummy: bool = False
     timeout: float = 60.0
 
@@ -78,6 +79,7 @@ class BasicClassifier:
                     text=txt,
                     labels=self.cfg.labels,
                     additional_instructions=self.cfg.additional_instructions,
+                    additional_guidelines=self.cfg.additional_guidelines,
                 )
             )
             ids.append(sha8)
