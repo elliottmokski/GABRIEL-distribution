@@ -10,6 +10,7 @@ import pandas as pd
 
 from ..core.prompt_template import PromptTemplate
 from ..utils.openai_utils import get_all_responses
+from ..utils import safe_json
 
 
 @dataclass
@@ -40,18 +41,6 @@ class Deidentifier:
             return [text]
         return [" ".join(words[i : i + max_words]) for i in range(0, len(words), max_words)]
 
-    @staticmethod
-    def _parse_json(txt: str) -> Dict[str, dict]:
-        try:
-            return json.loads(txt)
-        except Exception:
-            try:
-                match = re.search(r"\{[\s\S]*\}", txt)
-                if match:
-                    return json.loads(match.group(0))
-            except Exception:
-                pass
-        return {}
 
     async def run(
         self,
@@ -119,7 +108,7 @@ class Deidentifier:
             for ident, resp in zip(batch_df["Identifier"], batch_df["Response"]):
                 gid = ident.split("_seg_")[0]
                 main = resp[0] if isinstance(resp, list) and resp else ""
-                parsed = self._parse_json(main)
+                parsed = safe_json(main)
                 if parsed:
                     group_to_map[gid] = parsed
 

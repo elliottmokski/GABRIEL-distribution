@@ -1,9 +1,6 @@
 """Advanced Elo rating implementation."""
 from __future__ import annotations
 
-import ast
-import json
-
 import os
 import random
 from dataclasses import dataclass
@@ -15,6 +12,7 @@ import pandas as pd
 
 from ..utils.teleprompter import Teleprompter
 from ..utils.openai_utils import get_all_responses
+from ..utils import safe_json
 
 
 @dataclass
@@ -70,30 +68,6 @@ class EloRater:
             self.history_multi[attr] = []
         self.history_multi[attr].append(ranking)
 
-    @staticmethod
-    def _safe_json(txt: Any) -> dict:
-        try:
-            if isinstance(txt, dict):
-                return txt
-            if isinstance(txt, list):
-                if txt and isinstance(txt[0], dict):
-                    return txt[0]
-                if txt and isinstance(txt[0], str):
-                    txt = txt[0]
-            cleaned = str(txt).strip()
-            if (cleaned.startswith('"') and cleaned.endswith('"')) or (
-                cleaned.startswith("'") and cleaned.endswith("'")
-            ):
-                cleaned = cleaned[1:-1]
-            try:
-                return json.loads(cleaned)
-            except Exception:
-                try:
-                    return ast.literal_eval(cleaned)
-                except Exception:
-                    return {}
-        except Exception:
-            return {}
 
     def _fit_bt(
         self,
@@ -450,9 +424,9 @@ class EloRater:
                 except Exception:
                     continue
 
-                safe = self._safe_json(resp)
+                safe = safe_json(resp)
                 if isinstance(resp, list) and not safe:
-                    safe = self._safe_json(resp[0])
+                    safe = safe_json(resp[0])
                 if not isinstance(safe, dict) or not safe:
                     continue
 

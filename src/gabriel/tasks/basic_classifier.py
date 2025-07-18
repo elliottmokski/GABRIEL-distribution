@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import ast
 import hashlib
-import json
 import os
 import re
 from collections import defaultdict
@@ -13,6 +11,7 @@ import pandas as pd
 
 from ..core.prompt_template import PromptTemplate
 from ..utils.openai_utils import get_all_responses
+from ..utils import safe_json
 
 
 @dataclass
@@ -31,31 +30,6 @@ class BasicClassifier:
     """Robust passage classifier using an LLM."""
 
     _FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.S)
-
-    @staticmethod
-    def _safe_json(txt: Any) -> dict:
-        try:
-            if isinstance(txt, dict):
-                return txt
-            if isinstance(txt, list):
-                if txt and isinstance(txt[0], dict):
-                    return txt[0]
-                if txt and isinstance(txt[0], str):
-                    txt = txt[0]
-            cleaned = str(txt).strip()
-            if (cleaned.startswith('"') and cleaned.endswith('"')) or (
-                cleaned.startswith("'") and cleaned.endswith("'")
-            ):
-                cleaned = cleaned[1:-1]
-            try:
-                return json.loads(cleaned)
-            except Exception:
-                try:
-                    return ast.literal_eval(cleaned)
-                except Exception:
-                    return {}
-        except Exception:
-            return {}
 
     def __init__(self, cfg: BasicClassifierConfig, template: PromptTemplate | None = None) -> None:
         self.cfg = cfg
@@ -106,7 +80,7 @@ class BasicClassifier:
             m = self._FENCE_RE.search(resp)
             if m:
                 resp = m.group(1).strip()
-        data = self._safe_json(resp)
+        data = safe_json(resp)
         if isinstance(data, dict):
             norm = {
                 k.strip().lower(): (

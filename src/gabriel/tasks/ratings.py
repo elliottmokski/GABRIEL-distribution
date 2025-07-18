@@ -4,9 +4,7 @@
 # ════════════════════════════════════════════════════════════════════
 from __future__ import annotations
 
-import ast
 import hashlib
-import json
 import re
 from collections import defaultdict
 from dataclasses import dataclass
@@ -16,6 +14,7 @@ import pandas as pd
 
 from ..core.prompt_template import PromptTemplate
 from ..utils.openai_utils import get_all_responses
+from ..utils import safe_json
 
 
 # ────────────────────────────
@@ -39,59 +38,6 @@ class RatingsConfig:
 class Ratings:
     """Rate passages on specified attributes (0–100)."""
 
-    _FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.S)
-
-    # -----------------------------------------------------------------
-    # Robust JSON extractor (union of the two previous strategies)
-    # -----------------------------------------------------------------
-    @staticmethod
-    def _safe_json(txt: Any) -> dict | list:
-        """Return a dict / list if parseable, else {}."""
-        if isinstance(txt, (dict, list)):
-            return txt
-
-        # unwrap single-item list / bytes
-        if isinstance(txt, list) and txt:
-            return Ratings._safe_json(txt[0])
-        if isinstance(txt, (bytes, bytearray)):
-            txt = txt.decode(errors="ignore")
-        if txt is None:
-            return {}
-
-        cleaned = str(txt).strip()
-
-        # strip outer quotes
-        if (cleaned.startswith('"') and cleaned.endswith('"')) or (
-            cleaned.startswith("'") and cleaned.endswith("'")
-        ):
-            cleaned = cleaned[1:-1].strip()
-
-        # strip code-fence
-        m = Ratings._FENCE_RE.search(cleaned)
-        if m:
-            cleaned = m.group(1).strip()
-
-        # attempt json.loads
-        try:
-            return json.loads(cleaned)
-        except Exception:
-            pass
-
-        # fall back to literal_eval
-        try:
-            return ast.literal_eval(cleaned)
-        except Exception:
-            pass
-
-        # last resort: first {...} block
-        try:
-            brace = re.search(r"\{[\s\S]*\}", cleaned)
-            if brace:
-                return json.loads(brace.group(0))
-        except Exception:
-            pass
-
-        return {}
 
     # -----------------------------------------------------------------
     def __init__(self, cfg: RatingsConfig, template: PromptTemplate | None = None) -> None:
@@ -102,7 +48,7 @@ class Ratings:
     # Parse raw LLM output into {attribute: float}
     # -----------------------------------------------------------------
     def _parse(self, raw: Any) -> Dict[str, Optional[float]]:
-        obj = self._safe_json(raw)
+        obj = safe_json(raw)
         out: Dict[str, Optional[float]] = {}
 
         # shape A: {"data":[{"attribute":"clarity","rating":88}, …]}

@@ -11,6 +11,7 @@ import pandas as pd
 from aiolimiter import AsyncLimiter
 from tqdm import tqdm
 import openai
+from .parsing import safe_json
 
 # single connection pool per process, created lazily
 client_async: Optional[openai.AsyncOpenAI] = None
@@ -138,15 +139,8 @@ def _de(x: Any) -> Any:
     """Deserialize JSON strings back to Python objects."""
     if pd.isna(x):
         return None
-    try:
-        return json.loads(x)
-    except Exception:
-        try:
-            import ast
-
-            return ast.literal_eval(x)
-        except Exception:
-            return None
+    parsed = safe_json(x)
+    return parsed if parsed else None
 
 
 async def get_all_responses(
