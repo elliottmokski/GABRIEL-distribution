@@ -1,0 +1,1346 @@
+id;age;gender;education;native_english_speaker;political_ideology;followed_news_outlets;news_check_frequency;survey_completed
+cd0bc7394bd8486c825c452de1640d06;39;Male;Bachelor’s degree;Native speaker;-7;['ABC News'];Several times per week;WAHR
+aef3ca5391f04e788d6f11a0602c17bb;29;Female;Some college;Native speaker;-10;['CNN', 'MSNBC'];Never;WAHR
+2e2a9969042445c2b8f43c2bb53a4d05;41;Male;Bachelor’s degree;Native speaker;-6;['The Washington Post', 'New York Post', 'New York Times', 'New York Post', 'NPR'];Every day;WAHR
+96f5493939004e83a33c7d23e6f66446;28;Male;Some college;Native speaker;5;['Fox News', 'CNN', 'New York Times', 'Breitbart', 'The Washington Post'];Several times per day;WAHR
+d905d982718047e38f813d970cad398c;42;Male;Bachelor’s degree;Native speaker;3;['Fox News', 'CNN'];Several times per day;FALSCH
+6102995dc795492fb6a835530b46cc99;33;Male;Bachelor’s degree;Native speaker;-9;['MSNBC', 'CNN', 'The Washington Post', 'New York Times'];Every day;WAHR
+b862b7b67ab441e4a873e06fa7d973f6;60;Female;Bachelor’s degree;Native speaker;-10;['The Washington Post'];Several times per day;WAHR
+dce4dc6c93584179b3a027245d5260a5;62;Female;Associate degree;Native speaker;-10;['CNN', 'MSNBC', 'Reuters', 'The Washington Post', 'The Guardian', 'New York Times'];Several times per day;FALSCH
+dc1f872b17f84498bc758b0150fc659e;33;Male;High school graduate;Native speaker;2;['New York Post'];Several times per day;WAHR
+745bb8b1480c4869b6160471211c84a5;27;Male;Graduate work;Native speaker;0;['New York Times', 'The Wall Street Journal', 'New York Post', 'New York Post', 'Business Insider'];Several times per day;WAHR
+10b8cb7efdb749feacff1ad81c51801f;49;Male;Bachelor’s degree;Native speaker;7;['ABC News'];Every day;WAHR
+667b0e3f55184330acf034cf6aa09002;32;Male;Bachelor’s degree;Native speaker;-9;['New York Times', 'New York Post', 'New York Post', 'The Washington Post', 'NPR'];Every day;WAHR
+c6368ce6766e42878750076e9a250a67;52;Female;Some college;Native speaker;1;['Fox News'];Every day;WAHR
+b44e79eef84c495bad6dc9947762d0ad;38;Male;Associate degree;Native speaker;3;['Fox News', 'New York Times', 'CNN', 'MSNBC', 'Reuters', 'The Washington Post', 'The Wall Street Journal', 'The Guardian'];Every day;WAHR
+9cfa2eaec63e4483850e671c7b9ff238;31;Female;Bachelor’s degree;Native speaker;-10;['New York Times', 'CNN', 'MSNBC', 'Reuters', 'Huffington Post', 'USA Today', 'ABC News', 'CBS News', 'The Washington Post', 'The Guardian', 'BuzzFeed', 'Time magazine', 'Vice', 'Business Insider'];Several times per day;FALSCH
+e2538cc43de14d45a122f9fed966a050;49;Male;Bachelor’s degree;Native speaker;10;['Fox News'];Every day;FALSCH
+098fe6927ef44007b02f834e4284f8e7;23;Male;Some high school;Near-native speaker;-6;['New York Times'];Several times per week;FALSCH
+304b05b3d5d34a60897ed3be121b66d2;56;Female;Associate degree;Native speaker;-4;['Fox News', 'CNN', 'CBS News', 'The Washington Post'];Several times per day;WAHR
+1d20139a89cf4177871fcfe342e5e6eb;48;Female;Graduate work;Native speaker;-3;['New York Times', 'CNN', 'MSNBC', 'USA Today', 'ABC News', 'CBS News', 'Time magazine', 'The Wall Street Journal', 'The Washington Post'];Several times per day;WAHR
+b7e535ad728048f68c50085b32842cc9;33;Male;Graduate work;Native speaker;8;['New York Times', 'Reuters', 'MSNBC', 'Huffington Post', 'New York Post', 'USA Today', 'ABC News', 'CBS News', 'The Washington Post', 'The Wall Street Journal', 'The Guardian', 'Time magazine', 'Business Insider'];Several times per day;FALSCH
+04f68a46e15b43b48729a93d7c2a182d;68;Male;Some college;Native speaker;5;['Fox News', 'The Wall Street Journal'];Several times per week;WAHR
+26655f50d20741f8adfa3acb59dae902;29;Male;Bachelor’s degree;Native speaker;-2;['Twitter'];Several times per month;WAHR
+b8141c8656984f1a88737c18a0d63704;61;Female;Bachelor’s degree;Native speaker;6;['Fox News', 'CNN', 'The Washington Post'];Several times per day;WAHR
+6d04c0acd02a44ccb46c84e48fee98c9;47;Male;Associate degree;Native speaker;8;['Fox News', 'CNN', 'USA Today', 'Time magazine'];Very rarely;WAHR
+57533d8f3f4e4d629d1740d6bb4c7d81;29;Male;Associate degree;Native speaker;-10;['MSNBC', 'The Washington Post', 'Vice', 'BuzzFeed'];Several times per week;WAHR
+dee7f760a6b74b76ace07af00620fb2a;38;Male;Bachelor’s degree;Native speaker;-7;['CNN', 'CNBC'];Every day;FALSCH
+5f3162545f9746b3a05071d3b5ac1348;46;Male;Bachelor’s degree;Native speaker;6;['Breitbart', 'Godlike Productions.'];Several times per day;FALSCH
+771fc4f6aa79492599794ce199488e06;40;Female;Vocational or technical school;Native speaker;-3;['Fox News', 'The Washington Post', 'Huffington Post', 'New York Times', 'New York Post', 'New York Times', 'The Washington Post', 'BuzzFeed'];Every day;WAHR
+d1149447bca74a8bbbd61aa61a1ddf30;24;Female;High school graduate;Near-native speaker;-2;['USA Today'];Several times per week;FALSCH
+f85b454b909f4196a3e3b403e24d8c73;44;Female;Bachelor’s degree;Native speaker;10;['Fox News', 'The Wall Street Journal'];Several times per week;WAHR
+f076e36aa1f44fa0aa0316810e17949a;42;Female;Bachelor’s degree;Native speaker;-9;['New York Times', 'New York Post', 'The Wall Street Journal', 'MSNBC', 'The Washington Post', 'Huffington Post'];Several times per day;FALSCH
+4bfd87c896c64e5e9ce955a4dc48d26d;29;Male;Bachelor’s degree;Native speaker;-5;['The Wall Street Journal', 'New York Times', 'CNN', 'NPR'];Several times per week;WAHR
+f06fd7977eee40d2bd98ad05add0b24c;26;Male;Bachelor’s degree;Native speaker;-7;['MSNBC'];Every day;WAHR
+466cc7c4af7645c7a0bfe63e46ae5de8;35;Male;Some college;Native speaker;-8;['MSNBC'];Several times per month;WAHR
+db151108f1254843a98a412f3c75e79a;38;Male;Associate degree;Native speaker;4;['Fox News', 'New York Times', 'CNN', 'MSNBC', 'Reuters', 'The Wall Street Journal', 'The Washington Post'];Every day;WAHR
+7c7666e14b00468fafefd2b587c0abfa;49;Male;Bachelor’s degree;Native speaker;-10;['The Guardian', 'The Washington Post', 'Huffington Post', 'New York Times', 'The Wall Street Journal'];Several times per day;FALSCH
+8108954c429e4ab6ba93b8a6870dc461;47;Female;Bachelor’s degree;Native speaker;1;['Fox News', 'CNN', 'CBS News', 'ABC News'];Several times per week;FALSCH
+c6165ebeae7d4b5ca82ef80f25354aff;39;Female;Bachelor’s degree;Native speaker;3;['ABC News'];Several times per month;WAHR
+b5afb611871942c19d1fb2c960734269;49;Male;Some college;Native speaker;-7;['Vice', 'The Guardian', 'USA Today', 'New York Post', 'Fox News', 'CNN', 'Huffington Post', 'ABC News'];Several times per day;WAHR
+7e2215c712fa4b59a1abfac883833465;36;Female;Some college;Native speaker;0;['Fox News', 'New York Times', 'Huffington Post', 'New York Post', 'USA Today', 'ABC News', 'CBS News', 'The Washington Post', 'The Guardian', 'Time magazine', 'Business Insider', 'BBC'];Several times per day;FALSCH
+fdca4afbfa05430ca77840b156635cce;67;Female;Bachelor’s degree;Native speaker;6;['Fox News', 'USA Today'];Every day;WAHR
+330b8b0c2e3e40dd9c02419dd9e69522;29;Male;High school graduate;Native speaker;6;['New York Times'];Every day;WAHR
+171a709558c0493783ce0ee1964214f6;45;Female;Some college;Native speaker;0;['ABC News'];Several times per week;FALSCH
+f46863754c7b449f9939711637711b14;49;Male;Bachelor’s degree;Native speaker;-7;['New York Times'];Every day;WAHR
+b68f01f710fa40279d0fd9a29a411112;38;Male;Bachelor’s degree;Native speaker;-10;['New York Times', 'CNN', 'MSNBC', 'Reuters', 'The Washington Post'];Every day;FALSCH
+e991b989ff454f66a3a9a86a61d2be28;24;Male;High school graduate;Native speaker;-6;['New York Times', 'MSNBC', 'Huffington Post', 'New York Post', 'The Washington Post', 'The Wall Street Journal'];Several times per month;WAHR
+922af66fad644d358446a75846d9cea3;59;Female;Bachelor’s degree;Native speaker;-6;['CNN'];Every day;WAHR
+4850cee10e1d43e98ceab10b6c9eb130;60;Female;Associate degree;Native speaker;10;['ABC News'];Every day;WAHR
+82a320d125c64bf985f185b8af1b3d5f;24;Female;Graduate work;Native speaker;-1;['The Washington Post'];Several times per day;WAHR
+0bef110f3d824050aaffd7bf95577b64;36;Male;High school graduate;Native speaker;-10;['New York Times', 'The Washington Post'];Every day;WAHR
+436e61de74764595a57a91dc64ee3010;36;Male;Associate degree;Native speaker;-8;['MSNBC', 'USA Today', 'New York Post'];Several times per week;WAHR
+fb60bd85252c4e19902cbb53d2a39d34;29;Female;Some college;Native speaker;-9;['USA Today', 'Reuters', 'Reuters', 'CNN', 'New York Times'];Every day;WAHR
+79e7d87e1a614a8cbd3ffc2b47d444fe;44;Male;Bachelor’s degree;Native speaker;8;['Breitbart'];Every day;WAHR
+dbfb78010c6a4cc0949af54b4f4f01b3;67;Female;High school graduate;Native speaker;-10;['CNN', 'ABC News', 'CBS News'];Several times per day;WAHR
+091a3a7cf69045508e02a769517097ae;45;Female;Bachelor’s degree;Native speaker;8;['New York Times'];Every day;WAHR
+1de6b529774e4bff9ba0630c0ce4d9ff;57;Female;Vocational or technical school;Native speaker;-8;['CBS News', 'CNN'];Several times per week;FALSCH
+2dc7b5b0bf9540538d1040083b894902;40;Female;Bachelor’s degree;Native speaker;-4;['New York Times'];Very rarely;WAHR
+4fdde9f725fe42f494d06eda62e7d946;33;Male;Bachelor’s degree;Native speaker;-9;['New York Times', 'Vice', 'CNN', 'The Washington Post', 'CBS News', 'ABC News', 'MSNBC'];Several times per day;WAHR
+3bd9b846360049eaa69c37cbdf03a0ef;41;Male;Bachelor’s degree;Native speaker;-8;['CNN', 'New York Times', 'USA Today', 'ABC News', 'Time magazine', 'Huffington Post'];Every day;WAHR
+da51ee4da9584a11b2f5184b26650a29;28;Male;Associate degree;Native speaker;0;['New York Times', 'CNN', 'BuzzFeed'];Several times per week;WAHR
+00c13305ff8648e7ab16ca7ecdc35729;49;Female;High school graduate;Native speaker;6;['Fox News'];Every day;FALSCH
+4dfa09b53b8d47bcb8225c74637d6b9f;55;Female;Graduate work;Native speaker;-7;['CNN', 'ABC News', 'USA Today'];Several times per day;FALSCH
+e7923b7f7ee84424aaf1ad7079cc76c0;33;Male;Bachelor’s degree;Native speaker;4;['CNN', 'Fox News'];Several times per week;WAHR
+fd0674b0de8c4ca19453f9140cd3fcd4;27;Female;Some college;Native speaker;2;['The Wall Street Journal', 'Business Insider', 'Reuters'];Every day;WAHR
+90334e8129244faf8bb7ce2403bccc8b;60;Male;Vocational or technical school;Native speaker;-8;['CNN', 'MSNBC', 'The Washington Post'];Several times per day;WAHR
+c424d9f11c20487aa0cfbf7d265fcf24;65;Female;High school graduate;Native speaker;0;['Fox News', 'CNN', 'CBS News'];Several times per day;WAHR
+613eb8adc5a749c0a3605f1714488404;37;Male;Bachelor’s degree;Native speaker;10;['Fox News'];Several times per day;WAHR
+2e9b87f8a77444a29a24394ddf499e3a;58;Female;Associate degree;Native speaker;9;['Fox News'];Every day;WAHR
+5101439b4f644b83b5ab3735678897ec;32;Female;Bachelor’s degree;Native speaker;0;['CNN', 'ABC News', 'BuzzFeed'];Several times per day;WAHR
+f766f9eae6f04aa099bd4da013db85a0;25;Male;Bachelor’s degree;Native speaker;3;['CNN', 'Reuters'];Every day;WAHR
+05776cff692b4fbd9c9fd762ad05dac6;61;Female;Bachelor’s degree;Native speaker;7;['Fox News', 'CNN', 'The Washington Post', 'The Wall Street Journal'];Every day;WAHR
+50f8d01e88db4598a006d24e5ece4281;59;Female;Bachelor’s degree;Native speaker;6;['MSNBC'];Every day;FALSCH
+84b9c9cbf42d49d3920020f4e764af4c;38;Male;Some college;Native speaker;-10;['CNN', 'MSNBC', 'Reuters', 'The Washington Post', 'BuzzFeed', 'Vice'];Every day;WAHR
+b9240d259faa4d0c8b707a0474eeb495;44;Female;Bachelor’s degree;Native speaker;4;['ABC News'];Every day;FALSCH
+56100f29c9154a57987d722906e29079;61;Female;Graduate work;Native speaker;-10;['Huffington Post', 'Huffington Post'];Every day;WAHR
+7823d23047de4f038bd11ef33851325e;55;Male;Some college;Native speaker;-1;['Fox News', 'CNN', 'MSNBC', 'CBS News', 'ABC News'];Every day;WAHR
+0f77977bf07749558417504fb9fff5f6;40;Female;Bachelor’s degree;Native speaker;-4;['New York Times', 'CNN'];Very rarely;WAHR
+872eb87e7aff44d0a5bc21a963afe96a;50;Female;Bachelor’s degree;Native speaker;1;['New York Times', 'New York Post'];Several times per day;FALSCH
+e376b737e1dd409ca2158e61a029fbe9;55;Male;Some high school;Native speaker;8;['Breitbart'];Several times per day;FALSCH
+8782331464ce46e487d5b03e9ec111f7;37;Male;Associate degree;Native speaker;10;['Fox News', 'CNN', 'The Washington Post', 'Huffington Post', 'The Wall Street Journal'];Several times per day;WAHR
+718ff59e200c4696a57ba2b06c79a4fe;41;Female;Associate degree;Native speaker;0;['CBS News', 'ABC News'];Every day;FALSCH
+c0fae187d5e945df9995e28590c4cbe2;57;Female;Bachelor’s degree;Native speaker;-8;['The Washington Post'];Several times per week;WAHR
+7ff9e5a8a0364449b7a39bec7d5bb07e;38;Male;Graduate work;Native speaker;9;['Fox News', 'The Wall Street Journal', 'Business Insider'];Several times per day;WAHR
+0be7d903460746398a5a8d17bf190f0e;51;Female;Bachelor’s degree;Native speaker;-2;['New York Times'];Several times per day;WAHR
+2d91a53667324b59a97658b905fe396d;34;Female;High school graduate;Native speaker;8;['Fox News'];Every day;WAHR
+02988e2520f74867ac954f11f07b8c6c;36;Male;High school graduate;Near-native speaker;-5;['Fox News', 'New York Times', 'CNN', 'MSNBC', 'Reuters', 'Huffington Post', 'ABC News', 'CBS News', 'The Washington Post', 'The Wall Street Journal', 'BuzzFeed', 'Vice', 'RT News'];Every day;WAHR
+b3ad38679a844e7aba1ee4ee41adf068;48;Female;Vocational or technical school;Native speaker;-10;['MSNBC'];Every day;WAHR
+4abc753edc55428288681b6efd1f04c8;37;Male;Bachelor’s degree;Native speaker;-2;['Bloomberg', 'ABC News', 'The Washington Post'];Several times per day;WAHR
+79b5e3fdc5be4074a549fa2a25f4359d;53;Female;Bachelor’s degree;Native speaker;0;['New York Times', 'USA Today', 'The Washington Post', 'local news'];Every day;WAHR
+117566a238694a09a3ee2477d7c77148;54;Female;Bachelor’s degree;Native speaker;1;['CNN', 'The Wall Street Journal'];Several times per week;FALSCH
+772524e2555040c18a12d286ae0d754b;28;Male;Bachelor’s degree;Native speaker;-6;['NBC'];Every day;WAHR
+035f02dac75b43cf918dc829af0009d2;24;Female;Graduate work;Native speaker;-1;['The Washington Post'];Several times per day;WAHR
+a002e8986c354525adb118dc362f88d9;40;Male;Graduate work;Near-native speaker;7;['USA Today', 'The Wall Street Journal', 'Yahoo'];Every day;WAHR
+040e5a77f1ae478496dba677893cbf2f;59;Male;Bachelor’s degree;Native speaker;3;['Fox News', 'New York Times'];Every day;WAHR
+a49ecd5d25994e7b946cdf7a21d3c982;26;Male;Vocational or technical school;Native speaker;-6;['CBS News', 'CNN'];Several times per month;WAHR
+773a5182917e412cb660088b03255199;28;Male;Bachelor’s degree;Native speaker;-6;['CNN', 'USA Today'];Several times per day;WAHR
+4647fcd16f1d4bff8b3f4a85b2e27235;28;Male;Bachelor’s degree;Native speaker;9;['Fox News', 'CNN', 'USA Today'];Every day;WAHR
+635350598166445383b29d703cfc146b;29;Other/Prefer not to say;Bachelor’s degree;Native speaker;-10;['New York Times', 'CNN', 'The Washington Post', 'Vice'];Several times per day;WAHR
+95fd5cf9194f4610b4126b19d390c913;28;Male;Bachelor’s degree;Native speaker;6;['Fox News', 'New York Times'];Several times per week;WAHR
+516892578cab4dac80335a7913ac6f26;30;Female;Bachelor’s degree;Native speaker;-10;['Fox News', 'USA Today', 'ABC News'];Several times per day;WAHR
+6d59a4e7f00b4414bfbd6bf289137c3c;26;Female;Vocational or technical school;Native speaker;-1;['CBS News', 'ABC News', 'Fox News', 'Fox News', 'CNN'];Several times per month;WAHR
+449bbf42b4b340df8765492af618c174;35;Female;High school graduate;Native speaker;2;['Fox News', 'The Guardian'];Several times per day;WAHR
+6752e7d329dc4752a97f753a8753c9ce;62;Female;High school graduate;Native speaker;5;['Fox News'];Every day;WAHR
+37514469aab94137a273830381516c45;62;Female;Associate degree;Native speaker;-10;['CNN', 'MSNBC', 'New York Times'];Several times per day;WAHR
+8cc272326faa4fd8a406686ebddc5c9b;31;Male;Associate degree;Native speaker;3;['Fox News', 'CNN', 'ABC News'];Every day;WAHR
+daa7a17b376c48308e1f0584803555a9;32;Male;Bachelor’s degree;Native speaker;-10;['The Washington Post', 'New York Times', 'CNN'];Every day;WAHR
+1eb212019fec4722a7ceea75768b71ae;48;Male;Bachelor’s degree;Native speaker;-10;['MSNBC', 'New York Times', 'The Washington Post'];Several times per day;WAHR
+614613442bbe4e2e9f31ba5ac38912d1;31;Male;Graduate work;Near-native speaker;-8;['CNN', 'New York Times', 'CBS News', 'The Washington Post', 'Vice', 'Time magazine'];Every day;FALSCH
+fbd1f5d15af143abbf8e5e717f8576bc;31;Male;Some college;Near-native speaker;-6;['The Wall Street Journal', 'CNN', 'The Wall Street Journal', 'Fox News'];Very rarely;WAHR
+e2391cb03caf4e67b7dfdc176faac813;33;Male;Bachelor’s degree;Native speaker;10;['New York Times', 'Fox News'];Several times per week;WAHR
+343f9ed210c24659995396fa9b524c37;20;Male;Associate degree;Native speaker;-1;['CNN', 'The Wall Street Journal'];Several times per month;FALSCH
+25422bed63264582848d2665085ac7f2;25;Male;Bachelor’s degree;Native speaker;4;['USA Today'];Every day;WAHR
+f8748b05538b41b48360809342b4f6db;61;Female;Some college;Near-native speaker;2;['CNN', 'cnn channel once opon a time i watch is good'];Very rarely;WAHR
+f6a86551a4c3486c97924d90e0996f01;32;Male;Bachelor’s degree;Native speaker;4;['CNN', 'CNN'];Several times per day;WAHR
+bc27d818d3ce4efa87fe936e4a5bebaf;26;Female;Bachelor’s degree;Native speaker;7;['ABC News', 'USA Today', 'CNN', 'New York Times', 'The Washington Post'];Every day;WAHR
+92d90caa3245423f96bc8e8791a65153;56;Male;Bachelor’s degree;Native speaker;4;['New York Post'];Every day;WAHR
+47d7830b46084146ad737727b7f0b869;25;Male;Bachelor’s degree;Native speaker;10;['CNN'];Every day;WAHR
+486f080d40ec4765ade42c3bf6491df1;29;Male;Graduate work;Native speaker;7;['CNN'];Every day;WAHR
+89ba2dab7cd241d8ab1c5c35471ea6fd;29;Male;Bachelor’s degree;Native speaker;5;['ABC News'];Every day;WAHR
+b34cb15814b44f9099af9a5098e6be69;25;Female;Graduate work;Native speaker;7;['Fox News', 'CNN'];Every day;WAHR
+c9e9550ba3e84f5b9a66f82f8e280220;63;Male;Associate degree;Native speaker;5;['New York Times', 'USA Today', 'ABC News'];Every day;WAHR
+94b37e8ed7a44bc2b7f5103139a807e0;30;Female;Bachelor’s degree;Native speaker;4;['ABC News', 'MSNBC', 'New York Times'];Several times per month;WAHR
+3870d84923014e4b925a844e654f6fb1;27;Female;Bachelor’s degree;Native speaker;3;['New York Times'];Several times per week;WAHR
+264495df96074750a979d4644ddd2609;49;Female;Bachelor’s degree;Native speaker;-6;['Fox News', 'CNN', 'USA Today'];Every day;FALSCH
+a71ca9e3d96246e78f7c9540325ade2e;49;Female;Bachelor’s degree;Native speaker;-7;['Fox News', 'New York Times', 'New York Times', 'CNN', 'New York Times', 'New York Times', 'ABC News', 'CBS News', 'ABC News'];Every day;WAHR
+ae9689a8552646c58eef32da4213ab84;54;Female;Bachelor’s degree;Native speaker;5;['New York Times', 'CNN'];Several times per week;WAHR
+a7e1f89746ee47d9a065ebbc69a49373;31;Male;Bachelor’s degree;Native speaker;-2;['New York Times'];Every day;WAHR
+0e988d8e35a0413da0f9240e184e79fb;31;Male;Bachelor’s degree;Native speaker;7;['MSNBC', 'CNN', 'CBS News', 'BuzzFeed', 'Time magazine'];Every day;WAHR
+f09a77be56b945a6a8a122a801983ee9;36;Male;Graduate work;Native speaker;-7;['Fox News', 'USA Today', 'Time magazine', 'The Wall Street Journal'];Every day;WAHR
+0e26f1f446354b1284cdad1ec6b3df8a;25;Male;Bachelor’s degree;Native speaker;0;['Vice', 'USA Today', 'ABC News', 'CNN', 'BuzzFeed'];Several times per week;FALSCH
+f0743480213548d69199303ab8e859f3;28;Female;Associate degree;Native speaker;7;['Breitbart', 'ABC News', 'USA Today', 'New York Times', 'New York Times'];Every day;FALSCH
+ef3f6ce169d54084bf39c0d5fd979ee7;48;Female;Graduate work;Native speaker;-2;['USA Today', 'ABC News', 'New York Times'];Several times per month;FALSCH
+7d0a739685a94168966ba15daad5a78c;25;Female;Bachelor’s degree;Native speaker;6;['CBS News'];Every day;WAHR
+b218cc9f0bd943eaae72feb278cfce1f;25;Male;Bachelor’s degree;Native speaker;2;['CNN', 'Fox News'];Every day;WAHR
+0b817f8386a74edcbd986d05fc66adb8;41;Male;Bachelor’s degree;Native speaker;-1;['Fox News'];Never;WAHR
+f1d440f964274458a157cbb5298678df;45;Male;Bachelor’s degree;Native speaker;8;['CNN', 'MSNBC'];Every day;WAHR
+b73ece2608dd449bbc16b8955b6e09e1;48;Female;Bachelor’s degree;Native speaker;10;['Fox News', 'New York Times', 'New York Times', 'New York Times', 'The Washington Post', 'ABC News', 'USA Today', 'New York Post', 'The Wall Street Journal', 'BuzzFeed', 'The Guardian'];Several times per day;WAHR
+8abbd2a7ab7c40d29fef10e7e476ca11;33;Male;Graduate work;Native speaker;7;['Fox News', 'New York Times', 'ABC News', 'The Washington Post', 'BuzzFeed', 'The Wall Street Journal'];Several times per day;WAHR
+bec3231cbf674dc0b6c7b7da3cf667a7;55;Male;Associate degree;Native speaker;3;['Fox News', 'New York Times', 'USA Today', 'New York Post', 'Alternet'];Every day;WAHR
+b8f494e510414234831f957eaf703fc8;30;Male;Bachelor’s degree;Near-native speaker;7;['ABC News', 'CNN', 'New York Times', 'Fox News', 'Huffington Post', 'The Washington Post', 'The Guardian', 'USA Today'];Every day;WAHR
+b82c9b512ea6437a9335f90e102b8100;37;Female;Bachelor’s degree;Near-native speaker;7;['USA Today'];Several times per month;WAHR
+e8874031796b42b9bc64b576a230a1dc;29;Male;Bachelor’s degree;Native speaker;10;['USA Today'];Every day;WAHR
+e3eb17903a3549168a9ccc8a36d3a7de;22;Female;Some college;Native speaker;-8;['New York Times', 'CNN', 'Huffington Post', 'Univision', 'Univision', 'The Washington Post', 'New York Post', 'ABC News', 'CBS News'];Every day;WAHR
+b7224ce3297749ba8dff128bcdf06d31;45;Male;Bachelor’s degree;Native speaker;7;['New York Times', 'USA Today'];Several times per month;WAHR
+6b137cf52e534c12afa66607d7f50cec;35;Male;Bachelor’s degree;Native speaker;10;['MSNBC', 'MSNBC', 'CNN', 'MSNBC', 'Reuters', 'CNN', 'CNN', 'CNN', 'MSNBC', 'Reuters', 'CNN', 'CNN', 'CNN', 'ABC News', 'MSNBC', 'MSNBC', 'Reuters', 'CNN', 'ABC News', 'Reuters', 'Reuters', 'Reuters', 'New York Times', 'New York Times', 'New York Times', 'New York Times', 'MSNBC', 'MSNBC', 'CBS News', 'New York Times', 'New York Times', 'New York Times', 'New York Times', 'New York Times', 'New York Times', 'New York Times', 'New York Times', 'New York Times', 'MSNBC'];Every day;WAHR
+e28fddaba43645f2badc07322ad99ec8;30;Female;High school graduate;Native speaker;-10;['Fox News', 'New York Times', 'New York Post', 'MSNBC'];Several times per day;WAHR
+8e50d7448f794bfabaf5cb53a0d0b390;45;Male;Bachelor’s degree;Native speaker;-1;['CNN'];Several times per week;WAHR
+6e31b827e3e6452b9b2f982eff8e09c5;35;Male;Some college;Native speaker;4;['The Wall Street Journal', 'Breitbart', 'The Federalist', 'Fox News'];Very rarely;WAHR
+cfaff4f034cb4860b9e0aa62a432effa;32;Male;Bachelor’s degree;Native speaker;-3;['Fox News', 'New York Times', 'Reuters', 'The Washington Post', 'The Guardian'];Every day;FALSCH
+78cf65d5368a40e3a821d65b860aad84;37;Female;Bachelor’s degree;Native speaker;5;['USA Today', 'USA Today', 'USA Today'];Every day;WAHR
+1b4e07191e3f49fc94248f76de5cf0d7;66;Female;Bachelor’s degree;Native speaker;10;['New York Times', 'MSNBC', 'New York Post'];Several times per day;WAHR
+e84dc378dc474009af30d97ece9044d0;25;Male;Graduate work;Native speaker;4;['Fox News'];Several times per month;WAHR
+4ce0530bc6594f3bbcc64391cfc1c34e;25;Male;Bachelor’s degree;Native speaker;5;['Fox News', 'New York Times', 'CNN'];Several times per month;FALSCH
+5257e95ebb384d0b835d48fcf9ccff68;40;Male;Bachelor’s degree;Native speaker;5;['New York Times'];Every day;WAHR
+4b5295103c6d4e4fa51e3db7859df7f6;34;Male;Graduate work;Native speaker;8;['USA Today', 'ABC News', 'CBS News'];Several times per week;WAHR
+a218daa398b84f3ab8d175657e7b5841;30;Male;Bachelor’s degree;Native speaker;0;['USA Today'];Several times per week;WAHR
+4d87b491ba5f43d3852736ce29b990fd;56;Female;Bachelor’s degree;Native speaker;-9;['Fox News'];Very rarely;WAHR
+956b4206cd2c4d88b632266a48fbba10;32;Female;Bachelor’s degree;Native speaker;2;['Fox News', 'CNN', 'New York Post'];Every day;WAHR
+985583705fcf4530a617f1e1daecf9aa;45;Female;Bachelor’s degree;Native speaker;4;['Fox News'];Several times per week;WAHR
+791c96d5db99488b9d90e8f35e425b35;32;Male;Graduate work;Native speaker;3;['USA Today', 'New York Times', 'CBS News'];Several times per month;FALSCH
+ee4c1d3cecbe497286b3b7a1008a7246;28;Male;Bachelor’s degree;Native speaker;10;['Fox News', 'Breitbart', 'Youtube'];Every day;WAHR
+5a962daa41b445868f842504d8b0093a;36;Female;Graduate work;Native speaker;4;['CNN', 'CBS News', 'Fox News', 'The Washington Post'];Every day;FALSCH
+d2cc0bd38ff94d1590746e5c0d625d78;56;Female;Bachelor’s degree;Native speaker;9;['New York Times'];Several times per day;WAHR
+1c8ec182e2dd44ca979154818be5d0a4;36;Female;Graduate work;Native speaker;6;['CNN'];Every day;WAHR
+b9a5e06c66c649528b6d0ef102aa61c7;25;Male;Bachelor’s degree;Native speaker;5;['Fox News'];Several times per month;WAHR
+79dd3e81014a40a8a395ff979961bd7c;49;Male;Bachelor’s degree;Native speaker;-10;['The Guardian', 'The Wall Street Journal', 'New York Times', 'The Washington Post'];Several times per day;WAHR
+ca5cdd8870294a85adc0acfa22afd18c;38;Male;Bachelor’s degree;Native speaker;6;['CNN', 'USA Today', 'Time magazine'];Several times per week;WAHR
+d56d96541c5e489e8ed9ad375d7382e3;32;Male;Bachelor’s degree;Native speaker;5;['Fox News', 'CNN', 'New York Times'];Several times per month;WAHR
+a6b866cc384f433db28465805bd2fcd6;25;Female;Vocational or technical school;Native speaker;7;['ABC News', 'Breitbart', 'The Federalist'];Very rarely;WAHR
+7997face1b8b4709a80bda3f8032da01;30;Male;Bachelor’s degree;Native speaker;8;['Fox News'];Every day;WAHR
+103ac1c708dd4af99761d0b253a50d8d;25;Female;Bachelor’s degree;Native speaker;-9;['CNN', 'Fox News', 'New York Post'];Several times per week;WAHR
+5de7ca0333ed4de48079b6a7c94df31f;43;Female;Bachelor’s degree;Native speaker;6;['Fox News'];Every day;WAHR
+eece1f3f6e324abe8c8d19743a5c6e81;30;Male;Bachelor’s degree;Native speaker;5;['New York Times', 'USA Today', 'Reuters', 'CBS News'];Never;FALSCH
+d227010627624510b18eaffeb5d96389;28;Female;Bachelor’s degree;Native speaker;6;['Fox News', 'New York Times', 'CNN'];Very rarely;WAHR
+45425ab293644bc39a494677fdd69331;30;Male;Bachelor’s degree;Native speaker;2;['Fox News', 'USA Today'];Every day;WAHR
+2d290c23d72646d89916cc66ac1032e0;29;Male;Some high school;Near-native speaker;0;['Fox News', 'Vice', 'OANN'];Very rarely;FALSCH
+84df2d453a544234811ae56654ffec12;35;Male;Graduate work;Native speaker;10;['ABC News', 'MSNBC', 'The Wall Street Journal', 'BuzzFeed', 'Time magazine', 'Huffington Post', 'New York Times', 'USA Today'];Several times per day;WAHR
+d230ac24fa9f40e9b1600278ec30d507;29;Female;Bachelor’s degree;Native speaker;8;['CNN', 'CBS News', 'USA Today', 'New York Times', 'New York Times', 'Fox News', 'Fox News'];Every day;WAHR
+d915efca14b2455b8a4282d88f24d15f;25;Female;Bachelor’s degree;Native speaker;6;['CNN'];Several times per week;FALSCH
+c1425ba5c20244d5a26f5d4bafec5430;64;Male;Bachelor’s degree;Native speaker;9;['Fox News', 'Breitbart', 'The Wall Street Journal'];Several times per day;FALSCH
+9696366ace2c4778af551fcda89ed858;61;Male;Some college;Native speaker;-10;['CNN', 'Huffington Post', 'The Washington Post'];Every day;WAHR
+3b6558e598cf43298169e82ab71faa4b;35;Male;Bachelor’s degree;Native speaker;10;['USA Today'];Every day;WAHR
+d7307d5e268847e58a3b49eab3195bed;30;Male;Bachelor’s degree;Native speaker;-5;['CNN', 'New York Times', 'ABC News'];Every day;WAHR
+766ba235b08048a2b4a04ffa767aeeca;33;Female;Bachelor’s degree;Native speaker;5;['USA Today'];Several times per week;WAHR
+dbcb9097e0b644118eff3360207ac3d7;49;Female;Bachelor’s degree;Native speaker;8;['CNN', 'New York Times'];Every day;WAHR
+152d97b5651444e79f0e7ba162a23752;32;Male;Graduate work;Native speaker;10;['The Washington Post', 'The Washington Post', 'CBS News', 'The Washington Post', 'The Washington Post', 'The Washington Post', 'USA Today', 'New York Post', 'Fox News'];Several times per day;WAHR
+33e084b388c4480a91c30e03cfb75d0a;29;Male;Bachelor’s degree;Native speaker;9;['CNN', 'CNN', 'New York Times', 'CNN'];Very rarely;WAHR
+83d60942a3034c8eac9ee53dba1e6ada;39;Male;Bachelor’s degree;Native speaker;7;['Fox News', 'New York Times', 'USA Today', 'The Washington Post'];Several times per day;WAHR
+f8eeae89cbce483084c0694c4308f21a;33;Female;Bachelor’s degree;Native speaker;5;['Fox News', 'CBS News', 'CNN'];Every day;WAHR
+e5c2297b99764b5da84234ccb9c1c6a4;42;Male;Bachelor’s degree;Native speaker;3;['New York Times', 'Fox News', 'Alternet', 'New York  '];Several times per month;WAHR
+f0e58baeb4e444be999ac9b1887b0ac7;30;Female;Bachelor’s degree;Native speaker;-5;['Fox News', 'New York Post', 'New York Times'];Every day;WAHR
+833ec86a8e0145e0ba6b7a4808ced708;30;Male;Graduate work;Native speaker;6;['CBS News', 'CBS News', 'CBS News'];Several times per month;WAHR
+15bea3f1d9dd44f9a975afafc1038e16;30;Male;Graduate work;Native speaker;-6;['Fox News', 'New York Times', 'New York Post'];Every day;WAHR
+cab3be114ba84c00b191c5704dc0ded1;30;Male;Graduate work;Native speaker;-4;['CNN', 'Fox News', 'CBS News'];Very rarely;WAHR
+965fe8d76baa43d59fc6ec938c84e21b;25;Male;Bachelor’s degree;Native speaker;3;['CBS News'];Every day;WAHR
+2a97149182a04e53acfd182755481638;47;Female;Bachelor’s degree;Native speaker;8;['ABC News', 'ABC News', 'USA Today', 'The Guardian'];Several times per month;WAHR
+e3f7fd4ad25645c8bb5989ae1627cf0c;42;Male;Bachelor’s degree;Near-native speaker;2;['Fox News', 'New York Times', 'CNN'];Very rarely;WAHR
+9160b885050e411c9cc73b5e0bcfac96;29;Male;Bachelor’s degree;Native speaker;-7;['Fox News', 'New York Times', 'New York Post'];Every day;WAHR
+5410ea2b49564ea7813f2d0dc9192795;42;Male;Bachelor’s degree;Near-native speaker;1;['New York Times', 'Fox News', 'New York Times', 'CNN', 'New York Times', 'CNN'];Very rarely;WAHR
+d91ef8569ccc440989c870f2907ce80c;27;Male;Associate degree;Native speaker;9;['BuzzFeed', 'USA Today', 'Alternet', 'BuzzFeed'];Several times per day;WAHR
+364b5e5c151d48c5918cfad36ad60418;36;Male;Graduate work;Native speaker;1;['CNN'];Very rarely;WAHR
+cd64b183e951467aaf2142b0f1e5f4bc;29;Male;Bachelor’s degree;Near-native speaker;-6;['Fox News', 'CNN', 'ABC News'];Every day;WAHR
+a562bc1c3e3c4b3890736fd6de49a599;29;Male;Graduate work;Native speaker;9;['Fox News', 'USA Today', 'CNN', 'USA Today', 'ABC News', 'CBS News'];Every day;WAHR
+1664d928ef8240f19a4a9e72e34e7da0;37;Male;High school graduate;Native speaker;-5;['Fox News', 'New York Times', 'CBS News', 'CNN', 'MSNBC'];Every day;WAHR
+1981a6ed989f4bc99fc9a1b50a5be7a5;30;Female;Bachelor’s degree;Native speaker;-7;['Fox News', 'New York Times', 'New York Post'];Every day;WAHR
+6e1424e154664e1391150b332264ae35;29;Male;Bachelor’s degree;Native speaker;-7;['none'];Several times per week;WAHR
+0b802b16b6ca4e7ebc08ec6c6f501cac;25;Male;Bachelor’s degree;Native speaker;5;['MSNBC', 'MSNBC', 'MSNBC'];Never;WAHR
+f81bb78ec31148fe9b95c6f90ce25433;30;Male;Bachelor’s degree;Native speaker;4;['CNN'];Every day;WAHR
+58c158a8c8ab479c884c37409db8e0f1;30;Female;Bachelor’s degree;Native speaker;-7;['Fox News', 'New York Times', 'New York Post'];Every day;WAHR
+81d57224f394468a8c829a16b8c104b4;68;Female;Bachelor’s degree;Native speaker;-10;['MSNBC', 'Reuters', 'The Washington Post', 'CBS News', 'The Guardian', 'New York Times'];Several times per day;FALSCH
+3c84e5770dee426ca1f35eecb8249d5e;42;Female;High school graduate;Native speaker;7;['Fox News'];Every day;WAHR
+2f219c2fdf8a48f9960e9885de4562b2;29;Female;Bachelor’s degree;Native speaker;-8;['CNN', 'New York Times', 'Time magazine'];Several times per month;WAHR
+0c27a82a851b425e8babc11a88185a3c;25;Male;Bachelor’s degree;Native speaker;-8;['New York Times', 'USA Today', 'New York Post'];Every day;WAHR
+5397bc153fd546ed954ba0ded97b6826;35;Male;Graduate work;Native speaker;9;['Fox News', 'CNN', 'ABC News', 'USA Today'];Every day;WAHR
+bb29003c9ccb4e74817ec383888ab1f1;32;Male;Bachelor’s degree;Native speaker;-2;['CNN', 'ABC News', 'New York Times'];Every day;WAHR
+7050f73aa6c64d28a5d6d32794d5c4aa;26;Male;Some college;Native speaker;-10;['The Guardian', 'The Guardian'];Several times per week;WAHR
+7fecc0228b3b42b5b7b1deed684f9fea;38;Male;Bachelor’s degree;Native speaker;-7;['CNN'];Several times per day;WAHR
+e0d2eaa126d94e2093e56321c0a70db6;25;Male;Bachelor’s degree;Native speaker;9;['Fox News', 'CNN', 'New York Times'];Every day;WAHR
+f58fea81b14e45f1aa8544e8404ea388;64;Male;Bachelor’s degree;Native speaker;-2;['Associated Press web site'];Several times per week;WAHR
+cf6570d4a74c4af3948269d3ec0904da;52;Female;Associate degree;Native speaker;1;['Fox News', 'CNN', 'ABC News', 'BBC', ' Al Jazeera'];Several times per day;WAHR
+e369f47be2a3462b8f732a9cab4fc560;31;Male;Bachelor’s degree;Native speaker;-8;['Fox News', 'New York Times', 'CNN'];Several times per month;WAHR
+2a9a7666af8041a99db5c266bc7fe71d;29;Male;Some college;Native speaker;-6;['CNN', 'ABC News', 'The Wall Street Journal', 'Business Insider'];Very rarely;WAHR
+3a6552f0b25f426f965b1bfbe96ee58e;35;Male;Bachelor’s degree;Native speaker;-4;['New York Times', 'Fox News', 'MSNBC', 'Reuters', 'The Wall Street Journal', 'The Washington Post'];Every day;WAHR
+b2504b051b8a44128987d40268513ecf;49;Male;Bachelor’s degree;Native speaker;10;['Breitbart', 'The Federalist', 'The Washington Post', 'USA Today', 'New York Post', 'The Wall Street Journal', 'New York Times', 'Fox News', 'The Guardian', 'ABC News', 'CBS News'];Every day;FALSCH
+5235d5cd74774577b973af983eaf67ad;27;Female;Bachelor’s degree;Native speaker;1;['Fox News', 'New York Times', 'CNN', 'BuzzFeed'];Every day;WAHR
+85fe18cce7b54b5891317f90c66facb9;37;Female;Bachelor’s degree;Native speaker;-10;['New York Times', 'New York Post', 'ABC News', 'The Washington Post', 'BuzzFeed', 'BuzzFeed', 'The Guardian', 'BuzzFeed', 'Vice'];Every day;WAHR
+dcb29c9868ff4d54835cf98cc16e63d1;51;Male;Bachelor’s degree;Native speaker;-6;['CNN', 'Fox News', 'USA Today', 'The Wall Street Journal'];Several times per day;WAHR
+c9041850ed3f4e1bbb6319128eb6c656;30;Male;Bachelor’s degree;Native speaker;10;['CNN', 'Fox News', 'New York Times', 'USA Today', 'CBS News'];Every day;WAHR
+05a46cc25c614d47a8ea7f9a0bafefdb;29;Female;Bachelor’s degree;Native speaker;-9;['Fox News', 'CNN'];Every day;WAHR
+ea3081ecb3c44dab9c036d6f19fd20cd;25;Female;Bachelor’s degree;Native speaker;7;['CNN'];Never;WAHR
+203a9f84c8af4c80bd82f96b17631095;23;Male;High school graduate;Native speaker;-10;['Secular Talk', 'Secular Talk'];Several times per week;FALSCH
+578f4a8204c24730a2063329ea9c1d1d;30;Female;Bachelor’s degree;Native speaker;-4;['USA Today', 'Fox News', 'CBS News', 'New York Post', 'New York Times'];Every day;WAHR
+85b31749ac434ee6ab6308bc29b849fe;27;Female;Bachelor’s degree;Native speaker;2;['CNN', 'The Washington Post'];Several times per week;WAHR
+43669c2fda0e4d6eb6c2a125c0638f30;31;Female;Bachelor’s degree;Native speaker;10;['New York Times', 'Fox News', 'USA Today', 'USA Today', 'Fox News', 'New York Times', 'New York Times', 'Fox News'];Every day;WAHR
+ba494a64a13240a69c8ce253de1b7576;47;Male;Bachelor’s degree;Native speaker;7;['USA Today'];Very rarely;WAHR
+2e7a23d9368d422fad3b9bf25994fbd7;25;Female;Bachelor’s degree;Native speaker;10;['New York Times', 'CNN', 'CBS News', 'The Washington Post'];Every day;WAHR
+6e9dcf2831614c13a24abd3fdbf1d914;25;Female;Graduate work;Native speaker;3;['CNN'];Every day;WAHR
+bc82b343374b460d9f03f33bb3369053;58;Male;Bachelor’s degree;Native speaker;-1;['New York Times', 'CNN', 'MSNBC', 'The Washington Post', 'The Wall Street Journal'];Every day;WAHR
+689c24e865c7425fa8c30848797be4db;57;Female;Associate degree;Native speaker;-2;['Fox News', 'CNN', 'MSNBC', 'CBS News', 'ABC News', 'The Washington Post', 'The Guardian'];Several times per week;FALSCH
+146b7fd0d3774324a8927f54bdcfac5f;29;Male;Bachelor’s degree;Native speaker;-8;['Fox News', 'CNN', 'ABC News', 'MSNBC'];Every day;FALSCH
+f254c08ffce941b8afe2a8271619fbdb;67;Male;Bachelor’s degree;Native speaker;-3;['CNN', 'USA Today', 'MSNBC', 'New York Times', 'Business Insider'];Every day;FALSCH
+e4aa9d3864d04520a6ca09f4804d1ad2;69;Male;Graduate work;Native speaker;10;['Fox News', 'Breitbart'];Several times per day;FALSCH
+360a674f0c184c4e825816a466c26f9d;44;Male;Bachelor’s degree;Native speaker;-10;['cnn'];Every day;WAHR
+60e36a4abf024fe89b9e1fb62af9ccb4;50;Male;Bachelor’s degree;Native speaker;4;['Fox News'];Several times per month;WAHR
+5bb7ac8b4a8a409e9a022bb86e15c1ea;39;Male;Graduate work;Native speaker;7;['Fox news'];Every day;WAHR
+26cf898e9fd84c49aa33e1af36d1d513;43;Male;Bachelor’s degree;Native speaker;6;['Fox News', 'Reuters', 'New York Post'];Every day;WAHR
+989e3226199649948b5bda45422e6ced;34;Male;Bachelor’s degree;Native speaker;0;['epoch times'];Several times per week;WAHR
+200a313424bb47849e4fc12cf637c6a3;26;Male;Bachelor’s degree;Native speaker;9;['CNN', 'CBS News', 'Fox News', 'The Washington Post', 'New York Post'];Several times per week;WAHR
+9a89168005d84ddda4b195d9dafab903;33;Male;Bachelor’s degree;Native speaker;-10;['MSNBC', 'Huffington Post', 'ABC News', 'The Washington Post', 'BuzzFeed'];Several times per day;FALSCH
+dc2f8a060871410bbe27941d18adfb9b;25;Female;Associate degree;Native speaker;6;['ABC News', 'Time magazine', 'The Federalist', 'The Wall Street Journal'];Several times per month;WAHR
+7ca1e480500849dc885fbc3310125af8;38;Male;Bachelor’s degree;Native speaker;3;['New York Times'];Never;WAHR
+89c858c7e07a463a893b4469fa688948;23;Female;Some college;Native speaker;5;['The Washington Post', 'BuzzFeed', 'The Wall Street Journal', 'New York Post', 'New York Times', 'USA Today'];Several times per week;WAHR
+d3b9175a30f8480eb75aa01eb677f058;42;Female;High school graduate;Native speaker;7;['Yahoo News'];Very rarely;FALSCH
+f2563815bc14408c827d4ba73722dd9b;44;Male;Bachelor’s degree;Native speaker;9;"['I occasionally look at Breitbart. Everything else on this list is fake news. I listen AM radio', ' Levin', ' Savage', "" and Shapiro when he's not too annoying. ""]";Every day;FALSCH
+121ab397c9044f298b6c6f713de20b8b;29;Male;Graduate work;Native speaker;-10;['Fox News', 'New York Times', 'USA Today'];Several times per week;WAHR
+a702207313de403aad2676ce277982db;36;Male;Some college;Native speaker;-2;['CNN', 'BuzzFeed'];Several times per month;WAHR
+b513d0ecf0824238890b27743e648bb1;35;Male;Bachelor’s degree;Native speaker;9;['New York Times', 'Fox News', 'ABC News'];Every day;WAHR
+91f8c7b969ab420b95e6da231fee732b;47;Male;Bachelor’s degree;Native speaker;3;['USA Today'];Every day;WAHR
+bec40b355dd9464fada5ab94f1fc105b;47;Male;Bachelor’s degree;Native speaker;4;['USA Today'];Every day;WAHR
+2737ee9401da4e7b831eb9c733b3361d;47;Female;Bachelor’s degree;Native speaker;5;['USA Today'];Every day;WAHR
+32c4074eee7b4b9ba7bff955cce2f8f5;34;Male;Bachelor’s degree;Native speaker;10;['Fox News', 'New York Times'];Several times per week;WAHR
+031166d45279489ca130edb43f2cae3f;50;Male;Graduate work;Native speaker;-1;['CBS News', 'CNN', 'Fox News'];Every day;FALSCH
+b078abe3c278463fb40b7890ea0dd2cb;34;Male;Bachelor’s degree;Native speaker;10;['Fox News', 'New York Times'];Every day;WAHR
+60290815d0fd45128e6a524ee727ca37;20;Female;Bachelor’s degree;Native speaker;5;['Fox News', 'ABC News', 'CBS News', 'The Federalist', 'Breitbart'];Every day;WAHR
+779a06ebe2874fca98ae45700100f741;25;Female;Bachelor’s degree;Native speaker;3;['Fox News'];Very rarely;WAHR
+fe7675c47b7c42efb884be13074b08fd;48;Female;Bachelor’s degree;Native speaker;6;['Alternet', 'USA Today', 'The Guardian'];Very rarely;WAHR
+494fcd0ab27e4bf0aa489e041f2c0cf8;34;Male;Some college;Native speaker;8;['Fox News', 'Breitbart'];Every day;WAHR
+0abdef4e6a2e48fd8b202acc19725270;38;Female;Some college;Native speaker;-9;['CNN', 'Huffington Post', 'The Washington Post', 'BuzzFeed'];Several times per day;FALSCH
+4f388e34fbe74ed1a1ac919ffc21afe6;52;Female;Some college;Native speaker;1;['Fox News'];Every day;FALSCH
+f52c638f49a14711a936f4444583272f;38;Male;Graduate work;Native speaker;9;['Fox News', 'The Wall Street Journal'];Every day;FALSCH
+28049822b9fd4fec88bfaeada44315bf;55;Female;Graduate work;Native speaker;0;['New York Times', 'CBS News', 'ABC News', 'USA Today'];Every day;WAHR
+e81902d0a48d470a963d3c001c8937d6;43;Male;Bachelor’s degree;Native speaker;-2;['USA Today', 'New York Times', 'The Washington Post', 'NPR'];Several times per day;WAHR
+cb8cb03a3ae54f31adcfd55ba3ec2363;35;Male;Bachelor’s degree;Native speaker;5;['CNN', 'ABC News'];Every day;WAHR
+3b7a80c6e97a471ebbd4d6a47c19d01d;57;Female;Associate degree;Native speaker;-10;['New York Times'];Several times per day;FALSCH
+838c514b668045cc883cd823bee1b613;30;Female;Bachelor’s degree;Native speaker;4;['MSNBC', 'CNN', 'nothing'];Very rarely;WAHR
+5fca8e8fd27c4635a771d0a1186a4f50;65;Female;Some college;Native speaker;10;['Breitbart', 'Fox News'];Every day;FALSCH
+cd3b66aeec004012ada6b4989ce9f96d;53;Male;Bachelor’s degree;Native speaker;-8;['New York Times', 'The Washington Post'];Several times per day;WAHR
+95eac12e78f74132956460348f603bea;41;Male;Bachelor’s degree;Native speaker;6;['Fox News', 'CNN', 'USA Today'];Every day;WAHR
+8c3166c5fb314a8a808fd2bde22c4fa6;33;Male;Graduate work;Native speaker;-3;['CNN', 'Fox News', 'New York Times', 'ABC News', 'CBS News', 'New York Post', 'Huffington Post', 'The Washington Post', 'MSNBC', 'USA Today'];Every day;WAHR
+5109aca0d11a44929365c7ff96f085c7;25;Male;Bachelor’s degree;Native speaker;0;['Fox News', 'New York Times', 'CNN', 'USA Today'];Every day;WAHR
+fd7d3561bbc044eaa9c4ae701e36f13b;43;Female;Graduate work;Native speaker;7;['CNN', 'New York Times', 'Fox News', 'CBS News'];Every day;WAHR
+5ac27d633de54932942475db7683c080;57;Female;Associate degree;Native speaker;-6;['New York Times', 'CNN', 'MSNBC'];Several times per week;WAHR
+a2284a2cd0a14134b32ef60838699b37;44;Female;Bachelor’s degree;Near-native speaker;8;['New York Times'];Several times per day;WAHR
+9bbf8ea7b94a4b02934ba1c062ea6a77;30;Female;Graduate work;Native speaker;6;['CNN', 'Fox News', 'ABC News', 'ABC news'];Every day;WAHR
+41f6a788809045629099c81d17b5111a;29;Male;Bachelor’s degree;Native speaker;5;['The Wall Street Journal', 'Vice', 'Huffington Post'];Several times per week;WAHR
+528658f5b4fd48bc9a644e93dce8852c;24;Male;Bachelor’s degree;Native speaker;-1;['New York Times', 'Reuters', 'The Washington Post', 'The Wall Street Journal', 'Fox News'];Every day;WAHR
+9fe5977227a247869a37c169c3043fe1;34;Female;High school graduate;Native speaker;3;['Reuters'];Several times per week;FALSCH
+e556a2315ae748cc9dfc886171a21bb0;28;Male;Graduate work;Non-native speaker;10;['New York Times', 'CNN'];Several times per day;FALSCH
+0dfc6826758844988bc6a73d639ea4d3;27;Male;Bachelor’s degree;Native speaker;8;['New York Times', 'CNN', 'Huffington Post', 'Huffington Post', 'New York Times', 'Reuters'];Several times per day;FALSCH
+5d98c404b0644b518091c78fd56bcdf5;27;Male;Bachelor’s degree;Native speaker;5;['Fox News', 'New York Times', 'CNN', 'ABC News'];Very rarely;WAHR
+19e4dbc9bd07475f8bc29bd650d3be8e;38;Male;Graduate work;Native speaker;-9;['New York Times'];Several times per week;WAHR
+c6c891fe98e749a3886fc0acc664ad35;37;Male;Vocational or technical school;Native speaker;10;['Fox News'];Several times per day;FALSCH
+ea0cf1dc5ef84c1e8d0c69c8aac8d56a;61;Female;High school graduate;Native speaker;-4;['CNN', 'MSNBC'];Several times per day;FALSCH
+afe6a2546e4a4ef197df75b0789ed6f7;30;Female;Graduate work;Native speaker;10;['Fox News', 'Fox News', 'CNN', 'USA Today', 'USA Today', 'CBS News', 'ABC News', 'The Washington Post', 'no', 'no', 'The Wall Street Journal', 'The Guardian', 'BuzzFeed', 'Vice', 'Time magazine', 'Business Insider', 'Univision', 'The Federalist', 'Huffington Post', 'Breitbart', 'Reuters', 'USA Today', 'Alternet', 'MSNBC', 'New York Post', 'New York Times', 'Fox News', 'no', 'nothing'];Several times per day;WAHR
+d0df0beb58bd46999d3bc99f46c80ec2;29;Male;Bachelor’s degree;Native speaker;8;['CBS News', 'USA Today'];Several times per month;WAHR
+7e9e6853bb3144ddbd7fc90303bcf6e8;35;Female;Associate degree;Native speaker;0;['Fox News', 'CNN'];Every day;WAHR
+574fbedbf5674c66a42b70f5d6623f35;25;Male;Bachelor’s degree;Native speaker;8;['New York Times', 'CNN', 'ABC News', 'Fox News', 'New York Post'];Every day;FALSCH
+3a337797a12148ae91a49688a856ae0e;37;Male;Graduate work;Native speaker;3;['New York Times', 'Reuters', 'USA Today', 'The Washington Post', 'The Wall Street Journal'];Every day;FALSCH
+19b4bce4fe1f48d699333ed4c6319017;25;Male;Graduate work;Native speaker;8;['USA Today', 'ABC News'];Every day;FALSCH
+2a169e9d465f4342bee0402041746cc0;50;Female;Some college;Native speaker;-8;['CNN'];Every day;FALSCH
+5a0cba48a1ef456e84bda98cb738cbe6;36;Male;Vocational or technical school;Native speaker;-8;['New York Post', 'The Washington Post', 'The Washington Post', 'CBS News', 'The Guardian', 'wsj', 'The Wall Street Journal'];Several times per week;WAHR
+cc40270686684edbb9c8e95b95162c6a;25;Male;Bachelor’s degree;Near-native speaker;3;['MSNBC', 'CNN'];Every day;WAHR
+33aed7d1a4c8458fbc8f1639daed89af;25;Male;Bachelor’s degree;Native speaker;4;['CNN', 'USA Today'];Several times per month;WAHR
+cb3190b729784b13945129812e61d184;34;Male;Bachelor’s degree;Native speaker;8;['Fox News'];Every day;WAHR
+7dbb493a665742ffa8492ef737356710;33;Female;Bachelor’s degree;Native speaker;6;['New York Times', 'The Wall Street Journal', 'Reddit r/new r/worldnews'];Several times per day;WAHR
+56d9589b8531427491d2a6d96eb0ddea;55;Female;Some college;Native speaker;-8;['The Guardian', 'Reuters', 'BuzzFeed', 'Vice', 'The Grayzone'];Every day;FALSCH
+66345103b7ee442191ed0c504fce258d;18;Male;Some high school;Near-native speaker;7;['Vice'];Very rarely;WAHR
+f6ada9f807d94c3d9d7fdbb9ba6334c3;30;Male;Associate degree;Native speaker;-8;['CNN', 'New York Times', 'New York Times', 'New York Post', 'CBS News', 'New York Times'];Several times per week;FALSCH
+9a98e79c24924189baad9a056732a194;28;Male;Bachelor’s degree;Native speaker;-10;['USA Today'];Several times per month;WAHR
+1e74354def0c4aff9d1643bfc777bba0;25;Female;Bachelor’s degree;Near-native speaker;2;['USA Today', 'ABC News', 'CNN'];Every day;FALSCH
+ea2cac879c894195875f55a64214c15c;56;Male;High school graduate;Native speaker;8;['CNN'];Several times per week;WAHR
+2bc9fb04ba6746e0a0bcf319de083b21;25;Female;Bachelor’s degree;Native speaker;5;['Fox News', 'USA Today'];Every day;WAHR
+8405a4aa5e074a5680064a975a7442f8;38;Male;Bachelor’s degree;Native speaker;9;['Fox News', 'Fox News', 'Ron Paul Liberty Report'];Every day;WAHR
+44232f4088874537800597c6e7d08bf5;51;Male;Bachelor’s degree;Native speaker;-4;['New York Post', 'USA Today'];Every day;WAHR
+6900e46222794f4185d2dc7c502d7b76;25;Female;Bachelor’s degree;Native speaker;3;['ABC News'];Very rarely;WAHR
+8dda9cad291346b4b829e8381a04f117;25;Female;Bachelor’s degree;Native speaker;5;['CNN', 'USA Today'];Every day;WAHR
+c6aaa944d2454287b042bf43e1076dde;29;Male;Bachelor’s degree;Native speaker;-10;['New York Times'];Several times per week;WAHR
+7d9485e63784480bb5f5c54d177dc230;30;Male;Some college;Native speaker;2;['Fox News', 'USA Today', 'CBS News'];Several times per week;WAHR
+3b1c0fb3b7a4474487bc655383a464b9;25;Female;Bachelor’s degree;Native speaker;7;['CNN'];Never;WAHR
+8342e3c7815c4a2185f636992e44fc7f;49;Female;Graduate work;Native speaker;3;['CNN', 'Fox News'];Every day;WAHR
+4ca51e1fde8840e8812f3e2f95f38360;29;Male;Bachelor’s degree;Native speaker;6;['ABC News', 'Fox News', 'New York Times', 'CNN', 'The Wall Street Journal', 'USA Today', 'CBS News', 'CBS News'];Every day;WAHR
+2f4530d3e448495093fc7fcb2e70018b;33;Female;Vocational or technical school;Native speaker;0;['Local channel 9', 'CNN'];Several times per month;WAHR
+0b4c00d1263b4941bd842d9ea9bad890;34;Female;Bachelor’s degree;Native speaker;6;['CBS News', 'ABC News', 'Vice', 'Univision'];Every day;WAHR
+4b1cc3ba65714c6cb6c67de623be62af;56;Female;Some high school;Native speaker;8;['New York Times'];Every day;WAHR
+95ee3dae0a474c03bd14db348c65ad71;39;Male;Bachelor’s degree;Native speaker;-8;['New York Times', 'CNN', 'Reuters', 'The Washington Post'];Several times per day;WAHR
+5eb041ec2be84f14a250690938e8accb;23;Male;Bachelor’s degree;Native speaker;4;['USA Today'];Very rarely;WAHR
+c13c0d07741c460d8c1254a6844bcadc;35;Male;Bachelor’s degree;Native speaker;-5;['Fox News'];Every day;WAHR
+b33eec37a6c74829aa2c9c511f1f9810;29;Male;Bachelor’s degree;Native speaker;-6;['Fox News', 'New York Times', 'CNN'];Never;FALSCH
+e3b07967053d40a4ac2f4f36e7e6fbc3;42;Male;Bachelor’s degree;Native speaker;4;['CNN', 'ABC News', 'New York Times'];Every day;WAHR
+6bd62a6fbca24afe8fe435d8d708412e;29;Male;Graduate work;Native speaker;4;['New York Times'];Every day;FALSCH
+1c74afbf34e74e2caefca84043546828;29;Male;Graduate work;Native speaker;10;['ABC News'];Every day;FALSCH
+13989f054ba247eca3cbe6fd928b2176;36;Male;Bachelor’s degree;Native speaker;6;['New York Times', 'new york times', 'new york times', 'new york times'];Every day;WAHR
+73c0e737fa834ef686a91c1e483daae2;28;Male;Graduate work;Native speaker;-3;['Fox News', 'CNN', 'The Wall Street Journal', 'New York Times', 'The Washington Post', 'Reuters', 'Vice', 'One American News Network'];Several times per week;WAHR
+70676c0299304bd495bb06190cfc5069;29;Female;Bachelor’s degree;Native speaker;0;['BBC news', 'Fox News'];Every day;WAHR
+29fbaf1e93e7419d8ab7b9f154070731;23;Male;Bachelor’s degree;Native speaker;-10;['The Federalist'];Several times per day;FALSCH
+b9f2bc72f64f41759647b9c60127d1ac;30;Female;Graduate work;Native speaker;7;['CBS News'];Several times per day;WAHR
+2c7256d9f08445fcb5f289d784cacd7a;49;Female;Bachelor’s degree;Native speaker;-8;['New York Times', 'Time magazine', 'CNN', 'The Guardian', 'New York Post'];Several times per day;WAHR
+8a9bbda9f7d745168ca60010aa9e7586;31;Female;Graduate work;Native speaker;9;['USA Today', 'CNN', 'Business Insider'];Every day;WAHR
+f42035f5711246d8b16ee545051d60c4;46;Female;Graduate work;Native speaker;0;['Alternet', 'Alternet', 'Time magazine', 'CBS News'];Every day;WAHR
+9bfd05563f504610a75d27f0d30ecc63;30;Female;Graduate work;Native speaker;6;['CNN', 'ABC News'];Very rarely;WAHR
+22b95a3cb83c4a1c903c0f4e37cf838f;46;Female;Associate degree;Native speaker;8;['New York Post', 'The Wall Street Journal', 'The Washington Post'];Several times per month;FALSCH
+af29fbdb4be2433baf782e773e4b4655;60;Male;Bachelor’s degree;Native speaker;3;['New York Times', 'ABC News'];Every day;WAHR
+0c897b4a55654b35b666e53135537fdb;46;Female;Some college;Native speaker;0;['reuters', 'Reuters', 'Vice', 'MSNBC', 'Fox News'];Several times per day;WAHR
+9876fa5f67c148d5bb0ce62a12eaa9f4;51;Male;Some college;Native speaker;9;['New York Times', 'USA Today'];Never;FALSCH
+7314aa0f72a64425adc69608be349b11;34;Male;Bachelor’s degree;Native speaker;-7;['New York Times', 'CNN', 'Reuters'];Every day;WAHR
+e50ddc7131f24dbaa80731a7cf1df28f;35;Male;Some college;Native speaker;4;['Vice', 'MSNBC', 'CNN'];Every day;WAHR
+99b81c2b49544d1e90d6f228bb899be8;29;Female;Bachelor’s degree;Near-native speaker;0;['Fox News', 'CNN', 'ABC News', 'CBS News', 'USA Today'];Every day;WAHR
+16c703032a384352ad48a3b2949a8b87;47;Female;Graduate work;Native speaker;-10;['New York Times', 'CNN', 'MSNBC', 'The Washington Post'];Several times per day;WAHR
+9cccf31df3a34df5b9403f22de766df3;48;Female;Graduate work;Native speaker;-10;['New York Post', 'The Wall Street Journal', 'The Washington Post', 'CNN', 'Fox News'];Every day;FALSCH
+c32e59db96db4e0b9d7053f1600580a3;25;Male;Bachelor’s degree;Native speaker;6;['CNN'];Every day;WAHR
+bd60ebfd331f4f73b2b1aac9a6691d2b;26;Male;Bachelor’s degree;Native speaker;0;['CNN', 'New York Post', 'USA Today', 'Business Insider', 'The Guardian', 'New York Times'];Several times per week;WAHR
+00e961fec6cc436aae5c4b7dbfd65462;49;Male;Bachelor’s degree;Native speaker;8;['CBS News'];Several times per day;WAHR
+6e471fc752534e74b99666516fb2ff22;30;Male;Bachelor’s degree;Native speaker;-5;['Fox News', 'New York Times', 'CBS News', 'USA Today', 'New York Times', 'Fox News', 'Fox News', 'Time magazine'];Several times per day;WAHR
+a0309604066d4524b0555e5153d06669;25;Female;Bachelor’s degree;Native speaker;6;['CNN'];Several times per month;WAHR
+b5871f3c4954470693d3ce6a7a268755;40;Male;Bachelor’s degree;Native speaker;6;['New York Times', 'CNN', 'In my favorite is CNN'];Every day;FALSCH
+dbe8a2ffd3684d8bb172abbdd4622c98;43;Female;Bachelor’s degree;Near-native speaker;0;['New York Times', 'USA Today', 'CBS News'];Every day;WAHR
+38075c0ba31c4ee9abb8433bfd629045;35;Male;Graduate work;Native speaker;1;['USA Today'];Every day;WAHR
+75734a5193ff4cba8d0c069b8cdc53cc;30;Male;Bachelor’s degree;Native speaker;4;['CNN', 'ABC News'];Several times per week;FALSCH
+937a515ffca341b9ba9a08ebb121e8b1;28;Male;Some college;Native speaker;4;['CNN'];Several times per month;WAHR
+8aae758680b54860b63613c546781ed3;30;Male;High school graduate;Native speaker;6;['Fox News'];Every day;WAHR
+65f7c65642eb418fbf426b5b08939524;35;Male;Bachelor’s degree;Native speaker;9;['CNN', 'Fox News'];Several times per week;WAHR
+1fa1d2832cc64a6899a284f6158eb9a9;34;Male;Graduate work;Native speaker;8;['USA Today', 'The Wall Street Journal', 'Time magazine', 'The Washington Post', 'New York Times'];Several times per day;WAHR
+e245038914404afc9fe82de82c1b8911;35;Female;Bachelor’s degree;Native speaker;9;['USA Today'];Every day;FALSCH
+a4f8dcf049a54ecb85ad62634c70748b;50;Female;Associate degree;Native speaker;2;['Reuters'];Several times per day;FALSCH
+9840ff5988c54627a93e90dc50d68a23;25;Female;Bachelor’s degree;Native speaker;8;['CNN', 'Fox News'];Every day;WAHR
+8c8a8fa3957743f7975d713cec5a2d72;25;Female;Bachelor’s degree;Native speaker;9;['Fox News', 'CNN'];Every day;WAHR
+fdbfa964224d467584933acd83043b8b;25;Female;Bachelor’s degree;Native speaker;9;['CNN', 'Fox News'];Every day;WAHR
+4a216e126f7f4bdca764b5f3ef294c1a;35;Female;Bachelor’s degree;Native speaker;9;['Fox News', 'USA Today', 'CNN', 'Time magazine'];Every day;WAHR
+84833f2955a4430abb73c6e7e1cac946;45;Male;Bachelor’s degree;Native speaker;1;['New York Times', 'USA Today', 'CNN'];Several times per day;WAHR
+11bcde48c41e474eb733c31261309391;56;Female;I prefer not to say;Native speaker;10;['Fox News', 'ABC News'];Every day;FALSCH
+0aff7a5048b54c37992b3782bc33a02b;29;Female;Bachelor’s degree;Native speaker;2;['Fox News'];Several times per month;WAHR
+117feed78c684bd4928b2a9791428fc2;29;Male;Bachelor’s degree;Native speaker;3;['New York Times'];Every day;WAHR
+6be548dd132548fda1e24d522eb5b396;54;Male;Graduate work;Native speaker;-6;['New York Times', 'The Washington Post', 'CNN'];Several times per day;FALSCH
+d32d053a4b03406b8c25c787f8ba78f9;29;Male;Bachelor’s degree;Native speaker;4;['New York Times', 'CNN', 'USA Today'];Very rarely;WAHR
+f0461154f24e4ac2baf89ceebdc73b50;25;Female;Bachelor’s degree;Native speaker;9;['CNN', 'Fox News', 'MSNBC'];Every day;WAHR
+9adaddc4032e4e67be08c15045daeb46;28;Female;Bachelor’s degree;Native speaker;-7;['New York Times', 'The Washington Post'];Several times per day;FALSCH
+40b90f7db2d444b19b458323e115a5cb;32;Male;Bachelor’s degree;Native speaker;1;['CNN'];Every day;FALSCH
+61487a71c53e4448af0a247249bf312a;25;Male;Associate degree;Near-native speaker;6;['CNN'];Very rarely;WAHR
+7bf11b12d0e244b2b9b064034ede6ce0;48;Female;Graduate work;Native speaker;5;['Fox News', 'ABC News'];Several times per week;WAHR
+49665fa02d4f4304a743d2bac5aa1d13;32;Male;Graduate work;Native speaker;9;['ABC News'];Every day;WAHR
+80a659ba6ff9489f9272ee3257c0971c;35;Male;Graduate work;Native speaker;5;['New York Post'];Every day;FALSCH
+7c134e8b5a9d41ed96cf562d98637841;32;Male;Graduate work;Native speaker;8;['ABC News'];Every day;WAHR
+700d838aa997433eac8fa230e9000c84;47;Male;Bachelor’s degree;Native speaker;2;['CNN', 'CBS News'];Very rarely;FALSCH
+44d482aaca5845d6862a31e51bf551df;36;Male;Bachelor’s degree;Native speaker;4;['ABC News', 'New York Times', 'New York Times', 'New York Times', 'CBS News'];Every day;WAHR
+c872944f895f4d37b48ec3854805bbdc;35;Female;Bachelor’s degree;Native speaker;9;['USA Today'];Every day;WAHR
+776c3a96dac44548b435c75685fd735f;47;Female;Graduate work;Native speaker;5;['New York Post', 'CNN'];Several times per month;WAHR
+08589933bb3e4f0da9592fa2fadf9ac7;28;Male;Bachelor’s degree;Native speaker;-6;['New York Times', 'CNN', 'Reuters', 'New York Post', 'The Wall Street Journal', 'BuzzFeed', 'Business Insider'];Every day;WAHR
+2cfa39d89b214961b926cab64bb6d5fb;47;Female;Graduate work;Native speaker;2;['USA Today', 'New York Post', 'New York Post', 'USA Today', 'New York Post', 'New York Post', 'New York Times'];Never;WAHR
+f91a5cdb73904536b3b150da07e4d622;34;Female;High school graduate;Native speaker;8;['USA Today'];Every day;WAHR
+568e4c391cf04adaaea093e1534eaabd;31;Female;Bachelor’s degree;Native speaker;7;['USA Today', 'New York Post', 'New York Times'];Every day;WAHR
+658434fd68f74ec896f27738a2aa394c;28;Male;Bachelor’s degree;Native speaker;1;['USA Today', 'The Washington Post'];Every day;FALSCH
+69fcdf694d5248d4988a0a70986b8a32;48;Female;Graduate work;Native speaker;4;['New York Times', 'Breitbart', 'Breitbart', 'ABC News'];Several times per month;FALSCH
+f9c863d6f54049cba85738affd49bbf4;30;Male;Bachelor’s degree;Native speaker;10;['The Washington Post', 'CBS News', 'ABC News', 'New York Times'];Every day;WAHR
+a21b59d496ba43bf9cd79fa7142ae382;47;Male;Bachelor’s degree;Native speaker;3;['ABC News', 'CBS News', 'New York Times'];Every day;FALSCH
+93a59cfecb994b4faf4c8989b6842451;31;Male;I prefer not to say;Near-native speaker;-8;['New York Times', 'CNN', 'MSNBC', 'The Washington Post'];Every day;WAHR
+e8d8b3ef74b447bc97f1d54147a94bd7;47;Male;Bachelor’s degree;Native speaker;5;['CBS News', 'New York Times'];Every day;FALSCH
+3712427661484e21a57921d0ad745123;46;Male;Graduate work;Native speaker;3;['CNN', 'New York Times', 'Fox News'];Several times per day;WAHR
+780bc6623af54a618619af3debf43601;31;Male;Bachelor’s degree;Native speaker;4;['Fox News', 'CNN'];Every day;FALSCH
+9b4052a5f7e74933b30e1e620f25c5c8;48;Male;Graduate work;Native speaker;4;['MSNBC', 'USA Today'];Every day;WAHR
+5dfbbfb787654efc9eaaba027809f91d;49;Male;Bachelor’s degree;Native speaker;4;['New York Post', 'New York Times', 'Fox News', 'The Washington Post', 'Business Insider', 'MSNBC'];Every day;WAHR
+c12250a0c85e4faeb815bd4e3967284b;27;Female;High school graduate;Native speaker;0;['New York Times', 'The Washington Post', 'Vice'];Several times per day;FALSCH
+e3e8934abf17496190b5011231827e55;33;Male;Bachelor’s degree;Native speaker;-6;['CNN'];Every day;WAHR
+a36ac4ad99e24ff98e9a345846799fcb;44;Female;Bachelor’s degree;Native speaker;-3;['Fox News', 'New York Post', 'CBS News', 'no'];Every day;WAHR
+5471a6ad879d4b27a739becb4c3025fb;47;Female;Graduate work;Native speaker;4;['USA Today'];Every day;WAHR
+1723a2d10cd342ffaf62f935010fe2f8;23;Female;Bachelor’s degree;Near-native speaker;4;['Reuters'];Several times per month;WAHR
+462f692bde114f7c80b9bee0b4028042;30;Male;Graduate work;Native speaker;3;['Alternet'];Several times per week;WAHR
+aaaf33663e9f4e7e89efa55d15c9ccf8;33;Female;Bachelor’s degree;Native speaker;10;['CNN', 'New York Times'];Every day;WAHR
+b346e36e39fe4b25af60f246940d681e;40;Female;Graduate work;Native speaker;8;['ABC News'];Several times per month;WAHR
+f10d06198b6a43a7ab7a9739cba6224a;47;Male;Graduate work;Native speaker;5;['USA Today'];Every day;WAHR
+a7df04e539794b7e9843f0904c2fc5ee;30;Male;Associate degree;Native speaker;-9;['CNN', 'New York Post'];Every day;WAHR
+eeffc22b65b649ddb0a3bc9e591d09ac;47;Female;Graduate work;Native speaker;3;['USA Today'];Every day;WAHR
+35c8da5c826243429eae3aa3b301d319;47;Male;Bachelor’s degree;Native speaker;5;['New York Times', 'CBS News'];Every day;FALSCH
+5716d7375b7c491a9a928c140b0771bb;37;Male;Graduate work;Native speaker;8;['ABC News', 'CBS News', 'CBS News'];Every day;WAHR
+3298d349a6864ad883386de15d6ca7c9;47;Female;Graduate work;Native speaker;2;['New York Times'];Several times per week;WAHR
+e71aa4c5e2214a71ba0adf4048fcdf4b;47;Male;Bachelor’s degree;Non-native speaker;4;['ABC News', 'CBS News', 'New York Times'];Every day;WAHR
+724b64f693744dcfb2874d8f967f761a;47;Female;Graduate work;Native speaker;7;['USA Today', 'CBS News'];Several times per week;WAHR
+d395f196ab5d49849acaffd984e0354c;47;Female;Graduate work;Native speaker;5;['CNN'];Several times per week;WAHR
+d4eec4ecbcfc4c81b59c96e9dff5c473;47;Male;Bachelor’s degree;Native speaker;6;['MSNBC', 'ABC News', 'New York Times'];Every day;WAHR
+d70f8695c684422aa2434237b824fdb3;47;Female;Graduate work;Near-native speaker;8;['CNN'];Every day;WAHR
+54bec0e94b1f48df8a6125424661285a;36;Male;Some college;Native speaker;6;['MSNBC'];Every day;WAHR
+a7cc53367d974d8bb42148490ff034e5;48;Female;Bachelor’s degree;Native speaker;5;['Fox News', 'New York Times', 'CNN', 'USA Today'];Every day;WAHR
+f2a3c585799d4447a7b7c6b2f7748e1c;31;Female;Bachelor’s degree;Native speaker;1;['USA Today', 'New York Post', 'BuzzFeed'];Several times per month;FALSCH
+ca6f0b070a9949c7a5841e170558fc5b;48;Female;Bachelor’s degree;Native speaker;6;['Fox News', 'New York Times', 'CNN', 'CBS News', 'USA Today', 'The Washington Post'];Every day;WAHR
+e31cc374e183496a81fe519329c49a82;28;Male;Bachelor’s degree;Native speaker;7;['Fox News', 'CNN', 'CBS News', 'USA Today'];Several times per week;WAHR
+cb2dbc6ab17449f39b367db27cece89e;47;Female;Graduate work;Native speaker;2;['New York Times'];Several times per week;WAHR
+27f6dbaefba040108c66b3430833779f;30;Male;Some high school;Near-native speaker;6;['USA Today'];Very rarely;WAHR
+defb38f2c0a44223a1b74f2bade79413;25;Male;Bachelor’s degree;Native speaker;4;['Fox News'];Every day;WAHR
+ad5cefd8e7774f9faa1a5065ff6543fc;47;Male;Bachelor’s degree;Native speaker;3;['New York Times', 'ABC News', 'CBS News'];Every day;WAHR
+942c9a0492a84657b8c8adb49e9eb959;45;Male;Vocational or technical school;Native speaker;3;['Fox News', 'USA Today'];Several times per week;WAHR
+f409e9e31ce040a4972306f052572dff;47;Male;Bachelor’s degree;Near-native speaker;5;['USA Today', 'CNN', 'CBS News', '“I look forward to learn new skills and improve my knowledge to advance my career. In five years from now', ' I see myself as a knowledgeable professional having an in-depth knowledge of the company and the industry.”Jan 9', ' 2019'];Several times per month;WAHR
+03765275dd9449e6a77315c86f0b789c;40;Female;Associate degree;Native speaker;3;['CNN', 'New York Times'];Every day;WAHR
+bb19ec5cd57d4db5b37aaa133a6dd308;48;Female;Bachelor’s degree;Native speaker;8;['New York Times'];Several times per week;WAHR
+522613a8da0d466597c9f3d65c628100;21;Female;Bachelor’s degree;Native speaker;10;['New York Times', 'Fox News'];Every day;WAHR
+4a4c46fb17a5436bb9ec68c9faf5bed2;25;Female;Bachelor’s degree;Native speaker;0;['Fox News', 'CNN', 'Reuters', 'New York Post', 'Huffington Post'];Several times per week;WAHR
+382aefec4a3a4dfaae37f22cb86d92eb;35;Male;Graduate work;Native speaker;5;['New York Times', 'CNN'];Every day;FALSCH
+29010c662da14b27af5fc1cab8d7ccd2;47;Male;Bachelor’s degree;Native speaker;3;['MSNBC', 'New York Times', 'CBS News'];Every day;FALSCH
+1999d70b72b44ddc9ad17b58840affc9;47;Male;Graduate work;Native speaker;6;['CNN'];Every day;WAHR
+48e9ed5f5ac34ed5b41ff874aa3a294b;35;Female;Bachelor’s degree;Native speaker;9;['USA Today'];Every day;WAHR
+25912ed9ab914d5ca1c847881cba2f4d;47;Male;Bachelor’s degree;Native speaker;5;['ABC News', 'New York Times', 'USA Today'];Every day;WAHR
+8512a57791db4292bc88cd661e60f53e;43;Female;Bachelor’s degree;Native speaker;-10;['CNN'];Several times per day;WAHR
+646a716c501041898c55a301f7f45448;37;Female;Bachelor’s degree;Native speaker;8;['Fox News', 'MSNBC', 'ABC News'];Several times per week;WAHR
+939eb05702724aa1b3c80acdc76529db;24;Female;Bachelor’s degree;Native speaker;7;['The Wall Street Journal'];Several times per month;FALSCH
+68258fea4a0a470ba802288b411c13ae;31;Male;Bachelor’s degree;Native speaker;3;['Fox News'];Never;WAHR
+da477b30247f4825ae878de711736504;34;Female;High school graduate;Native speaker;-9;['CNN', 'ABC News'];Every day;WAHR
+8735d3c5dcfd4c8ab33366537106b772;29;Male;High school graduate;Native speaker;-10;['New York Times', 'The Washington Post', 'The Guardian', 'the intercept'];Several times per week;FALSCH
+40675feb664f476790bbdc416f636d9f;64;Male;Bachelor’s degree;Native speaker;7;['USA Today'];Every day;FALSCH
+67ba645a835945c98c451d44db44f947;30;Male;Graduate work;Native speaker;4;['BuzzFeed'];Several times per week;WAHR
+818d895641684c39a9bdc52937eca95b;31;Male;Bachelor’s degree;Native speaker;3;['Fox News'];Never;WAHR
+2aa203a4132a498b8d185d069ec99463;31;Male;Bachelor’s degree;Native speaker;2;['Fox News'];Several times per day;WAHR
+c844bf4752644bff88f2f3412c81be8b;33;Male;Bachelor’s degree;Native speaker;-10;['Fox News', 'CNN'];Several times per day;WAHR
+184dbda1380e4851ad98132b1f6ae194;35;Male;Bachelor’s degree;Native speaker;4;['MSNBC'];Very rarely;WAHR
+cb71b7ce17d24c9e985723f14c1dc8e1;44;Male;Bachelor’s degree;Native speaker;-6;['MSNBC', 'MSNBC'];Every day;WAHR
+d43fbf21c2ce457d95fff4a6e85cada0;40;Female;Bachelor’s degree;Near-native speaker;-7;['ABC News'];Several times per month;WAHR
+17b8b2e2a2ec4654bfa443dac5d18691;27;Male;Bachelor’s degree;Native speaker;10;['CNN', 'Fox News', 'The Washington Post'];Every day;WAHR
+3a2fe5f96ca84487a09752cc89e66fe8;34;Male;Bachelor’s degree;Native speaker;-6;['Fox News', 'CNN'];Several times per month;WAHR
+26364380f81145d9bf0ec956f9c37539;28;Male;Bachelor’s degree;Native speaker;6;['Fox News', 'New York Times', 'CNN', 'New York Post'];Several times per day;FALSCH
+da7135e482154095858cdbcd482acdf3;32;Male;Bachelor’s degree;Native speaker;-8;['MSNBC', 'CNN', 'New York Times', 'The Washington Post', 'USA Today'];Every day;WAHR
+b60433b8930d40938a1860754a55744b;59;Male;Bachelor’s degree;Native speaker;-7;['Reuters', 'Huffington Post'];Several times per day;FALSCH
+8c0ba0ecce404e138c1a676e29cc95eb;56;Male;Some high school;Native speaker;-10;['CNN', 'MSNBC', 'Reuters', 'New York Times', 'Huffington Post', 'Alternet', 'USA Today', 'ABC News', 'CBS News', 'The Washington Post', 'The Guardian', 'BuzzFeed', 'Business Insider'];Several times per day;FALSCH
+705953f69abe4921bd9fbd73a0719ace;66;Male;Associate degree;Native speaker;-8;['New York Times', 'CNN', 'MSNBC', 'Reuters', 'Huffington Post', 'New York Post', 'USA Today', 'CBS News', 'The Guardian'];Several times per day;FALSCH
+31721d703b3d4953ac6ff41559fac2bd;69;Female;Bachelor’s degree;Native speaker;-9;['ABC News', 'CBS News'];Every day;WAHR
+47c2fad9b28b41548f848562c9fc1c5d;67;Female;Bachelor’s degree;Native speaker;7;['The Wall Street Journal'];Every day;WAHR
+da04cdc5f1d248f1a3abd3da2bb19e01;38;Male;Bachelor’s degree;Native speaker;-7;['New York Times', 'The Washington Post', 'The Guardian'];Several times per day;FALSCH
+da04bb8755d148158e4fd6294effd58a;26;Female;High school graduate;Native speaker;-8;['CNN', 'MSNBC', 'AP'];Several times per day;WAHR
+1237b6bf97b947df92bb9bde7e3c8b97;43;Male;Bachelor’s degree;Native speaker;-2;['New York Times', 'USA Today', 'The Washington Post', 'ABC News', 'NPR'];Several times per day;WAHR
+e8c175b9b6e04a49bd29a329313845ba;49;Male;Graduate work;Native speaker;8;['The Federalist'];Several times per day;WAHR
+8b31d111ac0245a3b5c5812845090078;60;Male;Some college;Native speaker;-8;['MSNBC', 'The Washington Post', 'CNN'];Several times per day;WAHR
+0f38fb0edf5b46b398c3d05f00e810ce;54;Female;Bachelor’s degree;Native speaker;2;['CNN', 'The Wall Street Journal'];Every day;WAHR
+a20a5d4f9d3a4a8eb681a2bf371c68d0;39;Male;Bachelor’s degree;Native speaker;7;['The Washington Post', 'Huffington Post', 'The Federalist', 'Breitbart', 'Reuters', 'New York Post'];Every day;WAHR
+1840804dba5f40379446c9b64e1bd6f9;27;Female;High school graduate;Native speaker;-10;['NPR', 'The Washington Post'];Several times per week;FALSCH
+e331ec20b684430c988514a3708fef94;55;Male;Bachelor’s degree;Native speaker;9;['Fox News'];Every day;WAHR
+9c28e2306d2d4046b158ae7b9e346824;35;Male;Associate degree;Native speaker;-8;['CNN', 'BuzzFeed'];Every day;FALSCH
+53c5d8d735004916bbb730f5b45293aa;59;Female;Bachelor’s degree;Native speaker;-7;['The Wall Street Journal', 'The Guardian', 'New York Times'];Several times per day;WAHR
+932d80822a604b89a1cdc7249e89af5a;28;Female;Associate degree;Native speaker;0;['USA Today', 'USA Today', 'USA Today', 'CBS News', 'BuzzFeed'];Several times per month;WAHR
+462f33181a1f47a29f8ebafc24935f86;39;Female;Associate degree;Native speaker;0;['ABC News'];Every day;WAHR
+ebbc3ce9848242cc9d6506534817ebb9;36;Female;Some college;Native speaker;-4;['Reuters'];Every day;WAHR
+3b53245c0b24404194dba60040c72881;47;Female;Associate degree;Native speaker;-10;['New York Times', 'CNN', 'Reuters', 'ABC News', 'USA Today', 'New York Post', 'Huffington Post', 'The Washington Post', 'The Wall Street Journal', 'The Guardian', 'BuzzFeed', 'Vice', 'Time magazine', 'Business Insider', 'Reddit'];Every day;WAHR
+4a88dc79c66b4a04b723edde96b78b93;28;Female;Associate degree;Native speaker;4;['CNN'];Several times per week;WAHR
+ebc2384d74f747f486ef7bc1eb2d241f;40;Male;High school graduate;Native speaker;-8;['CNN'];Every day;FALSCH
+d06ec19285e14fa092dcf04be579f0c7;36;Male;Graduate work;Native speaker;-5;['CNN'];Several times per day;WAHR
+b8514d08d997405db9e424ab21f446a3;50;Female;High school graduate;Native speaker;4;['Fox News', 'CBS News'];Several times per day;WAHR
+dff7182b9dd94bacafa71ef525fc9269;59;Male;Bachelor’s degree;Native speaker;2;['Fox News', 'New York Times', 'CNN', 'Business Insider', 'Reuters'];Every day;WAHR
+fb05775fddd141be99577576d699895e;29;Male;Bachelor’s degree;Native speaker;-4;['Reuters'];Several times per week;WAHR
+9ca4647977e74cd0bd5e7cf1e52c7658;27;Male;Some college;Near-native speaker;1;['The Guardian', 'USA Today'];Several times per week;FALSCH
+ab7a499e9d9549cd9635e86680e4dfd0;43;Male;Bachelor’s degree;Native speaker;9;"['I occasionally look at Breitbart. Everything else on this list is fake news. I listen AM radio', ' Levin', ' Savage', "" and Shapiro when he's not too annoying. ""]";Every day;WAHR
+8f151b0b0bd44f30a77124f40e5a265b;62;Male;Bachelor’s degree;Native speaker;-4;['CNN', 'Reuters', 'Huffington Post', 'USA Today', 'CBS News'];Several times per day;FALSCH
+d7ae7bcd422544e8880f020ad5a6ac86;27;Female;Associate degree;Native speaker;-4;['Fox News'];Every day;WAHR
+ae905a3bd2244854a92ef6bdf9c0da2d;55;Female;Bachelor’s degree;Native speaker;8;['Fox News', 'CNN', 'MSNBC', 'Uk Daily Mail'];Several times per day;WAHR
+effbd124909f4fd1b4a96f2cbcb5e56a;43;Female;Associate degree;Native speaker;-8;['MSNBC'];Several times per day;FALSCH
+caa77496b7ae449ba42ac742c4f05e68;58;Female;High school graduate;Native speaker;5;['CBS News', 'Fox News', 'ABC News', 'Fox News'];Several times per month;FALSCH
+6d8876c8dbbf40768fd0a1feff4317fe;35;Male;Bachelor’s degree;Native speaker;-9;['The Washington Post', 'Huffington Post'];Every day;WAHR
+c58cf34e89e74e83acf18038a351e8de;39;Male;Bachelor’s degree;Native speaker;-8;['CNN', 'The Washington Post'];Several times per day;WAHR
+8e2c5b2b4510488cb8519fcba8347435;60;Female;Some college;Native speaker;-8;['CNN', 'ABC News', 'CBS News'];Several times per day;WAHR
+2ddc7c5117104d82a2dc0318c033bf0b;31;Male;High school graduate;Native speaker;5;['reddit'];Several times per month;WAHR
+ce68cb2f0e014a40a2463bc810372490;40;Male;Graduate work;Native speaker;10;['USA Today', 'ABC News', 'Bloomberg'];Several times per day;WAHR
+55aeb6f0465f4a4ca84436bc87c903d0;28;Male;Associate degree;Native speaker;4;['Fox News', 'CNN', 'Breitbart'];Several times per day;WAHR
+1966be3d66364654aee3dd5a7fe8f940;27;Female;Some college;Native speaker;2;['New York Times', 'Reuters', 'Business Insider', 'Generic online news outlets like reddit'];Every day;WAHR
+9b20f3bb1dba40959cc159c2dd490c38;40;Male;Associate degree;Native speaker;1;['USA Today'];Every day;WAHR
+b3cbc6b16645400f93f5710e26a5e6cd;49;Female;High school graduate;Native speaker;5;['Fox News'];Every day;WAHR
+8cf8fbba03cf42bcb304da1e2a32f625;36;Male;Some college;Native speaker;-5;['NPR'];Every day;WAHR
+d287576234be4d8a8fedabedd2913084;41;Male;Graduate work;Native speaker;9;['The Washington Post', 'The Wall Street Journal', 'Fox News', 'MSNBC'];Every day;WAHR
+c51feeb733f640fe8d62995f47e168b5;33;Female;Some college;Native speaker;-3;['CNN', 'MSNBC'];Several times per week;WAHR
+5109e4158e6741ddbb898d45f16518dd;27;Female;Some college;Native speaker;-10;['The Washington Post', 'Business Insider'];Several times per week;WAHR
+c7bb322c30ce4c67bdcaf2a83060edfc;32;Male;Some college;Native speaker;-4;['CNN', 'ABC News'];Every day;FALSCH
+275c171b8dd64783908660fd0143e3a1;33;Male;Bachelor’s degree;Native speaker;4;['The Wall Street Journal', 'Reuters'];Several times per week;WAHR
+7c3bfa486f2e4286a908ce81a9555371;40;Male;High school graduate;Native speaker;-6;['Reddit'];Several times per week;WAHR
+96f6159d1e0341c8a1d3b72a5bf40b22;31;Male;High school graduate;Native speaker;-6;['MSNBC', 'CNN', 'The Wall Street Journal', 'Huffington Post'];Several times per month;WAHR
+7ddc9e8805604da2abb267ea6d15daf6;38;Male;Bachelor’s degree;Native speaker;-10;['New York Times', 'CNN', 'MSNBC', 'Reuters', 'New York Post', 'USA Today', 'ABC News', 'CBS News', 'The Washington Post', 'The Wall Street Journal', 'BuzzFeed', 'Vice', 'Time magazine', 'Business Insider'];Every day;WAHR
+3b49d6a56bca4d90a0cd547891492dbe;32;Male;Some college;Native speaker;-10;['Reuters', 'The Washington Post'];Several times per week;FALSCH
+55727a7b299643289619ea15890eea4c;60;Male;Some college;Native speaker;-7;['MSNBC', 'CNN'];Several times per day;WAHR
+a2391bd824fd45e5a3e776f7d63a5b67;50;Female;Bachelor’s degree;Native speaker;1;['New York Times', 'The Wall Street Journal', 'Breitbart'];Several times per day;WAHR
+579a668924a0416090daef0aea1dd558;36;Male;Associate degree;Native speaker;-10;['MSNBC', 'USA Today'];Several times per week;WAHR
+b2ad1b05a42a4ba69ccf2248c7d5f491;31;Female;Bachelor’s degree;Native speaker;-10;['New York Times'];Several times per day;FALSCH
+8f69c2768ff143d189f6a1b524b7ce91;31;Female;Bachelor’s degree;Native speaker;-10;['New York Times'];Several times per day;FALSCH
+4b62e13f1f434de8b5ea7683eae22186;25;Male;Associate degree;Native speaker;-1;['Politico', 'New York Times', 'New York Times', 'Business Insider'];Several times per week;WAHR
+856b92694cd6488387c31797e7677511;57;Female;Bachelor’s degree;Native speaker;-8;['New York Times'];Several times per day;WAHR
+e1da9c633879455289a767d86ce54ae0;30;Female;Graduate work;Native speaker;-10;['The Washington Post', 'The Guardian', 'New York Times'];Several times per day;WAHR
+28066094b351485dae46b7184ce89f97;45;Male;Bachelor’s degree;Native speaker;9;"['I occasionally look at Breitbart. Everything else on this list is fake news. I listen AM radio', ' Levin', ' Savage', "" and Shapiro when he's not too annoying. ""]";Every day;WAHR
+16c195ca75a545cc8353f0106b1c2bb1;46;Male;Bachelor’s degree;Native speaker;-3;['ABC News', 'The Washington Post', 'Huffington Post', 'CNN', 'MSNBC', 'The Wall Street Journal', 'New York Times', 'Fox News'];Several times per day;WAHR
+73c37e7b87a04a398a9a6d2dfd8421b8;47;Male;Bachelor’s degree;Native speaker;-10;['CNN', 'MSNBC'];Every day;WAHR
+5d763fa337a84a54a7b4d18300f5db5c;56;Female;Bachelor’s degree;Native speaker;-7;['CNN', 'New York Post'];Several times per day;WAHR
+26b98ea6971646c9834b7949bf1f3db6;36;Female;Some college;Native speaker;0;['reddit'];Several times per week;WAHR
+7a6c7ff762674efebfd1f32c5fe33782;35;Female;Bachelor’s degree;Native speaker;6;['The Dispatch'];Every day;WAHR
+5a77f2b29f354c5c9a23a197184d67c3;43;Male;Bachelor’s degree;Native speaker;-2;['USA Today', 'CNN', 'NPR', 'The Washington Post'];Every day;WAHR
+de3865ce91324f7197327ccda87a6046;35;Female;Some college;Native speaker;-10;['CNN', 'NPR'];Several times per week;WAHR
+02445c15a1f248c892652971053c30c0;29;Female;Bachelor’s degree;Native speaker;0;['BBC news'];Several times per week;WAHR
+b0c0bdf520b84c588adab72625b2fd12;43;Female;High school graduate;Native speaker;5;['Fox News'];Several times per week;WAHR
+2f435c5d2f5e43e7bf88fe7259849867;38;Male;Bachelor’s degree;Native speaker;0;['Yahoo'];Several times per month;WAHR
+49640b7d7cbc419591152ec24736a6c2;29;Female;Bachelor’s degree;Native speaker;-4;['CNN'];Several times per week;WAHR
+61422dbba7574a729b2a9f9a87bcb29d;57;Female;Associate degree;Native speaker;-6;['CNN', 'MSNBC', 'Reuters'];Several times per week;WAHR
+b73debbb70994fc58bbd4886b83cb039;36;Male;Graduate work;Native speaker;9;['Huffington Post', 'Fox News', 'BuzzFeed', 'Vice', 'The Wall Street Journal'];Several times per day;WAHR
+6f81837b15cc4dd4bf4552a7fbd13112;36;Male;Some high school;Near-native speaker;-8;['MSNBC', 'CNN'];Very rarely;WAHR
+c8b810e6bc094f5dbd22ea56bb46b040;59;Male;Bachelor’s degree;Native speaker;-8;['Fox News', 'CNN', 'MSNBC', 'ABC News'];Every day;FALSCH
+49d4c0c6c67c44b48c8eb0cb6fa60a43;48;Female;Bachelor’s degree;Native speaker;-6;['Fox News', 'CNN', 'MSNBC', 'Reuters', 'New York Post', 'Business Insider', 'The Washington Post'];Every day;WAHR
+9dce6efe6fdb414ebf53b8875e772f00;57;Female;Vocational or technical school;Native speaker;-7;['ABC News', 'Fox News', 'MSNBC'];Several times per month;WAHR
+48e279c795544879a7f81c8f39e7c841;28;Male;Bachelor’s degree;Native speaker;-6;['The Washington Post'];Several times per week;FALSCH
+d0fb9ac115c54661aae7aa0a8e1459b3;36;Male;Bachelor’s degree;Native speaker;-8;['New York Times', 'CNN', 'MSNBC', 'Reuters', 'The Washington Post', 'BuzzFeed', 'Vice'];Several times per day;FALSCH
+88e3bc0a8e7c453b98410ec93975eaff;31;Female;Some college;Native speaker;-8;['CBS News'];Every day;FALSCH
+3b159be866764f9b86fbd88a80b81e9d;40;Male;Bachelor’s degree;Native speaker;-3;['New York Times', 'Vice', 'NPR'];Every day;WAHR
+7118d8d3f26b4c45a1f9aa3e1a560c2e;40;Female;Bachelor’s degree;Native speaker;1;['Fox News', 'CNN', 'Breitbart', 'The Federalist'];Several times per week;WAHR
+7852de2f59f3464685bf184738138ce4;40;Female;Graduate work;Native speaker;-8;['CNN', 'NPR'];Every day;WAHR
+88e1d564fba14d07bbdc4b29b7f6bc6f;47;Female;Graduate work;Native speaker;-10;['New York Times', 'CNN', 'Reuters', 'ABC News', 'CBS News'];Every day;WAHR
+9355b1938c394795a20688df1cb78a53;25;Male;Bachelor’s degree;Native speaker;10;['Fox News', 'USA Today', 'USA Today', 'New York Times', 'New York Post', 'CNN', 'ABC News'];Every day;WAHR
+e67d1c8caa05462090d2b604924589f7;30;Male;Graduate work;Native speaker;-9;['New York Times'];Every day;WAHR
+9dbe7fb1393b4067b5edfec9087583f4;31;Male;Bachelor’s degree;Native speaker;-4;['CNN'];Several times per day;WAHR
+c67445e7ef9740588967544147928223;25;Female;Some college;Native speaker;-8;['Twitter'];Every day;WAHR
+2a0085846e4f48a191def8b101f65d66;39;Male;Bachelor’s degree;Native speaker;6;['Fox News'];Every day;FALSCH
+a87a162582a04dbfa295ff56c8854785;53;Female;Graduate work;Native speaker;10;['Fox News'];Every day;WAHR
+c009953e937b4ed390e8b52f70315402;43;Male;High school graduate;Native speaker;-2;['New York Times', 'New York Post'];Every day;WAHR
+d0bf23ac7813474cbb6656967d4334a8;47;Male;Graduate work;Native speaker;-10;['USA Today'];Every day;WAHR
+14b7b7891b644724804a064923c1f73c;28;Male;Bachelor’s degree;Native speaker;3;['New York Times', 'CNN', 'CBS News', 'The Washington Post'];Every day;WAHR
+b57ac32c458b4fd2ae43afc686e2be60;39;Male;High school graduate;Native speaker;-6;['NPR', ' BBC'];Very rarely;WAHR
+c3a3ae4ebed34077a59da02589c2ec42;42;Male;Bachelor’s degree;Native speaker;-8;['MSNBC', 'ABC News', 'CBS News'];Every day;WAHR
+c31ea104001f49338a6c9dd146fb875e;27;Female;Graduate work;Native speaker;-8;['New York Times', 'The Washington Post', 'NPR'];Every day;WAHR
+39e2043092784344a363c12f8a01b19f;32;Male;Bachelor’s degree;Native speaker;-8;['New York Times', 'CNN', 'The Washington Post', 'USA Today', 'Fox News'];Every day;WAHR
+886dc5527e91439f93cb4068d4a0c78a;40;Female;Associate degree;Native speaker;0;['ABC News', 'CBS News'];Every day;WAHR
+cc86b1d5252643eeb994c2a3030c76d7;25;Male;Some college;Native speaker;-9;['New York Times', 'CNN', 'CNN', 'The Washington Post', 'Vice', 'The Guardian', 'The Wall Street Journal'];Every day;WAHR
+06f2449708dd4a0eab069fdf5e734471;67;Male;Bachelor’s degree;Non-native speaker;8;['Fox News', 'CNN', 'USA Today', 'ABC News', 'The Wall Street Journal'];Several times per day;FALSCH
+176ccc72d6d64c608533913f2adb6257;31;Male;Bachelor’s degree;Native speaker;-9;['CNN', 'CNN', 'CNN', 'Business Insider', 'CBS News', 'CBS News', 'CBS News', 'CBS News', 'CBS News', 'ABC News'];Several times per week;WAHR
+9b870e40f02e4180bb8ae6fc0eb962e5;33;Male;Some college;Native speaker;10;['Fox News', 'New York Times', 'CNN', 'The Wall Street Journal'];Several times per day;WAHR
+1c7125b46e5b4116962c947894b8dc02;37;Female;Bachelor’s degree;Native speaker;0;['The Wall Street Journal'];Several times per month;WAHR
+9d791c8a7aa144d0b0bc913171130328;47;Female;Associate degree;Native speaker;10;['CBS News'];Every day;FALSCH
+642fc85482e244518188e895c1adcf1e;32;Male;Bachelor’s degree;Native speaker;-7;['CNN', 'Fox News', 'New York Times', 'MSNBC'];Every day;WAHR
+d61e06b71d7d41d59b2eefbaf99e0036;19;Female;Some college;Native speaker;0;['New York Times', 'Vice', 'The Washington Post'];Every day;WAHR
+ac84cdf19b5648a0aea3429946020075;29;Male;Bachelor’s degree;Native speaker;-10;['Fox News', 'CNN', 'Reuters', 'USA Today'];Several times per day;FALSCH
+04c50c1be1174286960247269f46edb7;28;Female;Graduate work;Native speaker;-10;['CNN', 'CNN', 'MSNBC', 'CBS News', 'ABC News', 'The Guardian', 'The Washington Post', 'Huffington Post', 'New York Post', 'Vice', 'Local Colorado News (KDVR', ' on local TV)', 'Local Colorado News (KDVR', ' on local TV)'];Every day;WAHR
+69a53f7f817f41e9b6d2e1a60a17def6;43;Male;Graduate work;Native speaker;10;['Fox News', 'New York Post', 'CNN', 'The Federalist', 'The Washington Post', 'New York Times'];Every day;WAHR
+3a8dfb469b094011a3a2eca8c34d6e47;26;Male;Some college;Native speaker;-9;['CNN'];Never;WAHR
+dad1b6d8671c47bebbf6223690ff3b3c;33;Female;Bachelor’s degree;Native speaker;-3;['The Washington Post', 'New York Post', 'Fox News', 'CNN', 'MSNBC', 'ABC News'];Several times per day;WAHR
+41a21946c5ab498ebfdebc7cc139efdd;37;Male;Graduate work;Native speaker;3;['Reuters', 'USA Today', 'The Washington Post', 'The Wall Street Journal'];Several times per day;WAHR
+bce53bca2fd4411092de996b7ad37f1b;32;Male;Bachelor’s degree;Near-native speaker;-5;['New York Times'];Several times per week;WAHR
+e1b6f571a06745959d9a5f1b87155558;49;Female;Bachelor’s degree;Native speaker;6;['Fox News'];Several times per month;WAHR
+94402d5ce3ec45598950503aad17b23d;54;Female;Bachelor’s degree;Native speaker;-1;['ABC News', 'New York Times', 'MSNBC'];Every day;WAHR
+d33d13ace3f24190b67f3d1fc6fec82a;47;Male;Graduate work;Native speaker;0;['Business Insider', 'Reuters', 'The Guardian', 'Vice', 'The Wall Street Journal', 'New York Post', 'USA Today', 'ABC News', 'CBS News', 'The Washington Post', 'New York Times', 'New York Post', 'CNN', 'MSNBC'];Several times per day;WAHR
+8b5520befd87450e8a9c508bc710891c;29;Male;Some high school;Near-native speaker;-10;['New York Times', 'Reuters', 'The Washington Post', 'The Wall Street Journal', 'The Guardian'];Several times per day;WAHR
+fbb3bc1ff5f240c2b8b0cdb043d322df;34;Male;Bachelor’s degree;Native speaker;-7;['CNN', 'MSNBC', 'ABC News'];Several times per month;WAHR
+f01a49a58fe94e43bb3962c5aa348c9d;27;Male;Bachelor’s degree;Native speaker;-8;['BuzzFeed', 'The Guardian', 'Fox News', 'The Wall Street Journal', 'The Washington Post', 'Huffington Post', 'CNN', 'MSNBC'];Every day;WAHR
+15b1999fa3d94abdabff868108c50de8;42;Female;High school graduate;Native speaker;6;['Fox News', 'ABC News'];Several times per month;WAHR
+a561bf4a2d81472680c66575a05a475e;44;Male;Bachelor’s degree;Native speaker;10;['Fox News'];Several times per day;WAHR
+da5725eac2b44a63b340924839749105;26;Male;Bachelor’s degree;Native speaker;-10;['CNN', 'USA Today', 'Fox News', 'Fox News'];Several times per week;WAHR
+3c1485e52b714690b21a56cd8b685565;34;Male;Graduate work;Non-native speaker;3;['USA Today', 'ABC News', 'CBS News', 'New York Post', 'CNN', 'Breitbart'];Every day;WAHR
+be0a8358934e43d182daffdd16d8a744;31;Male;Bachelor’s degree;Native speaker;-7;['Fox News'];Every day;WAHR
+dfeea6a0bb0f4c21a778e7c157a26fe8;19;Male;Some college;Native speaker;10;['Fox News', 'Breitbart', 'The Federalist', 'The Wall Street Journal'];Every day;WAHR
+329431ade4fe4e5db8d9794ef8e6fe91;29;Female;Bachelor’s degree;Native speaker;-8;['New York Times'];Every day;FALSCH
+24b0d8c80efa4ac183175e6bc3249da9;40;Male;Bachelor’s degree;Native speaker;-8;['CNN'];Every day;WAHR
+fb928dcdd0104a82a3b8e0d322c03cba;36;Male;Graduate work;Native speaker;10;['Fox News'];Several times per week;WAHR
+102a316ef40f4f729892e9036f7419a5;33;Male;Some college;Native speaker;-2;['CNN', 'BBC'];Every day;WAHR
+d7742dbfc7e44d1da0a3404a2495e544;26;Male;High school graduate;Native speaker;6;['Fox News', 'CNN', 'New York Times', 'ABC News', 'ABC News', 'CBS News', 'ABC News', 'The Washington Post', 'BuzzFeed'];Very rarely;WAHR
+ecdd75007de64f6bb15fdf80bb1e5c11;52;Male;Graduate work;Native speaker;5;['Fox News', 'CNN', 'ABC News', 'USA Today', 'The Wall Street Journal', 'The Guardian'];Several times per day;WAHR
+596066a49cb94c2dba0b39de1fbc1b29;39;Female;Some college;Native speaker;8;['Relevant Radio'];Several times per week;FALSCH
+42162a4166d246c9960ab92fc0f66f69;44;Female;Bachelor’s degree;Native speaker;4;['New York Times', 'Fox News'];Every day;WAHR
+10a1254a1ead4b04863f50ab486e6c9a;22;Female;Bachelor’s degree;Native speaker;-9;['CNN', 'MSNBC', 'USA Today', 'The Washington Post', 'Fox News', 'New York Times'];Several times per week;WAHR
+ac305c43b0cf407f8cf926198ec5f4f4;31;Male;Associate degree;Native speaker;7;['Fox News', 'Breitbart'];Every day;WAHR
+0f97aac53f5f4d2c9d33f1209939c5ce;46;Male;Associate degree;Native speaker;-1;['CNN'];Several times per week;WAHR
+7d2833bb126a40b083e945ac1e0f1c83;26;Male;Bachelor’s degree;Native speaker;-10;['The Washington Post', 'Huffington Post', 'USA Today', 'New York Times', 'CNN'];Several times per day;FALSCH
+7d78145218e640958e79de43da628f8a;36;Male;Some college;Native speaker;-9;['New York Times', 'CNN', 'The Washington Post'];Every day;WAHR
+5523daf83f6f46859ec6c7f8582e6531;29;Male;Some college;Native speaker;-9;['New York Times', 'The Washington Post', 'NPR'];Several times per week;WAHR
+14e9d9c207bc48d28ddcce6ab51359fb;36;Male;Bachelor’s degree;Native speaker;3;['Fox News', 'CBS News'];Every day;WAHR
+2ed66216499544a28fa8b4ed8b8c227b;22;Male;Some college;Non-native speaker;-3;['MSNBC'];Several times per week;FALSCH
+61e7d848a46f4e2db3e7dfac1bb8c5f0;29;Male;Bachelor’s degree;Native speaker;-10;['New York Times', 'MSNBC', 'The Wall Street Journal'];Several times per week;WAHR
+977b13fe286543dd8e94a50c2128802d;28;Female;Graduate work;Native speaker;-10;['New York Times', 'CNN', 'MSNBC', 'Huffington Post', 'Huffington Post', 'Huffington Post', 'New York Post', 'CBS News', 'ABC News'];Several times per day;WAHR
+559ba9bd423244168deb6f189be14df1;48;Male;Bachelor’s degree;Native speaker;-10;['New York Times', 'MSNBC', 'The Washington Post'];Several times per day;WAHR
+37766b74c5c54217bb11b2c225412bd2;32;Female;Some college;Native speaker;0;['MSNBC'];Several times per week;WAHR
+1d0f11135c384318972bf5ae21370bbb;57;Female;Bachelor’s degree;Native speaker;-8;['MSNBC'];Several times per day;WAHR
+727eeac08c9b43d3a26469428f10b5d3;25;Female;Some college;Native speaker;-8;['New York Post', 'The Wall Street Journal', 'New York Times', 'CNN', 'Reuters', 'Vice', 'Axios'];Several times per day;WAHR
+1fad8c68072c4a74909565068960b440;38;Female;Graduate work;Native speaker;5;['New York Times'];Several times per week;WAHR
+aa6f556528924cd4aa67f1c687ee5030;28;Female;Associate degree;Native speaker;2;['Fox News', 'ABC News', 'USA Today'];Several times per week;WAHR
+0e95454e2ee54f3f942d6bb6541a971a;38;Male;Bachelor’s degree;Native speaker;9;['Tim Pool'];Several times per week;WAHR
+a3da5899fc0e4f60945812e601ca41d6;29;Female;Graduate work;Native speaker;0;['New York Times', 'CNN', 'MSNBC', 'Huffington Post', 'The Wall Street Journal', 'The Guardian'];Several times per week;WAHR
+7b802648df7f4341aa6ab79b127c1a5a;34;Male;Bachelor’s degree;Native speaker;-5;['CNN', 'New York Times', 'The Washington Post'];Every day;WAHR
+d430f5c86e5a4fd2adada83a9dd4a15b;38;Female;Graduate work;Native speaker;-9;['New York Times', 'MSNBC', 'MSNBC', 'ABC News', 'Time magazine', 'New York Post', 'Fox News'];Every day;WAHR
+c4c3cec3279a4a109e64e4da886d7b32;29;Male;Bachelor’s degree;Native speaker;3;['New York Times', 'USA Today'];Every day;WAHR
+49c71639ac014e7fb4ca67b8678bab08;38;Female;Bachelor’s degree;Native speaker;5;['CNN'];Several times per day;WAHR
+0b1bfa63ff884b9bafd013764c932ba6;49;Male;High school graduate;Native speaker;10;['Fox News', 'New York Times', 'PBS', 'CNN', 'MSNBC', 'ABC News', 'CBS News', 'The Washington Post', 'The Wall Street Journal'];Several times per week;WAHR
+d10452a4ebc241ba81c8d4b54b6ccc42;31;Male;Associate degree;Native speaker;0;['Fox News', 'New York Times', 'Reuters', 'ABC News', 'The Washington Post', 'The Wall Street Journal', 'The Guardian'];Every day;WAHR
+eae617699ec94f6c8a3c09fed155a4ca;32;Female;Bachelor’s degree;Native speaker;2;['New York Times'];Every day;WAHR
+815dbd44d5da45d3a33177754db0c837;23;Female;Associate degree;Native speaker;-7;['ABC News'];Several times per week;WAHR
+6ca2cca62fb5488d8c552c149d80b123;37;Female;Associate degree;Native speaker;0;['MSNBC', 'CBS News', 'ABC News'];Several times per week;WAHR
+398eb52956954174af4344b282e1ecf5;30;Female;Bachelor’s degree;Native speaker;5;['Business Insider'];Very rarely;WAHR
+05067c045f674ace93b0f4bbabeaa10a;29;Female;High school graduate;Native speaker;6;['CBS News'];Several times per day;WAHR
+041ca080c7d84fb290889d38462d9151;35;Female;Bachelor’s degree;Native speaker;-3;['CNN', 'New York Times', 'New York Post', 'New York Post', 'The Wall Street Journal'];Every day;WAHR
+c47129eea5ca4cf58ed5e063282cf984;50;Male;Bachelor’s degree;Native speaker;-8;['MSNBC'];Several times per day;WAHR
+027b5d638b294b12ba1d340c6de7bf7a;30;Male;Bachelor’s degree;Native speaker;-4;['The Washington Post', 'New York Times'];Several times per day;WAHR
+1f7065bcfb634396ba98bc4876139393;40;Male;Bachelor’s degree;Native speaker;1;['BBC'];Several times per week;WAHR
+7b5ed4fe70d44631a504d5975f9e632c;32;Female;Bachelor’s degree;Native speaker;5;['Time magazine'];Every day;WAHR
+e1267e5867dc486fa2bcaf90f682d240;48;Female;Graduate work;Native speaker;-10;['CNN', 'New York Times', 'The Washington Post', 'Fox News'];Several times per day;WAHR
+b6d09f6680da45559337c8630f62f19b;41;Male;Bachelor’s degree;Native speaker;6;['New York Post'];Several times per month;WAHR
+f5300783879745d087b547916d905e1a;32;Female;Bachelor’s degree;Native speaker;6;['Business Insider', 'New York Times', 'New York Post', 'Fox News'];Every day;WAHR
+19105c7053464f43a6f8348010ba6b1c;26;Female;Bachelor’s degree;Native speaker;6;['CNN', 'Fox News'];Several times per day;WAHR
+583af83671df4a729bd428f6dcd83d7e;32;Female;Graduate work;Native speaker;-9;['Fox News', 'The Wall Street Journal', 'New York Post', 'CNN', 'CBS News', 'ABC News'];Every day;WAHR
+9dacf781b9f548aeaba46d2265c7d7e9;29;Male;Bachelor’s degree;Native speaker;6;['CNN', 'Fox News', 'Time magazine'];Every day;WAHR
+4df04ee4ae7d4a85a8f4b245f22b61a4;25;Male;Bachelor’s degree;Native speaker;-5;['CBS News'];Several times per day;WAHR
+e9051397115e4ae486a17e7df45a1497;36;Male;Bachelor’s degree;Native speaker;-8;['New York Times', 'CNN', 'MSNBC', 'USA Today', 'The Wall Street Journal', 'The Washington Post'];Several times per week;WAHR
+fae82216f89a411aa34b2fc115daa8dd;50;Female;Bachelor’s degree;Native speaker;4;['Fox News', 'New York Times', 'CNN', 'The Washington Post'];Every day;WAHR
+ae865d1c008848c69518d2c46563792e;40;Male;Bachelor’s degree;Native speaker;0;['Fox News', 'New York Times', 'Fox News', 'New York Times', 'USA Today'];Every day;WAHR
+98881d07d68f4b8395225e29d821d599;37;Male;Graduate work;Native speaker;-6;['New York Times'];Every day;WAHR
+caba1843d28e42a7a09f67eba51c9ded;31;Male;Bachelor’s degree;Native speaker;-8;['CNN', 'New York Times', 'New York Times'];Every day;WAHR
+e07efc9aac22481dbcb84dc67eac0fab;27;Female;High school graduate;Native speaker;0;['New York Times', 'MSNBC', 'The Washington Post'];Every day;WAHR
+2474c740a9b74205897e5a598d40e87c;51;Female;Bachelor’s degree;Native speaker;6;['Fox News'];Very rarely;WAHR
+a5fd37d7b22446b293faac2cb68b2a27;31;Male;Bachelor’s degree;Native speaker;6;['Fox News', 'CNN', 'CBS News', 'ABC News', 'USA Today'];Several times per day;WAHR
+0798824a0602461ba5d6d51d349ae270;28;Female;Some college;Native speaker;-3;['Huffington Post', 'New York Times'];Every day;WAHR
+15ff361d3afa4729a2bd335e6e7cf445;55;Male;Associate degree;Native speaker;8;['Fox News'];Several times per day;WAHR
+221b57808bc24fa8b102a0dd80a8d987;30;Female;Associate degree;Native speaker;6;['CNN', 'Fox News', 'New York Post', 'USA Today', 'New York Times'];Every day;WAHR
+8eeb406347ff4637a01343df1e666983;35;Male;Graduate work;Native speaker;9;['ABC News'];Several times per day;FALSCH
+9a5b041c140b48b28eb72bea0e05801e;29;Male;Bachelor’s degree;Native speaker;-10;['New York Times', 'New York Post', 'USA Today', 'The Washington Post', 'The Wall Street Journal', 'Time magazine'];Several times per day;WAHR
+5a19fb1ae7d840b699a1fd811ed758d4;46;Female;Bachelor’s degree;Native speaker;6;['New York Times', 'The Guardian', 'CNN'];Every day;WAHR
+1cdf4eea5a1b4851b64c11fdc5de9329;36;Male;Bachelor’s degree;Native speaker;10;['Fox News', 'USA Today', 'The Washington Post'];Every day;WAHR
+05370d7ff77f43c29eaaaf0553795feb;47;Female;Associate degree;Native speaker;-3;['New York Times', 'CNN', 'The Washington Post'];Every day;WAHR
+f58054ae16a745318126a22c79768be0;68;Male;Graduate work;Native speaker;4;['CNN', 'Fox News'];Several times per week;FALSCH
+331e5f4a2e464274a88b25baa63d2b68;46;Male;Bachelor’s degree;Native speaker;10;['Huffington Post', 'ABC News', 'Fox News'];Every day;WAHR
+71502d04e0b449cab5f72c539e251bd6;29;Male;Associate degree;Native speaker;2;['The Hill'];Every day;WAHR
+654494b9e8e3434795bc175ae1aeb89d;41;Male;Bachelor’s degree;Native speaker;-5;['The Wall Street Journal', 'New York Times', 'CNN'];Every day;WAHR
+f0358f3e20894c9fad2fcb3f5ba5f341;49;Male;Graduate work;Native speaker;-5;['Reuters', 'Business Insider', 'The Wall Street Journal'];Every day;WAHR
+a71da9c25167465bbba064dd35d782f2;55;Male;Some high school;Native speaker;0;['CNN', 'The Washington Post'];Every day;WAHR
+2e6fd58eeb17459e8a2ed6977ae371de;37;Male;High school graduate;Native speaker;-4;['New York Times', 'Reuters', 'NPR'];Every day;WAHR
+57bbc004c7a949098f10d03ad8782556;32;Female;Bachelor’s degree;Native speaker;-2;['CNN'];Every day;WAHR
+44eb2c0b449c4a9eb8b6c3ce65bb3ec4;31;Female;Bachelor’s degree;Near-native speaker;-8;['Fox News', 'Fox News', 'Fox News', 'New York Times', 'CNN'];Several times per month;WAHR
+50e00570cbad4d1183195c293bbf2fa8;26;Male;High school graduate;Native speaker;2;['Fox News', 'New York Times', 'CNN', 'New York Post', 'ABC News', 'CBS News', 'The Washington Post'];Very rarely;WAHR
+d6002417932b4b5893ade1b003108073;27;Female;Bachelor’s degree;Native speaker;-10;['CNN', 'CNN'];Several times per week;WAHR
+e73bb49a46ac4310bdc7b1f2332d6fcc;33;Male;Bachelor’s degree;Native speaker;0;['CNN'];Every day;FALSCH
+d4115de647644ceb8b2c18aacb81236f;43;Male;Graduate work;Native speaker;9;['Fox News', 'USA Today'];Every day;WAHR
+60c87deb938245a982eebab973d658f4;46;Male;Graduate work;Native speaker;-7;['New York Times', 'CNN'];Every day;WAHR
+5b879a7cea8f41a080c1790f472ff8ac;65;Female;Vocational or technical school;Native speaker;0;['I occasionally listen to pod casts', ' if I find the subject interesting. I sometimes listen to Tim Pool or Joe Rogan. I avoid all corporate news outlets.'];Very rarely;WAHR
+25f785bdaf9644409a191e195a0f152d;29;Female;Some college;Native speaker;1;['Breitbart', 'The Wall Street Journal', 'Reuters', 'The hill'];Several times per day;WAHR
+ed792d8642ae480daae1cb37c16d6582;42;Male;Bachelor’s degree;Native speaker;-9;['MSNBC', 'Huffington Post', 'The Washington Post', 'New York Times'];Several times per day;FALSCH
+af7623b151334606bdd99eb14d90a20f;53;Female;Bachelor’s degree;Native speaker;10;['Fox News'];Several times per day;WAHR
+0582f5e989864f8382869681d4e4b2b6;48;Female;Bachelor’s degree;Native speaker;8;['Fox News', 'The Federalist', 'New York Times'];Several times per day;FALSCH
+af68e3f4d2bb47548e7d14fb7721f1f8;29;Male;Bachelor’s degree;Native speaker;-10;['New York Post', 'New York Times', 'CNN', 'CBS News', 'Fox News'];Every day;WAHR
+acd13507f2ff4c91b4a6764d610dc373;26;Male;Some college;Near-native speaker;4;['CNN', 'The Washington Post', 'Business Insider', 'BuzzFeed'];Several times per month;WAHR
+c3841af185a74347abf53319f047f6b3;29;Male;Some high school;Native speaker;1;['MSNBC', 'CNN'];Several times per week;WAHR
+25b8150e28784e64ae2a5f3f7c50697e;30;Female;Graduate work;Native speaker;7;['Fox News', 'CNN', 'New York Times', 'New York Times', 'MSNBC'];Very rarely;WAHR
+9b280996246a4c2692c233c261fe2f14;48;Female;Associate degree;Native speaker;8;['Fox News', 'New York Times', 'The Federalist'];Every day;WAHR
+969115110dfa4c898090dadd2a4c111f;32;Male;Bachelor’s degree;Native speaker;0;['New York Times', 'Fox News', 'Huffington Post'];Every day;FALSCH
+1317b8467a04494b96fea1bf214a74cf;41;Male;Bachelor’s degree;Native speaker;9;['Fox News', 'USA Today', 'CNN', 'New York Times'];Several times per week;WAHR
+443bc4a523bf43bfae4fbe09d62c6603;30;Male;Bachelor’s degree;Native speaker;-2;['CNN'];Several times per week;WAHR
+f22e604e06034e9ca2a3690c6ae75667;27;Male;Some college;Native speaker;-3;['New York Times'];Every day;FALSCH
+63bbdd0083ca40c98b78558989cbcd16;30;Male;Bachelor’s degree;Native speaker;7;['CNN', 'Fox News', 'CNN'];Every day;WAHR
+5852a3da548946d5b438a771668ee66a;24;Male;Bachelor’s degree;Native speaker;4;['New York Times', 'USA Today', 'CBS News'];Several times per day;WAHR
+0f0a8b2db0f14d95902bae2e54cfe177;29;Male;Bachelor’s degree;Native speaker;9;['Fox News', 'New York Times'];Every day;WAHR
+41b32de775da413a9e4ae86b515befdd;24;Male;Bachelor’s degree;Native speaker;-6;['New York Times', 'CNN', 'MSNBC'];Every day;WAHR
+4c02d329cb0c47e79416dfbe9b975d32;49;Male;Bachelor’s degree;Native speaker;4;['CNN', 'CNN', 'USA Today', 'New York Times', 'Fox News'];Several times per month;WAHR
+eab04388ccea479eae4e7470da006b2d;26;Male;Bachelor’s degree;Near-native speaker;4;['TIME MAGAZINE'];Several times per week;WAHR
+43942c988cc44987bea9cd915c666acb;48;Female;Bachelor’s degree;Native speaker;6;['ABC News'];Several times per week;WAHR
+0539cc666726410da1c6885bf735c022;48;Female;Bachelor’s degree;Native speaker;5;['Reuters', 'Breitbart', 'Breitbart', 'Reuters', 'Fox News', 'New York Times', 'CNN', 'NO'];Very rarely;WAHR
+1aa1939c59134fee9fc0ea445186dbd6;24;Male;Some college;Native speaker;1;['New York Times', 'CNN'];Several times per month;WAHR
+fcca2a3071354f71baa0e5a3c61f03e8;27;Female;Graduate work;Native speaker;8;['ABC News', 'Fox News', 'CNN', 'USA Today'];Every day;WAHR
+9d988515142d4c37a81e006cf1f34d65;35;Male;Bachelor’s degree;Native speaker;-8;['CNN', 'Fox News', 'New York Times', 'MSNBC', 'MSNBC', 'Reuters', 'CBS News', 'Breitbart', 'The Wall Street Journal', 'The Guardian', 'The Washington Post', 'New York Post'];Every day;WAHR
+70dc5b790c4b4a5eb878c38ac184d01a;35;Male;Bachelor’s degree;Native speaker;-10;['Fox News', 'ABC News', 'CNN', 'MSNBC'];Every day;FALSCH
+6dd3deda8ed14eb8aca97367811e70b9;46;Female;Bachelor’s degree;Native speaker;-2;['The Washington Post', 'New York Times', 'New York Post', 'Fox News', 'USA Today', 'The Guardian', 'ABC News', 'CBS News', 'BBC'];Every day;WAHR
+1dec5b1a41f94497ba780d30085f3bb7;26;Female;Bachelor’s degree;Native speaker;6;['CNN', 'ABC News'];Several times per week;WAHR
+88dc31ba5c184ad78f8cb83bfa530a29;37;Male;Some college;Native speaker;10;['Fox News'];Several times per month;WAHR
+38a4b1828d624654a7e5944d5100619c;71;Male;Bachelor’s degree;Native speaker;5;['Fox News', 'New York Post'];Every day;WAHR
+404a7d307645459ea2087dfa4ec46a80;30;Male;Bachelor’s degree;Native speaker;3;['ABC News', 'CBS News', 'ABC News'];Very rarely;WAHR
+4411b9ddb6ec40c0987f15cde673b55e;40;Male;Graduate work;Native speaker;-4;['USA Today', 'ABC News', 'USA Today'];Several times per month;WAHR
+3aac34acbe2c4b28b494e815e1ab1a94;29;Male;Bachelor’s degree;Native speaker;-4;['Fox News', 'USA Today', 'CNN', 'The Wall Street Journal'];Every day;FALSCH
+95c416dc43ad45a6b959c13528e8d494;53;Male;Some college;Native speaker;2;['New York Post'];Several times per day;WAHR
+4be36edb143c43debed86abc6ff4d6ef;30;Male;Bachelor’s degree;Native speaker;8;['CNN', 'CBS News'];Several times per week;WAHR
+25558bf0570945b5b85e6a9357e892d3;47;Male;Graduate work;Native speaker;7;['New York Times', 'CNN', 'CBS News', 'CBS News'];Several times per week;WAHR
+8e50b30d17234fe7b937bb613842f002;37;Female;Graduate work;Native speaker;10;['Fox News', 'USA Today', 'New York Times', 'CBS News'];Several times per day;WAHR
+292edd2c04f4467b89033d73a18c90d6;35;Female;Bachelor’s degree;Native speaker;3;['New York Times'];Every day;WAHR
+0c8fb16931a1492a80145ac37252890a;47;Male;I prefer not to say;Native speaker;8;['CNN'];Every day;WAHR
+e7482a8787d846dc85a46de4cc8571ea;28;Female;Bachelor’s degree;Native speaker;7;['New York Times', 'The Washington Post', 'ABC News', 'USA Today', 'New York Post'];Every day;WAHR
+22fe3daf8df942b1a5b8d9806b3baea9;28;Female;Bachelor’s degree;Native speaker;-10;['Reuters', 'The Washington Post', 'The Guardian', 'BBC'];Every day;WAHR
+6133fc6b0f384bb6bd8ed718eb3422be;35;Male;Bachelor’s degree;Native speaker;10;['New York Times'];Several times per day;WAHR
+727182915cb9419f91ff9030946a2af6;46;Male;Bachelor’s degree;Native speaker;-7;['PBS'];Every day;WAHR
+fb88bd653c224042b8afb7282dac1de8;27;Male;Bachelor’s degree;Native speaker;-2;['CNN', 'Vice'];Several times per week;WAHR
+b50cc20c75e74d2abc0f396c3c24ba7e;38;Male;Graduate work;Native speaker;-6;['New York Times'];Every day;WAHR
+f1fe43989fd24936b325207c1d41d6af;36;Male;Bachelor’s degree;Native speaker;-9;['CNN', 'MSNBC'];Several times per day;WAHR
+7b756a0df2db47c1a1e8c432914dfe33;33;Male;Associate degree;Native speaker;-1;['USA Today'];Several times per week;WAHR
+7e0e19f89ad44f1f89d2fab6ca808597;47;Male;Bachelor’s degree;Native speaker;7;['CNN', 'CNN', 'Fox News', 'CNN'];Every day;WAHR
+fcbffe3c1ab941a0a4dc7a36d41d9466;51;Female;Bachelor’s degree;Native speaker;-9;['New York Times', 'CNN', 'MSNBC', 'Reuters', 'CBS News', 'ABC News', 'Huffington Post', 'Time magazine'];Several times per day;FALSCH
+419c73f86a924866bcaedf988d15e1d3;24;Female;Bachelor’s degree;Native speaker;-8;['New York Times', 'Reuters', 'Time magazine', 'BuzzFeed'];Every day;WAHR
+4b8dc42d248c4f19be5f491ee94db791;18;Male;High school graduate;Native speaker;-6;['CNN', 'New York Times', 'The Wall Street Journal', 'Business Insider'];Several times per week;WAHR
+cfea1bbe709a445f9aabaabb9f72db19;28;Male;Bachelor’s degree;Native speaker;5;['CBS News', 'Fox News'];Every day;WAHR
+c6dbbb3ef5124d0cafe2fe2cbd5f0322;35;Male;Bachelor’s degree;Native speaker;7;['Fox News', 'CNN', 'CNN', 'Reuters', 'CNN', 'Reuters', 'CBS News', 'CBS News', 'CBS News', 'CBS News', 'Business Insider', 'The Federalist', 'The Federalist', 'The Federalist', 'The Federalist', 'The Wall Street Journal', 'The Guardian', 'BuzzFeed', 'Vice', 'Time magazine', 'The Washington Post', 'Huffington Post', 'The Federalist', 'Breitbart', 'Reuters', 'MSNBC', 'USA Today', 'ABC News', 'CBS News', 'CBS News', 'Univision', 'CBS News', 'Alternet', 'New York Post', 'New York Times', 'CBS News', 'The Guardian', 'Business Insider', 'Time magazine', 'Univision', 'Huffington Post', 'New York Post', 'Alternet', 'USA Today', 'MSNBC', 'MSNBC', 'CNN', 'New York Times', 'MSNBC', 'Reuters', 'Breitbart', 'Breitbart', 'The Federalist', 'Breitbart', 'ABC News', 'BuzzFeed', 'Vice', 'The Washington Post', 'The Wall Street Journal', 'CBS News', 'Reuters', 'The Federalist', 'ABC News', 'ABC news'];Several times per month;WAHR
+ce03ad98435b43c18050f9e01ced5274;52;Female;Associate degree;Native speaker;10;['CNN', 'New York Post', 'USA Today', 'ABC News'];Several times per day;WAHR
+b7a25d5aa94443f3adee8955dabba1e0;44;Male;Bachelor’s degree;Native speaker;10;['Fox News', 'New York Times', 'CNN', 'Reuters', 'Breitbart', 'The Wall Street Journal', 'The Washington Post', 'The Guardian', 'BuzzFeed', 'Time magazine', 'Alternet'];Very rarely;WAHR
+5e67f815415544c5bf6e5509b5f9ff07;54;Male;Bachelor’s degree;Native speaker;-7;['CNN', 'Fox News'];Every day;WAHR
+23a66ab517554485a16231444013c386;52;Male;Graduate work;Native speaker;4;['MSNBC', 'Fox News'];Several times per week;WAHR
+be9c88b517e44ce3955595af3d5f4b7f;32;Male;Bachelor’s degree;Native speaker;5;['Fox News', 'MSNBC', 'USA Today', 'CNN', 'The Federalist', 'Reuters', 'The Federalist', 'ABC News', 'CBS News', 'CBS News'];Every day;WAHR
+920a2c534f844e06b4c910cf606c29df;26;Male;Bachelor’s degree;Native speaker;-10;['New York Times', 'CNN', 'The Washington Post', 'NPR'];Every day;WAHR
+cdce54e7edab4621ad0114c8bc1c5f6f;30;Male;Graduate work;Native speaker;3;['CNN', 'USA Today', 'CNN', 'CNN'];Several times per week;FALSCH
+7aa54a10b6724f80a6e6de0c56114101;42;Female;Graduate work;Native speaker;-8;['New York Times', 'CNN', 'Reuters'];Several times per day;WAHR
+08519981f1024a10bb7dec4b505226ce;30;Female;Bachelor’s degree;Native speaker;10;['Fox News'];Every day;WAHR
+ab51c32b9d804e5dbf47570f0c86d51f;65;Male;Some college;Native speaker;-7;['Breitbart', 'Huffington Post', 'New York Times', 'New York Post', 'Business Insider', 'The Guardian', 'Drudge Report', ' Google News'];Several times per day;WAHR
+627dbe550f094a41a9cc602c32b29e91;36;Male;Bachelor’s degree;Native speaker;2;['CNN', 'ABC News', 'ABC News'];Several times per week;WAHR
+618a3c30359241db8c0a8f16809cccfb;34;Female;Some college;Native speaker;5;['Fox News', 'New York Times', 'Vice', 'Reuters', 'Vice', 'Huffington Post', 'The Washington Post', 'Business Insider'];Every day;WAHR
+d6b59a6ea6da41a788baf93922effc2b;37;Female;Some college;Native speaker;0;['Fox News', 'CNN', 'CBS News', 'ABC News', 'BuzzFeed'];Every day;FALSCH
+14d974ea8fc441b3a08f5372e9bc31cf;40;Male;Bachelor’s degree;Native speaker;4;['CNN'];Every day;WAHR
+a6e3e9d4d7bf4e3baf031a5ff8a5923e;42;Male;Some college;Native speaker;7;['CNN', 'Huffington Post', 'Reuters'];Every day;WAHR
+39e99bec6476433eac51d179e52ac00f;43;Male;Associate degree;Native speaker;1;['The Wall Street Journal', 'The Wall Street Journal', 'The Wall Street Journal', 'Fox News'];Several times per week;WAHR
+02a30849822744c5b776dfbd8bc0f249;32;Female;Graduate work;Native speaker;5;['CNN', 'CBS News', 'USA Today', 'New York Times', 'Fox News'];Every day;WAHR
+974fca3043f14f3cba0ab00ca85c8785;51;Male;Bachelor’s degree;Native speaker;10;['Fox News', 'Time magazine', 'Business Insider', 'The Washington Post'];Several times per week;WAHR
+9c67f4dd63b547f1b1957bcaf5c29351;35;Male;Some college;Native speaker;-5;['The Guardian'];Several times per month;WAHR
+94d58391934248058d26b389d4d40647;23;Male;Bachelor’s degree;Native speaker;-10;['New York Times', 'Fox News', 'USA Today', 'ABC News', 'New York Post'];Several times per day;WAHR
+52bea17f04734f44a89d4fb33bf92427;60;Female;Associate degree;Native speaker;-10;['The Guardian'];Several times per day;WAHR
+3c6c282179864b8f84868e2b1a0bb531;31;Female;Graduate work;Native speaker;-9;['New York Times', 'CNN', 'Huffington Post', 'The Washington Post', 'The Wall Street Journal', 'The Guardian'];Every day;WAHR
+85dd6c82e2954f58a6c9362b37ce822b;47;Female;Bachelor’s degree;Native speaker;0;['ABC News'];Every day;WAHR
+f30147106f8d4aac96a723e4789b3e91;25;Male;Associate degree;Native speaker;0;['New York Times', 'CNN', 'MSNBC', 'ABC News', 'USA Today', 'New York Post', 'BuzzFeed'];Several times per week;WAHR
+795b5a2017384e2fbcbc8aba9e0b04db;45;Male;Bachelor’s degree;Native speaker;-10;['New York Times', 'Reuters', 'ABC News', 'CBS News'];Several times per day;WAHR
+477b5bf31ee64b018f27e97cc1292b23;56;Male;Bachelor’s degree;Native speaker;7;['Fox News', 'New York Times', 'USA Today'];Very rarely;WAHR
+e4278bc3fef346c7acffac1386f1977c;40;Male;Associate degree;Native speaker;-1;['CNN', 'The Wall Street Journal'];Every day;WAHR
+d23524fe305641d58fa684d5a44e1f1a;37;Female;Bachelor’s degree;Native speaker;-7;['CNN', 'ABC News', 'ABC News', 'ABC News'];Every day;WAHR
+2d5d2e9241e84a739070cbe19a00a94e;23;Male;Bachelor’s degree;Native speaker;10;['The Guardian', 'USA Today', 'ABC News', 'The Washington Post', 'New York Post', 'Fox News', 'CNN'];Several times per day;WAHR
+08d15fc2160f4bd3b141fa817a008d0a;25;Male;Bachelor’s degree;Native speaker;-5;['The Washington Post'];Every day;WAHR
+a0829c32c3ba4359827f2a2234c93198;27;Female;Some college;Native speaker;4;['Fox News'];Several times per month;WAHR
+79a43d1be6394ec7a46efb6e10ab178e;38;Male;Graduate work;Native speaker;-8;['CNN'];Several times per day;WAHR
+c39096a41d524dca9d21822f8bdf2247;34;Male;Graduate work;Native speaker;-8;['Local news'];Several times per week;WAHR
+75b102bc50104042b1881c1007ec897d;31;Male;Associate degree;Native speaker;5;['USA Today'];Every day;WAHR
+d13fbc86cb9a4a6a95bd1228986c91f3;25;Female;Graduate work;Native speaker;-3;['New York Times', 'MSNBC', 'CNN', 'BuzzFeed'];Several times per day;WAHR
+753541c8d0c64daca02e384a0ca341d4;39;Male;Graduate work;Native speaker;-10;['New York Times', 'The Washington Post'];Several times per day;WAHR
+318c136c53ca4159ad7ff7a86fbc5504;35;Male;Graduate work;Native speaker;0;['Fox News', 'New York Post', 'The Guardian', 'The Wall Street Journal', 'New York Times', 'CNN', 'ABC News'];Several times per day;WAHR
+fe8117a65da04c83a69be4c7fb18508b;44;Male;Bachelor’s degree;Native speaker;-4;['CNN', 'Huffington Post', 'The Washington Post', 'MSNBC', 'New York Times'];Several times per day;WAHR
+069f4dbab7e74159babc8f0ee7252efb;50;Male;Some college;Native speaker;0;['USA Today'];Several times per day;WAHR
+b113f89f7b43449bb73940ffa92b0a95;35;Male;Bachelor’s degree;Native speaker;10;['New York Times'];Several times per day;WAHR
+4377f0b894514398b9c21c7a379f55ea;30;Male;Bachelor’s degree;Native speaker;0;['CNN'];Every day;WAHR
+4f524a64769146bfad4b3591f69fabeb;46;Female;Associate degree;Native speaker;-1;['USA Today'];Several times per week;WAHR
+9e6dbb2dac7d4d11b36e0a2ad651df93;52;Male;Bachelor’s degree;Native speaker;10;['CNN', 'USA Today'];Very rarely;FALSCH
+a1bea887f4ea474091f948c3839b6f39;69;Female;Some college;Native speaker;10;['Fox News'];Several times per day;WAHR
+23bea035f8e14db885abb1460cae6b90;35;Male;Graduate work;Native speaker;8;['ABC News', 'CBS News', 'USA Today'];Several times per day;WAHR
+f00d0da191f3448a91b7bb6e23148254;54;Male;Bachelor’s degree;Native speaker;2;['CNN', 'Huffington Post', 'Time magazine', 'USA Today'];Several times per day;WAHR
+892331a749504fe48da945937a4be945;33;Male;Associate degree;Native speaker;0;['Reddit'];Several times per month;FALSCH
+370043110df94f20ae4b6020406d318c;31;Male;Bachelor’s degree;Native speaker;0;['Infogalactic news'];Very rarely;WAHR
+8ce94e7e7f9e4e91996bdeecf3a5874b;30;Male;Bachelor’s degree;Native speaker;4;['Fox News', 'CNN', 'CBS News', 'ABC News'];Every day;WAHR
+408252fcc11d445db1ebad9b5a5c7c45;69;Female;Some college;Native speaker;8;['Fox News'];Several times per month;FALSCH
+c75f859cde734c1aa97ac6bd4dc15564;36;Male;Vocational or technical school;Native speaker;3;['CNN', 'Fox News', 'Huffington Post', 'The Washington Post', 'New York Post', 'ABC News', 'USA Today'];Every day;WAHR
+769af15e525d43319bc3dd3cf5dfb0bb;33;Female;Bachelor’s degree;Native speaker;3;['CNN', 'ABC News', 'AP news'];Several times per week;WAHR
+917e7866c49448a08574a3561da9cc34;38;Male;Bachelor’s degree;Native speaker;5;['Fox News', 'CNN', 'CBS News', 'New York Post'];Every day;WAHR
+ccfc4baaef34441b91fc959a9f8cb309;57;Female;Some college;Native speaker;-10;['New York Times', 'CNN', 'MSNBC', 'The Washington Post', 'The Guardian'];Several times per day;WAHR
+e243cd006ad14b61aa387e75bdf77b7d;55;Female;Some high school;Near-native speaker;-1;['CNN'];Very rarely;WAHR
+7b770fb281cf41b69bc05380da9dce46;29;Male;Graduate work;Native speaker;8;['New York Times', 'USA Today', 'New York Post'];Several times per day;WAHR
+e7f5ab11f36a4029bd8c02880d9cca4c;32;Male;Bachelor’s degree;Native speaker;-10;['New York Times', 'The Washington Post', 'CBS News', 'The Wall Street Journal'];Every day;WAHR
+5f6ff595467b4cf5beef24ab08b1b38f;33;Female;Vocational or technical school;Native speaker;0;['MSNBC', 'CNN'];Very rarely;WAHR
+904dd142317d4e9ca3c9a3a740225de3;38;Female;Bachelor’s degree;Native speaker;1;['npr'];Very rarely;WAHR
+f0248d2fe0314fc0a7c9dfabe2a61950;57;Female;Bachelor’s degree;Native speaker;2;['Fox News', 'CNN'];Several times per month;WAHR
+405608a6ecc84d55b5e8ce4ef11a621b;53;Female;Graduate work;Native speaker;0;['CBS News', 'ABC News'];Several times per week;FALSCH
+d29c948507874892b6b10af803bb2734;38;Male;Bachelor’s degree;Native speaker;-2;['CNN', 'NPR'];Several times per day;WAHR
+7ee493bf3fb24cdda40cd318a7547799;31;Female;Graduate work;Native speaker;-7;['New York Times', 'CNN'];Several times per day;WAHR
+692eea972e1b44cb8c69d1def6f975d9;53;Male;Some college;Near-native speaker;5;['Fox News', 'Breitbart', 'The Federalist', 'DailyMail', 'BBC'];Several times per day;WAHR
+c7c3ccbc7ba4407ca6360611f425bf9e;29;Male;Bachelor’s degree;Native speaker;6;['MSNBC', 'Univision', 'The Federalist'];Several times per month;WAHR
+0159476577d6430d90f3fad01878313a;34;Female;Bachelor’s degree;Native speaker;-8;['New York Times', 'CNN', 'The Washington Post', 'MSNBC', 'The Guardian'];Several times per week;WAHR
+92ae3570dcbc4748acb9a8ff5afc4c5d;35;Male;Bachelor’s degree;Native speaker;-8;['The Washington Post', 'USA Today', 'USA Today', 'MSNBC', 'Reuters', 'NPR'];Every day;WAHR
+89ac70228d6b427aa84c1394d2b241ec;57;Female;Graduate work;Native speaker;-8;['New York Times', 'CNN', 'MSNBC', 'ABC News', 'The Washington Post'];Several times per day;WAHR
+aaf0d782881d4ac99eba7bc0baa37c4e;64;Female;Bachelor’s degree;Native speaker;6;['The Wall Street Journal', 'CBS News', 'ABC News'];Every day;WAHR
+576b53e190b04c069ef681223f186223;45;Female;Bachelor’s degree;Native speaker;-4;['New York Times', 'USA Today', 'The Washington Post', 'Time magazine', 'Business Insider', 'The Wall Street Journal'];Several times per day;WAHR
+9e41f872491c4c229596f4c0d7de84db;31;Female;Associate degree;Native speaker;6;['CBS News', 'USA Today', 'New York Post', 'CNN'];Every day;WAHR
+ae55f86c8f674987b8bd2e433e35d4f4;33;Male;Bachelor’s degree;Native speaker;-7;['New York Times', 'The Washington Post', 'MSNBC'];Several times per day;WAHR
+c9cd6c43ac5245228fa58c085d19fe77;37;Female;Some college;Native speaker;-6;['ABC News'];Several times per month;WAHR
+98159e8048e74ce49a0048fa061630cf;59;Female;Bachelor’s degree;Native speaker;2;['ABC News'];Every day;WAHR
+50b0fa57bc6440caaa0d21f218178016;45;Male;High school graduate;Near-native speaker;3;['New York Times'];Very rarely;WAHR
+6310252799c54e33a8011d29084b7c5b;30;Male;Graduate work;Native speaker;7;['Fox News', 'ABC News', 'CBS News', 'USA Today'];Every day;WAHR
+44fd545ce175463481fa82263b5754cc;38;Male;Bachelor’s degree;Native speaker;-10;['National Public Radio'];Several times per week;WAHR
+277efe90dcba4f939e11d7df088246c6;25;Male;Bachelor’s degree;Native speaker;4;['USA Today', 'New York Times'];Every day;WAHR
+8d141f5666754b86bdff107731f5d1f2;26;Male;Bachelor’s degree;Native speaker;-9;['The Washington Post', 'Huffington Post', 'Business Insider', 'ABC News', 'USA Today', 'New York Times', 'Fox News'];Several times per day;WAHR
+1480f012b57040ff94db33505b84e8e0;41;Male;Bachelor’s degree;Native speaker;1;['Fox News', 'CNN'];Several times per day;FALSCH
+b048702183a64a4182021994ae589fd6;23;Female;Bachelor’s degree;Native speaker;-10;['New York Times', 'NPR'];Every day;WAHR
+0356ad77e8fc419987d2afd371da4494;40;Male;Bachelor’s degree;Native speaker;8;['CNN', 'New York Times', 'Fox News'];Every day;WAHR
+8a95ab00c78145829776c53dba7187da;42;Male;Bachelor’s degree;Native speaker;-9;['Huffington Post', 'The Washington Post', 'New York Times', 'MSNBC', 'The Guardian'];Several times per day;WAHR
+f60a863bfa5e48e696990ff5b45960fc;48;Female;Graduate work;Native speaker;-5;['New York Times', 'CNN', 'MSNBC', 'Reuters', 'USA Today', 'ABC News', 'CBS News', 'The Washington Post', 'The Wall Street Journal', 'Time magazine'];Several times per week;WAHR
+e2733ddece334ccb81ae006b9b614948;42;Female;Some college;Native speaker;-4;['New York Times', 'MSNBC', 'The Wall Street Journal', 'The Guardian'];Never;WAHR
+a0a6f29b544a4ef3961de441c5551e2b;29;Female;Bachelor’s degree;Native speaker;-10;['Fox News', 'New York Times', 'CNN', 'Time magazine'];Every day;WAHR
+505c6688bb0a47ceaa8a400f9746f8fd;45;Male;Some high school;Non-native speaker;2;['CNN'];Very rarely;WAHR
+23c88039e1c24b64a533329836538404;41;Female;Graduate work;Native speaker;2;['Fox News', 'USA Today'];Several times per week;WAHR
+641bb47d947140c191635afd1f3ae288;27;Male;Some college;Native speaker;-8;['CNN', 'The Washington Post', 'New York Post', 'ABC News', 'CBS News', 'KPBS'];Several times per week;WAHR
+fd59ff16f16d41ae87339a0ff30bdf22;36;Female;Associate degree;Native speaker;-8;['The Guardian'];Every day;WAHR
+38333bc20985469ba10ac6ba49a3ca86;39;Male;Some college;Native speaker;0;['Fox News', 'CNN', 'The Washington Post', 'New York Post'];Several times per week;WAHR
+c260a21930774474ac299a7db97cfa21;26;Male;Some high school;Native speaker;-9;['Reddit'];Several times per day;FALSCH
+2999e541e04b4694a90ef3bba61fef0c;25;Male;Bachelor’s degree;Native speaker;5;['CNN', 'New York Times', 'Fox News', 'Time magazine', 'USA Today'];Several times per week;WAHR
+97c628c7e04a47e9a62c25d50f7416b2;29;Male;Bachelor’s degree;Native speaker;-10;['New York Times'];Several times per week;WAHR
+e24bccb1ee534efd9cff5b1328845af5;59;Female;Vocational or technical school;Native speaker;7;['Fox News', 'The Wall Street Journal', 'CBS News'];Every day;WAHR
+23702b8f227e4feaa9ed34204639ad43;30;Male;Associate degree;Native speaker;-2;['NPR'];Several times per week;WAHR
+41371867dbce40f7a4aee9501b9ab21c;32;Female;Some college;Native speaker;-10;['BuzzFeed', 'Vice', 'New York Times', 'Huffington Post'];Every day;FALSCH
+0b87dbcfedd240d2990ba886cae8c002;25;Male;Associate degree;Native speaker;5;['CNN'];Several times per month;WAHR
+3744755b14854b658f4a2a3e01c21238;28;Male;Bachelor’s degree;Native speaker;-5;['CNN'];Several times per month;WAHR
+983d92059f634a538f720887e8831976;50;Male;Some college;Native speaker;5;['Breitbart'];Several times per day;WAHR
+1f9b6ef03e734f3ca077cdb574d60454;34;Female;Some college;Native speaker;-8;['Fox News', 'MSNBC'];Every day;WAHR
+5b9aebd72ca54b81ab8a63d22b329f7d;45;Male;Bachelor’s degree;Native speaker;10;['CNN', 'New York Times', 'USA Today', 'Time magazine', 'CBS News'];Several times per day;WAHR
+9249298ba7274825a9e17f6434fea6e6;55;Female;Associate degree;Native speaker;-6;['MSNBC'];Several times per day;WAHR
+38f762dbe47b4cc2ba0d85aa940f81aa;33;Female;Some college;Native speaker;7;['Fox News'];Very rarely;WAHR
+330801c3d6624e18b9467e16c3386ee2;38;Male;Some college;Native speaker;-10;['Fox News', 'New York Times', 'CNN', 'MSNBC', 'Reuters', 'Time magazine', 'Vice', 'The Guardian', 'The Washington Post', 'New York Post', 'Huffington Post', 'ABC News', 'CBS News', 'USA Today'];Every day;WAHR
+c6f9a201518d48a284ffc64077e7a598;40;Male;Bachelor’s degree;Native speaker;10;['Fox News', 'ABC News'];Every day;WAHR
+61efbd4ec8824f12a5bd2394bceb015d;64;Male;Bachelor’s degree;Native speaker;3;['Fox News'];Every day;WAHR
+64a24d8fafbd46f9b806bac87b4615b4;25;Male;Bachelor’s degree;Native speaker;8;['ABC News'];Every day;WAHR
+ae9988b496eb4dba99224e269fe4a1ce;27;Male;Bachelor’s degree;Native speaker;8;['New York Times', 'CNN'];Every day;WAHR
+9a36c62c9a8b4cc48d0af7df93ee3fe5;30;Male;Bachelor’s degree;Native speaker;9;['ABC News'];Every day;WAHR
+e459c357a1ef481292517f0de0e057de;30;Male;Graduate work;Native speaker;8;['New York Times', 'USA Today', 'New York Post'];Every day;WAHR
+565beae63dc44a4eb97fa6ef4e9023a9;21;Male;Some college;Native speaker;-4;['CNN', 'ABC News', 'CBS News', 'New York Times'];Several times per week;WAHR
+4cb2dfe03fcd4755988ec4b97d495eda;70;Male;Some college;Native speaker;10;['Fox News'];Every day;WAHR
+a29ecce57128492880c39969445d2113;54;Male;Graduate work;Native speaker;0;['yahoo news'];Very rarely;FALSCH
+190d6362dade463da6af536c9ae52dc7;32;Male;Bachelor’s degree;Native speaker;-5;['New York Times'];Several times per week;WAHR
+18186be648a24c0297a0c7817c8bc6ff;49;Female;Some college;Native speaker;9;"['USA Today', "" USA TODAY Sports 'It was really"", "" really hard': Mike Trout laments leaving behind wife and newborn son to rejoin Angels teammates Los Angeles Angels star Mike Trout has left his house plenty of times before for baseball road trips"", ' but walking out the door Tuesday', ' boarding a plane to Seattle', ' and leaving behind his wife and newborn']";Very rarely;WAHR
+d3ee10d0806649589927e401f4974263;55;Female;Vocational or technical school;Native speaker;-1;['New York Times', 'The Washington Post'];Every day;WAHR
+a41467841da549348f3e17a33e0a6a68;21;Female;Bachelor’s degree;Near-native speaker;-4;['New York Times', 'The Washington Post', 'USA Today', 'New York Times'];Several times per month;FALSCH
+155b4947db0e418ba462202245190f67;28;Female;Some college;Native speaker;-7;['NPR'];Every day;WAHR
+e6b056afab354609849d7b6eb5cc937b;32;Female;Bachelor’s degree;Native speaker;0;['CNN', 'MSNBC'];Every day;WAHR
+9282f63115d74a188c90f5db6447a07c;28;Male;Bachelor’s degree;Native speaker;-9;['Reddit'];Every day;WAHR
+cadaafd8eff241c1b4ea28096e71d0d1;65;Male;Graduate work;Native speaker;10;['Fox News'];Every day;WAHR
+9ebbf4c1195e4d508b1f19df7bf1a79c;42;Male;Bachelor’s degree;Native speaker;-3;['Fox News', 'New York Times', 'New York Times', 'CNN', 'New York Times', 'New York Times', 'ABC News', 'CBS News'];Every day;WAHR
+c8be211f43b047c589b64bb72d56d729;30;Male;Graduate work;Native speaker;2;['CNN', 'USA Today'];Several times per week;FALSCH
+444efda64bc94fe3a942e2810096c5a7;30;Male;Graduate work;Native speaker;3;['CNN', 'USA Today'];Several times per week;WAHR
+cea22190a7ff4222a1fb7d9f38b0db36;39;Male;Bachelor’s degree;Near-native speaker;0;['Fox News', 'CNN'];Every day;WAHR
+890a86c789e84b3986d1d965254c7641;25;Male;Bachelor’s degree;Native speaker;3;['CNN', 'MSNBC'];Very rarely;WAHR
+219257c09a354b4eb6731109240f2f47;24;Male;Some college;Native speaker;-7;['Reuters', 'The Washington Post'];Several times per week;WAHR
+57be8f5281a74df59ba62a0f627c0db4;25;Male;Bachelor’s degree;Native speaker;3;['CNN', 'CBS News', 'The Washington Post'];Several times per week;WAHR
+c5bb8446e8f64b1d963ca955f4ca141f;45;Male;Bachelor’s degree;Native speaker;-10;['Fox News', 'New York Times', 'CNN', 'ABC News', 'Time magazine'];Every day;WAHR
+d26ae75e1c2a498aae6a43754d38d149;42;Male;Associate degree;Native speaker;8;['Fox News', 'Breitbart', 'The Washington Post', 'The Wall Street Journal', 'New York Times', 'USA Today', 'google aggregate news'];Every day;WAHR
+ab6e2c11ee634e8ab82e887fc0d21a73;52;Female;Bachelor’s degree;Native speaker;-10;['New York Times', 'CNN', 'MSNBC', 'Huffington Post', 'Alternet', 'The Washington Post', 'The Guardian'];Several times per day;FALSCH
+4742731ede87492aac2decca81281447;36;Female;Graduate work;Native speaker;-10;['New York Times', 'The Washington Post', 'The Guardian', 'USA Today', 'Reuters'];Several times per day;WAHR
+529f69bef297423b92284624b24b1595;32;Male;Graduate work;Native speaker;10;['CNN', 'New York Times'];Several times per day;WAHR
+8d19399cdfa04cd58e4180c23769f208;34;Male;Bachelor’s degree;Native speaker;-7;['CNN', 'CBS News', 'BuzzFeed', 'USA Today'];Every day;WAHR
+084c9438d63046679b2b83f23b2b3e2b;46;Female;Graduate work;Native speaker;-9;['New York Times', 'The Washington Post', 'CNN', 'USA Today', 'BBC'];Every day;FALSCH
+cd6e466bf9484bfc8a4482bad0ae3fe4;37;Male;Bachelor’s degree;Native speaker;-7;['New York Times', 'CNN'];Several times per day;WAHR
+f6b1bfd6c971444da0ecbc870e01449c;24;Male;High school graduate;Native speaker;0;['CBS News'];Several times per week;WAHR
+d2d7daa6a2c34f69a1cb81d2e3984bbf;32;Female;Bachelor’s degree;Native speaker;-10;['CNN'];Every day;WAHR
+86d0ea03aa594b1689ff47c071e999a1;32;Male;High school graduate;Native speaker;10;['New York Times', 'Reuters', 'Breitbart', 'Vice', 'The Wall Street Journal'];Every day;FALSCH
+a7dd400e3c75424696be465a8b7f1266;40;Female;Bachelor’s degree;Native speaker;0;['MSNBC'];Several times per week;WAHR
+78a13bb926ad4e769c070e532246280e;44;Male;Graduate work;Near-native speaker;3;['CNN', 'The Washington Post'];Every day;WAHR
+da6d1c71eadb4d47b2bc0f03100bfbb7;37;Female;Bachelor’s degree;Native speaker;-8;['CBS News', 'ABC News', 'USA Today', 'CNN'];Every day;WAHR
+24319cd46c2544cc88a954a349f9f1ff;26;Male;Bachelor’s degree;Native speaker;-1;['New York Times'];Every day;WAHR
+a15320fc4d934d748ffe0cb031f3c2c2;32;Male;Graduate work;Native speaker;-10;['New York Times', 'The Washington Post'];Several times per day;WAHR
+7823d1fb9352404ba39bd1ccbabab8dd;33;Male;Associate degree;Native speaker;-5;['NPR'];Every day;FALSCH
+9a6a89e0a853460083deab3eb6edc585;30;Female;Some college;Native speaker;-1;['MSNBC'];Very rarely;WAHR
+42ec2c88168e4a74967c9681e8aca30e;31;Male;Some college;Native speaker;1;['Vice', 'Vice', 'CNN', 'Fox News', 'The Washington Post', 'The Wall Street Journal'];Every day;WAHR
+710f9ef08a16426bb5b0f154bd689afd;24;Female;Some college;Native speaker;-8;['The Washington Post', 'Time magazine'];Every day;WAHR
+c72f239a96004ec497182908f308c39f;30;Male;Bachelor’s degree;Native speaker;-3;['CNN', 'MSNBC', 'New York Times'];Every day;WAHR
+4a4f4ed240ff456a9f1b22b006d0a8b8;24;Female;Graduate work;Native speaker;-2;['The Washington Post', 'Business Insider', 'Reuters', 'MSNBC', 'New York Times', 'New York Post', 'Huffington Post', 'USA Today'];Several times per day;WAHR
+b532f56735064c82b7280741f5efc782;25;Male;Some college;Native speaker;-10;['Vice', 'CNN', 'New York Times', 'The Washington Post', 'The Majority Report', 'The Intercept'];Several times per day;WAHR
+510ddcaa9a15413ca69b2816fe99f121;27;Male;Bachelor’s degree;Native speaker;9;['Fox News', 'CNN'];Very rarely;FALSCH
+4cbcc1e9e7b6433aa5d589c767e2eee7;50;Female;Graduate work;Native speaker;-4;['CNN'];Several times per week;WAHR
+e4ccf98e80b54f10841c74587623ee1e;30;Male;Bachelor’s degree;Native speaker;-1;['CBS News'];Several times per month;WAHR
+189a99e07c5e4b03b365e0c825b13e29;37;Female;Bachelor’s degree;Native speaker;-5;['Fox News', 'CNN'];Several times per week;WAHR
+74094b0804294b698fb29378bb6db953;44;Male;Some college;Native speaker;3;['The Washington Post'];Several times per week;WAHR
+945bf2fe656243a2b656b4c96b281903;43;Other/Prefer not to say;I prefer not to say;Native speaker;-3;['USA Today', 'The Wall Street Journal', 'Reuters'];Several times per week;WAHR
+09f553d6f3ff4b869c47176994c05ba3;27;Male;Bachelor’s degree;Native speaker;0;['New York Times'];Several times per week;WAHR
+25df002544c0403395600bcfaf9441c9;39;Male;Some college;Native speaker;10;['The Wall Street Journal'];Every day;WAHR
+dd76968ccbe44616a815f53bbafaa91e;18;Female;High school graduate;Native speaker;2;['New York Times', 'The Wall Street Journal', 'The Washington Post', 'Huffington Post', 'BuzzFeed'];Very rarely;WAHR
+22e45c461318496f9cec5ab95b72d0c1;55;Male;Associate degree;Native speaker;-7;['New York Times', 'CNN', 'The Washington Post'];Every day;FALSCH
+01e76b3027f34694a5995c8fda0fa4fd;29;Female;Some high school;Near-native speaker;6;['Fox News'];Very rarely;WAHR
+256cc17edf494eb6b67ad31697ab0c36;32;Female;Some college;Native speaker;-10;['CNN'];Every day;WAHR
+edb0b52ebf1947209f4495f0fb14c892;52;Female;Graduate work;Native speaker;-8;['Reuters', 'The Guardian'];Every day;WAHR
+a55d021d90134ddfbc28016239cae526;38;Female;Bachelor’s degree;Native speaker;7;['BBC'];Several times per month;WAHR
+32de06f743404596a20c563bd966a819;28;Male;Bachelor’s degree;Native speaker;5;['online news'];Every day;WAHR
+97b003bf2cdc4b93a1e778f85e16d236;30;Female;Bachelor’s degree;Native speaker;-9;['New York Times', 'The Washington Post'];Several times per week;WAHR
+b79801a86ceb4a41b8f5ffe3bf0fde08;31;Female;Associate degree;Native speaker;-7;['New York Times', 'CNN', 'Reuters', 'New York Post', 'USA Today', 'ABC News', 'CBS News', 'The Washington Post', 'The Guardian', 'BuzzFeed', 'Business Insider'];Several times per day;FALSCH
+4b165ba7c214480d84166d04a73fde55;32;Male;High school graduate;Native speaker;10;['New York Times', 'Reuters', 'Breitbart', 'CBS News', 'The Wall Street Journal'];Every day;WAHR
+826a39df418443cc969093001f552b0a;34;Other/Prefer not to say;Some college;Native speaker;-10;['The Washington Post', 'The Guardian', ' Reuters'];Every day;WAHR
+46c1e8ffcb0d45fb928c0561ff8646c7;29;Female;Associate degree;Native speaker;-1;['MSNBC', 'CNN'];Several times per week;WAHR
+75bbd3adea054a538d26176f9539841d;55;Male;Bachelor’s degree;Native speaker;8;['MSNBC', 'CBS News', 'BuzzFeed', 'The Guardian', 'New York Post', 'good'];Very rarely;WAHR
+9eb8e4091af34b83a050350f3c129bbb;54;Female;Associate degree;Native speaker;-9;['CNN', 'Reuters', 'Huffington Post', 'The Washington Post', 'New York Post'];Several times per day;WAHR
+ee7c19fb3f0e470c914dc728aaf49859;23;Other/Prefer not to say;Bachelor’s degree;Native speaker;-10;['The Washington Post', 'Reuters'];Several times per day;WAHR
+986d331c8687405faffb496650913624;28;Male;Bachelor’s degree;Native speaker;6;['Fox News'];Every day;WAHR
+8e33a9b79c2841cdb6f56846d713a8b4;31;Female;Associate degree;Native speaker;-7;['New York Times', 'CNN', 'Reuters', 'New York Post', 'USA Today', 'ABC News', 'CBS News', 'The Washington Post', 'Business Insider', 'The Wall Street Journal', 'The Wall Street Journal', 'The Guardian', 'BuzzFeed'];Several times per day;WAHR
+31dbf32a506143a7b431c1ac35400111;33;Female;Bachelor’s degree;Native speaker;-10;['Reuters', 'Vice', 'The Guardian', 'BuzzFeed'];Several times per day;WAHR
+c8de9760dd9041e994fc3036e0dd953c;24;Male;Bachelor’s degree;Native speaker;3;['New York Times', 'The Guardian', 'USA Today', 'Business Insider', 'New York Post', 'NPR'];Every day;WAHR
+3699052974a74badbb6693d776f102f0;35;Male;Graduate work;Native speaker;-5;['Reuters', 'New York Times'];Several times per week;WAHR
+4228bdeb188a4faa8260ae0e0cadf5e0;32;Male;Bachelor’s degree;Native speaker;-1;['NPR'];Every day;WAHR
+b631443523b24001a025eb810dcabe9a;29;Male;Some college;Native speaker;-10;['New York Times', 'MSNBC', 'The Washington Post'];Every day;WAHR
+02a04b836182402b83fee653c0ac741a;33;Male;Bachelor’s degree;Native speaker;7;['New York Times'];Every day;WAHR
+99251f3bb8a3450fb4c009cf3aaca704;37;Male;Bachelor’s degree;Native speaker;1;['CNN'];Several times per week;WAHR
+54d9eeb0a892460fa9d22205a4c3f1e2;30;Female;Bachelor’s degree;Native speaker;-6;['google news'];Every day;WAHR
+3e0d5a481b694d1fab9eb411956a8e16;52;Female;Graduate work;Native speaker;-8;['The Guardian'];Every day;WAHR
+5a5b682508dc4b6888a07807ce7924b5;30;Male;Bachelor’s degree;Native speaker;6;['New York Times'];Every day;WAHR
+b12b8ca827564af18c9989275db4afc9;33;Female;Graduate work;Native speaker;-8;['New York Times', 'The Washington Post', 'NPR'];Several times per week;WAHR
+f5f01f7b9eb24662aabc656a42336732;49;Female;Bachelor’s degree;Native speaker;9;['New York Times', 'The Washington Post', 'CBS News', 'ABC News', 'USA Today', 'New York Post'];Several times per day;WAHR
+92bf022dc3d64afc905e8f8eba395bea;30;Female;Graduate work;Native speaker;-3;['CNN'];Every day;WAHR
+f7b3e55aab5340f29080bdef9adb01a9;36;Male;Bachelor’s degree;Native speaker;10;['New York Times', 'Fox News', 'CNN'];Several times per day;WAHR
+5a4f72b270e34727ba07a47e78d5bd8a;39;Male;High school graduate;Native speaker;-10;['New York Times', 'CNN', 'MSNBC', 'Reuters', 'Huffington Post', 'The Washington Post', 'Vice', 'Business Insider'];Several times per day;WAHR
+b9e5d6914cbb4a24bb4311f3fb84b06e;27;Male;Bachelor’s degree;Native speaker;-9;['Fox News', 'New York Times', 'CNN', 'MSNBC'];Every day;WAHR
+f6dc987dd11b47c1bfa4e210cc3ee0fe;20;Male;Associate degree;Native speaker;0;['CNN', 'New York Post', 'The Wall Street Journal'];Several times per month;WAHR
+2d84d646979a4e9fb04c954e083d2365;29;Male;Bachelor’s degree;Native speaker;10;['ABC News', 'New York Times', 'New York Post', 'Fox News'];Every day;WAHR
+58df418a7d2c4415857757703ee0957b;42;Male;Bachelor’s degree;Native speaker;-8;['CNN', 'CBS News', 'Fox News', 'New York Times'];Several times per day;WAHR
+7cab110015a541409877b25a8e598f80;45;Female;Bachelor’s degree;Native speaker;7;['New York Post', 'USA Today', 'CNN'];Every day;WAHR
+341adc8ce4b64075844ff475f784e0b3;32;Male;Bachelor’s degree;Native speaker;0;['New York Times'];Every day;WAHR
+e4b326b0b8b64f4c8b874622444f63f0;25;Male;Bachelor’s degree;Native speaker;-1;['The Guardian', 'USA Today'];Every day;WAHR
+d06491fe316e40789305fd54a6f25d27;54;Male;Bachelor’s degree;Near-native speaker;7;['CNN', 'MSNBC', 'ABC News', 'CNBC'];Several times per day;WAHR
+adf2c820fc804449ace1155969292f6a;47;Female;High school graduate;Native speaker;-10;['CNN', 'MSNBC', 'CBS News'];Every day;FALSCH
+4f9a75bf2f424b0e9817d6cb873aa74b;56;Male;Bachelor’s degree;Native speaker;7;['Fox News', 'New York Times', 'CBS News'];Several times per month;WAHR
+791db9dab5774b0ea4ca48d74d96adb8;54;Female;Graduate work;Native speaker;-5;['Fox News', 'CNN', 'CBS News', 'USA Today', 'New York Times'];Several times per day;WAHR
+a0ac4a7c8f2446c4a4165c35d0d77352;37;Male;Some high school;Native speaker;5;['CNN', 'MSNBC', 'ABC News', 'New York Times', 'Fox News', 'CBS News'];Every day;FALSCH
+350134a72f9c4c3eb6e7ade25aa65d3a;60;Female;Graduate work;Native speaker;-3;['CNN'];Every day;WAHR
+a6be517b48ef4d7c90d3019404da6d50;53;Female;Some college;Native speaker;10;['New York Post'];Every day;WAHR
+1d2abb370195483d981e5736f562a2d9;30;Male;Bachelor’s degree;Native speaker;5;['CNN'];Several times per day;WAHR
+6ca93bf601c04f2f9201ecd9cc88db7b;55;Female;Bachelor’s degree;Native speaker;-3;['CNN', 'MSNBC', 'ABC News', 'CBS News'];Several times per day;WAHR
+9ed37ffbe1974c69913c562d6b2764e3;29;Female;Bachelor’s degree;Native speaker;0;['Huffington Post', 'New York Times'];Every day;WAHR
+d5c2e54e2b2e40a48c84babc1f02d47e;27;Male;Bachelor’s degree;Native speaker;-2;['Fox News', 'New York Times', 'CNN', 'MSNBC', 'Reuters', 'Breitbart', 'Huffington Post', 'New York Post', 'The Washington Post', 'The Wall Street Journal', 'The Guardian', 'BuzzFeed', 'Time magazine'];Every day;WAHR
+7c0ba70d76174364b498eead32ace4ec;64;Female;Graduate work;Native speaker;9;['MSNBC'];Every day;WAHR
+92ad1a59ba3c44b880e5bffef6a15fb0;30;Female;Bachelor’s degree;Native speaker;-6;['CNN', 'Fox News'];Every day;WAHR
+0ddf8ce9aceb4f44a7b0c7468e6daf90;29;Male;Bachelor’s degree;Native speaker;7;['CBS News'];Every day;WAHR
+1b629d95308d4927aff42a2bbbdec768;43;Female;Bachelor’s degree;Native speaker;7;['Fox News', 'CNN', 'USA Today'];Every day;WAHR
+331e9862af9144ed959087cf16cd31ef;69;Male;Bachelor’s degree;Native speaker;-5;['USA Today'];Every day;WAHR
+0ea1af8686af49d49776388361028c7e;52;Male;Bachelor’s degree;Native speaker;10;['CNN', 'Fox News'];Every day;WAHR
+ca7bfeb69ef14748a8ccf3efdc36ddad;42;Female;Graduate work;Native speaker;-8;['New York Times', 'MSNBC', 'CNN', 'The Guardian'];Several times per day;WAHR
+5132fa09b69c4c558d6fbe2db4441b90;34;Male;Bachelor’s degree;Native speaker;-5;['New York Times', 'CBS News', 'Vice', 'The Washington Post', 'CNN', 'MSNBC', 'ABC News'];Every day;FALSCH
+e14716d2dcf24c899f5d225b20962fea;34;Female;Bachelor’s degree;Native speaker;7;['Fox News', 'New York Times', 'New York Times', 'CNN', 'New York Times', 'USA Today', 'Business Insider'];Every day;WAHR
+d33a2a01c7f24133a04f5aca20b5a4a9;35;Female;Bachelor’s degree;Native speaker;8;['CNN', 'Fox News', 'New York Times', 'New York Times'];Every day;WAHR
+8964f84188194e24a36f1e82e441d5dc;25;Male;Bachelor’s degree;Native speaker;8;['Fox News', 'The Wall Street Journal'];Every day;WAHR
+f1667e6784d14f50aca608e2c44f6800;26;Male;Bachelor’s degree;Native speaker;-9;['Reddit'];Several times per day;FALSCH
+d1b101f894a24935b2b92db2bacd98a9;31;Male;Bachelor’s degree;Native speaker;-3;['ABC News', 'CNN'];Several times per day;WAHR
+5e97c8fab812493db38d192728e4f02a;36;Female;Bachelor’s degree;Native speaker;-3;['NPR'];Every day;WAHR
+e1336361207e4c7282b4bcc74439b61d;35;Male;Some college;Native speaker;-10;['CNN', 'MSNBC', 'Huffington Post'];Several times per day;WAHR
+4d00510c2e554fbf8ac37cd4c41cf349;58;Female;Bachelor’s degree;Native speaker;8;['CNN', 'Fox News', 'Huffington Post', 'The Washington Post', 'CBS News'];Every day;WAHR
+edbe93104900489fb92e6a2ac7036df6;28;Male;Bachelor’s degree;Native speaker;8;['CNN', 'New York Times'];Every day;WAHR
+0cdfaed4846240c28b6cdf8efab905b4;30;Female;Some college;Native speaker;-9;['CNN'];Several times per day;FALSCH
+591e1eadd50b4188b3b314975583e506;25;Male;Bachelor’s degree;Native speaker;7;['New York Times', 'CBS News'];Every day;WAHR
+46efc3a5f74a47b1b9f15ccd5bc9c6b6;27;Male;Bachelor’s degree;Native speaker;-6;['CNN', 'MSNBC', 'The Washington Post', 'Vice', 'Associated Press'];Several times per week;WAHR
+558a79b51d04409aa510cbb8d18ac9a0;39;Female;Graduate work;Native speaker;-7;['New York Times'];Very rarely;WAHR
+0642085ac3074ed8bc5abfe47b11eeab;25;Male;Bachelor’s degree;Native speaker;-6;['The Washington Post'];Very rarely;WAHR
+f86c42d67a154108aaa2f79119a798d1;27;Female;High school graduate;Native speaker;0;['New York Times', 'The Washington Post', 'Vice', 'CBS News', 'New York Post'];Every day;WAHR
+52cfbfeab53043e186f58b5963acc4d6;54;Male;Some high school;Native speaker;5;['CNN'];Never;WAHR
+bfdced5cde094bc3aaee61ce47c91dc5;58;Male;Bachelor’s degree;Native speaker;10;['New York Times', 'CNN', 'CNN'];Every day;WAHR
+445a591b77774ca7bf08c976944e4995;57;Male;Vocational or technical school;Native speaker;-3;['MSNBC', 'The Washington Post'];Several times per day;WAHR
+96c9e2d7f54447bcbf64a207da78290e;52;Female;Bachelor’s degree;Native speaker;-7;['New York Times', 'The Washington Post', 'New York Post'];Every day;WAHR
+f801d5a2af0e4772940f97045d7c0412;25;Male;Bachelor’s degree;Native speaker;9;['Fox News', 'New York Times'];Every day;WAHR
+08d329fdb56b4075a8d6acda6d318bcf;35;Male;Graduate work;Native speaker;-10;['New York Times', 'The Washington Post'];Every day;WAHR
+7001473a17584a129a0d3608d54b47b2;28;Male;Bachelor’s degree;Native speaker;-7;['CNN'];Several times per day;WAHR
+8257284511ed4706b5fb16817cdc41f1;32;Male;Graduate work;Native speaker;-8;['CNN', 'The Atlantic'];Several times per day;WAHR
+7a23bc0ac180443fb0c082bc51441dff;36;Female;Bachelor’s degree;Native speaker;-7;['New York Times', 'Reuters', 'Huffington Post', 'Time magazine', 'The Washington Post', 'The Guardian'];Every day;WAHR
+fab1c03c549a4b77a6a2e56b4995e72d;48;Male;Some college;Native speaker;-3;['New York Times', 'Vice', 'Time magazine', 'Huffington Post', 'Last Week Tonight'];Several times per week;WAHR
+f13ed0087f174768b924fcf7d207a479;60;Female;Bachelor’s degree;Native speaker;-7;['ABC News'];Very rarely;WAHR
+dedca491d6d14a7799888169a00f6ab0;37;Female;Graduate work;Native speaker;-2;['ABC News', 'The Washington Post', 'The Wall Street Journal', 'New York Times', 'Huffington Post', 'USA Today'];Every day;WAHR
+eaddfcab910443c2acf882632d8d2394;25;Male;Bachelor’s degree;Native speaker;9;['New York Times', 'Fox News'];Every day;WAHR
+59dac270a1a04dabacefccca52139e04;68;Male;Bachelor’s degree;Native speaker;7;['Fox News'];Very rarely;WAHR
+95ad7f5919bd4a038464f371d1920ec8;25;Male;Bachelor’s degree;Native speaker;7;['Fox News', 'New York Times'];Every day;WAHR
+be4ac0911b6e4b51a7323fd55337622a;24;Female;High school graduate;Native speaker;5;['New York Times'];Very rarely;WAHR
+6be621ecd8554c97a3af196af76679da;26;Male;Bachelor’s degree;Native speaker;7;['Fox News', 'CNN', 'USA Today', 'CBS News', 'ABC News'];Every day;WAHR
+aa85c91df7824c11bc66b17414e3f46a;28;Female;Graduate work;Native speaker;-8;['CNN', 'MSNBC', 'Reuters', 'Huffington Post', 'New York Post', 'The Washington Post', 'The Wall Street Journal', 'USA Today'];Every day;WAHR
+cab5598240fc49caa56489cb56c1dfcf;29;Female;Associate degree;Native speaker;-1;['CNN', 'CNN', 'CNN', 'MSNBC'];Several times per week;WAHR
+9c87faeb0509434f89b9a7ee6307c760;30;Female;Graduate work;Native speaker;-8;['New York Times'];Every day;WAHR
+37f8269b283d4b4e9cce29fecf51515a;35;Male;Bachelor’s degree;Native speaker;-4;['Fox News', 'New York Times'];Every day;WAHR
+608864d219114cfa9d7674ea9b2b7a69;51;Female;Some college;Native speaker;2;['New York Times'];Several times per month;WAHR
+65891eccdf4246ada7b80639ea8ce1a0;36;Male;Graduate work;Native speaker;7;['Fox News', 'New York Times', 'Breitbart', 'New York Post', 'The Washington Post'];Every day;WAHR
+fb9cabbd7dde47a0a42f8b3c769e5813;30;Male;Graduate work;Native speaker;-10;['New York Times', 'CNN', 'MSNBC', 'Reuters', 'The Washington Post'];Several times per day;WAHR
+42a899b8c91e41759c4d615b55435013;28;Other/Prefer not to say;Bachelor’s degree;Native speaker;-7;['The Wall Street Journal', 'Time magazine', 'The Washington Post', 'Huffington Post', 'CNN'];Several times per week;WAHR
+20028156766b4cf5b3cb3765850d2a65;46;Female;Associate degree;Native speaker;-5;['ABC News'];Every day;WAHR
+af1286364a284202a3afb6b7ddc85d3a;33;Female;Bachelor’s degree;Native speaker;-6;['CNN', 'MSNBC', 'CBS News'];Several times per day;WAHR
+fc5a5a73aac049bf8667eae99aef101b;33;Male;Bachelor’s degree;Native speaker;8;['CNN', 'PBS'];Every day;WAHR
+fe66cc0753154160a4d75df018cefeb7;42;Male;Graduate work;Native speaker;0;['Fox News', 'CNN', 'Huffington Post', 'The Washington Post', 'The Wall Street Journal', 'The Guardian', 'Vice', 'New York Post'];Never;WAHR
+5622336e4f684bc5a8361a90b0b09fc4;30;Male;Graduate work;Native speaker;0;['CNN'];Several times per week;WAHR
+9e722ceea1274f0fa2d8776804a4d85f;22;Male;Some college;Native speaker;0;['Vice', 'Vice', 'Vice', 'Fox News', 'Fox News', 'ABC News', 'Vice'];Very rarely;WAHR
+b34630831c544d1ba80639d8657d2151;35;Male;Graduate work;Native speaker;1;['CNN'];Every day;WAHR
+64a813392ee743698874ddb9c4ba76e6;34;Female;High school graduate;Native speaker;2;['Fox News'];Several times per day;WAHR
+835ceb3e3698432a803ae2bd6bd0ba1e;59;Male;Bachelor’s degree;Native speaker;10;['Fox News', 'New York Times', 'CNN', 'USA Today', 'New York Post'];Every day;WAHR
+8f62243af70043feb4385506be045619;30;Female;Graduate work;Native speaker;0;['Fox News'];Very rarely;WAHR
+c2843c1d191248da97146056d7418763;56;Male;Some college;Native speaker;-7;['New York Times', 'The Wall Street Journal'];Several times per day;WAHR
+ebe755d1159c431caea5dacff6209d3d;28;Male;Bachelor’s degree;Native speaker;9;['Fox News', 'CNN', 'ABC News', 'CBS News'];Every day;WAHR
+bc936bc9ca3c423f9bfd6656e3051f5f;54;Male;Graduate work;Native speaker;0;['yahoo news'];Every day;WAHR
+2ea075df3d7b4a69b541ab555d084d62;28;Female;Graduate work;Native speaker;3;['Fox News', 'CNN', 'MSNBC'];Very rarely;WAHR
+d5e1757c26e543409a3e7c86a29768ba;29;Male;Graduate work;Native speaker;-10;['The Guardian', 'The Intercept'];Every day;WAHR
+730cad77a4fe46a39b5a96bdf060fc2e;23;Female;Bachelor’s degree;Native speaker;-2;['CNN'];Several times per week;WAHR
+af8123329eb740fd9dea7f24d1404962;29;Female;Bachelor’s degree;Native speaker;-10;['CNN', 'BuzzFeed', 'New York Times'];Every day;WAHR
+31b084e11e2d456192c33d2b1fd1ad0b;37;Male;Some college;Native speaker;-10;['New York Times', 'The Washington Post', 'NPR', ' electoral-vote.com'];Every day;WAHR
+7d3c6fd93e4e41dd8af1c3fe5a4bbb68;47;Female;Some college;Native speaker;3;['CNN'];Several times per week;WAHR
+d77486330d9c49099e1949ae9089d90f;28;Male;High school graduate;Native speaker;0;['Google'];Very rarely;FALSCH
+1894b50c42e24d28a6fce7de2f8f55e9;69;Female;Associate degree;Native speaker;10;['Fox News', 'ABC News', 'ABC News'];Several times per day;WAHR
+0aad3c96e59b4b26a7b73b39bf546161;36;Male;High school graduate;Native speaker;-10;['Reuters'];Several times per month;WAHR
+e1267fd2cdaa4868a68ae05ea700553e;40;Male;High school graduate;Native speaker;1;['New York Times'];Several times per month;WAHR
+3ffe372674954f718fddfe6be2054dbd;55;Male;Bachelor’s degree;Near-native speaker;10;['MSNBC', 'ABC News', 'The Guardian', 'BuzzFeed', 'Vice'];Very rarely;WAHR
+8e8eefc929754de3be9037e71f328ead;51;Female;Bachelor’s degree;Native speaker;-10;['New York Times', 'MSNBC', 'CNN'];Several times per day;WAHR
+ee7da49a4a1542c2afd46dab46c5db2d;39;Male;Some college;Native speaker;-8;['Reuters', 'New York Times', 'The Guardian', 'NPR'];Every day;WAHR
+9c0ddfe5f6784c3e88fc966398b0b088;56;Male;Some college;Native speaker;-7;['New York Times', 'CNN', 'Reuters'];Every day;WAHR
+40fae1fd80554de89e456da27c542064;69;Male;Bachelor’s degree;Native speaker;-6;['New York Times', 'CNN', 'MSNBC', 'Reuters', 'New York Post', 'New York Post', 'The Washington Post', 'The Wall Street Journal', 'The Guardian', 'BuzzFeed', 'Time magazine'];Every day;WAHR
+a466a74e794c46a7bdcbdffa99cc7da3;40;Female;Graduate work;Native speaker;-2;['CNN', 'CNN', 'Fox News', 'CNN', 'Huffington Post'];Every day;WAHR
+bdc087eb848a45f1a2f4b327faa0d1a3;39;Male;Bachelor’s degree;Native speaker;-6;['CNN'];Every day;WAHR
+9b50697a6dc94bb8bad3ac06d44780b9;25;Female;Bachelor’s degree;Native speaker;-4;['MSNBC', 'The Washington Post', 'New York Times', 'ABC News'];Several times per day;WAHR
+5a8d87a82cf54e9ca8df4bbb6af4f430;36;Male;Bachelor’s degree;Native speaker;8;['Fox News', 'Breitbart'];Every day;WAHR
+f6d5c17648a14ffb9c518d3aef6004f3;40;Female;Graduate work;Native speaker;-10;['CNN', 'MSNBC', 'ABC News', 'USA Today', 'New York Post', 'New York Times', 'Reuters', 'CBS News', 'The Washington Post', 'The Wall Street Journal', 'Business Insider', 'Time magazine'];Several times per day;WAHR
+cd12c35f4222413ea09d99149febf0cb;26;Male;Bachelor’s degree;Native speaker;0;['New York Times', 'ABC News'];Several times per week;WAHR
+dcb2f158137b4a54a70a729fb25885fc;32;Male;Graduate work;Native speaker;-1;['The Guardian'];Very rarely;WAHR
+a3bd142456384d13a813a064d0d0a946;26;Male;Bachelor’s degree;Native speaker;-8;['New York Times', 'CNN', 'Reuters', 'The Washington Post', 'Business Insider'];Very rarely;WAHR
+0c4de25bc36440b5b35ea435462389db;34;Male;Bachelor’s degree;Native speaker;-4;['New York Times', 'USA Today', 'The Washington Post', 'The Wall Street Journal', 'The Guardian'];Every day;WAHR
+e264169558e843799d521824abdf89b0;49;Male;Some college;Native speaker;-10;['CNN', 'Reuters', 'ABC News', 'CBS News', 'The Wall Street Journal', 'The Guardian', 'Vice', 'Business Insider', 'PBS'];Several times per day;WAHR
+0eee2db1b7f2425aaf38db5f96c575d8;35;Male;High school graduate;Native speaker;-5;['CNN', 'CNN', 'CNN', 'CNN'];Every day;FALSCH
+5b1dcb1871154d5ebee7ac846c7ad5fc;27;Male;High school graduate;Native speaker;-7;['New York Times', 'ABC News', 'Reuters', 'The Washington Post'];Several times per day;WAHR
+4904de85fe5e47dc8e2d8c337f8d6576;31;Male;High school graduate;Native speaker;-7;['The Hill'];Every day;FALSCH
+058a5f74308a4cb09cef9ba53aabfb69;27;Female;High school graduate;Native speaker;-5;['CNN', 'CBS News'];Several times per month;WAHR
+73b337140e6f424eaddc4210cd340966;32;Female;Associate degree;Native speaker;-8;['ABC News'];Every day;WAHR
+1ec24a49e7f94f9aa434dd016e6eaaf8;45;Male;Some college;Native speaker;8;['USA Today', 'New York Post', 'New York Times'];Very rarely;WAHR
+b4f4a66565574860abf2362a52530732;28;Female;Bachelor’s degree;Native speaker;-8;['CNN'];Several times per week;WAHR
+46e21744ad1e48de89e742cfe27c9de6;37;Female;Some college;Native speaker;-1;['MSNBC'];Several times per month;WAHR
+317548b972944303bebd5d574d760e23;21;Female;Some college;Native speaker;-10;['CNN', 'CBS News', 'BuzzFeed', 'Vice', 'Business Insider'];Several times per month;WAHR
+b1f5d8c963ff4386ade2bd2ff2c0fef2;33;Male;Bachelor’s degree;Native speaker;-6;['New York Times', 'CNN', 'MSNBC', 'Huffington Post', 'ABC News', 'CBS News', 'The Washington Post'];Every day;WAHR
+a324a8db18704ed7aa9c321a17e4c58a;66;Female;Graduate work;Native speaker;-7;['CNN', 'MSNBC', 'Huffington Post'];Every day;WAHR
+747df343e0fd407593b5e35054a46401;57;Male;Bachelor’s degree;Native speaker;3;['Fox News', 'Breitbart', 'The Federalist', 'New York Post', 'CBS News', 'The Wall Street Journal', 'I listen to a number of podcasts and Youtube videos during the day where news is discussed.'];Several times per day;WAHR
+9220e8b5578043429ce0e13ebc8560c4;47;Male;Graduate work;Native speaker;-6;['CNN', 'Reuters', 'The Wall Street Journal', 'New York Post', 'USA Today', 'The Washington Post', 'The Guardian', 'BuzzFeed', 'Business Insider', 'npr', 'New York Times'];Every day;WAHR
+fe571f3cafd4492b890b1ab624fbd0b6;46;Male;Bachelor’s degree;Native speaker;0;['New York Times', 'The Washington Post'];Every day;WAHR
+34eaa8bb5de94457a14f06d8c2cabf41;42;Male;Some college;Native speaker;-5;['MSNBC', 'Vice', 'CNN'];Several times per month;WAHR
+331049500b674897ad3a78b7ee9b7fed;38;Male;Associate degree;Native speaker;-4;['CNN', 'Fox News', 'The Washington Post', 'Local News'];Every day;FALSCH
+e348f3a67f9849e09fae4b86ffefad16;33;Male;High school graduate;Native speaker;0;['Reuters'];Every day;FALSCH
+ed9a0f7c31cf4ed5bc0cb3e81e064e89;27;Male;Some college;Native speaker;2;['Fox News', 'CNN', 'MSNBC'];Every day;FALSCH
+1057362c1b00466ba3ab05678e3ce427;26;Male;High school graduate;Native speaker;0;['Fox News', 'CNN', 'Huffington Post', 'New York Post', 'Online forums'];Several times per week;FALSCH
+765d290f24cc41c0a480c742fa135d1a;38;Male;Bachelor’s degree;Native speaker;-7;['Fox News', 'CNN', 'ABC News', 'social media'];Every day;FALSCH
+910b6a3e0b3b41dc88a55868d020f0bd;51;Female;Bachelor’s degree;Non-native speaker;0;['Fox News', 'CNN'];Every day;FALSCH
+ef1926675dce4e2f84a63edeadc4e349;25;Male;Bachelor’s degree;Native speaker;-10;['Fox News'];Several times per week;FALSCH
+fc28c5ec862d439fb2d9dab56a8b904c;30;Female;Some college;Native speaker;0;['The Wall Street Journal', 'The Washington Post', 'Huffington Post', 'New York Times'];Several times per month;FALSCH
+1a914a9ce49c4a2aa0675c4affcf6501;38;Male;Bachelor’s degree;Near-native speaker;-8;['Fox News', 'ABC News', 'CNN'];Every day;FALSCH
+bf570e01046749fda8d70680d0eb3353;28;Female;Bachelor’s degree;Native speaker;-7;['CNN', 'MSNBC', 'The Washington Post'];Every day;FALSCH
+7f0cc738567740a0a3059977baf8f71c;28;Male;Bachelor’s degree;Native speaker;-8;['CNN', 'ABC News'];Every day;FALSCH
+e8a43126de354e8f85c18b1f383ba14a;32;Male;Bachelor’s degree;Native speaker;-2;['New York Times', 'MSNBC'];Every day;FALSCH
+ada07e6f1dea485f80b5ef573b725284;20;Male;Some college;Native speaker;1;['Fox News', 'CBS News', 'ABC News'];Several times per week;FALSCH
+1f56b485075948f0a1122e0641ba9018;23;Male;Some college;Native speaker;-7;['Fox News', 'Youtube'];Very rarely;FALSCH
+ce8a00dfc089419c9a3a73b637565c72;44;Male;Bachelor’s degree;Native speaker;-7;['NPR'];Every day;FALSCH
+84777a90db074c49a01a445bb9742011;33;Male;Bachelor’s degree;Native speaker;-6;['CNN', 'USA Today', 'Huffington Post', 'Business Insider'];Every day;FALSCH
+6aabf410b4114d4db5fff1e4b0bb8c90;32;Male;Bachelor’s degree;Native speaker;-3;['New York Times', 'MSNBC'];Every day;FALSCH
+3934d5e11c914f48b25255c507761a7d;29;Male;Some college;Native speaker;-10;['New York Times', 'Huffington Post', 'USA Today', 'Yahoo news', 'Yahoo news'];Several times per week;FALSCH
+d49f974cdc70401fa3e4f1fa90f57920;24;Male;Bachelor’s degree;Native speaker;0;['CNN', 'MSNBC', 'Fox News', 'New York Times', 'The Washington Post', 'ABC News', 'CNN', 'The Washington Post', 'ABC News', 'New York Times', 'CNN', ' Foxnews', ' MSNBC'];Several times per day;FALSCH
+df3b41239b144af5b21428fa504e0a5f;25;Male;Associate degree;Non-native speaker;-3;['The Wall Street Journal', 'New York Post', 'The Washington Post'];Very rarely;FALSCH
+8cacdf56e7554414a0bb1a6c2454ddc4;34;Female;High school graduate;Native speaker;0;['New York Times', 'New York Post', 'The Washington Post', 'BuzzFeed'];Every day;FALSCH
+b838cfbe325f4e079cd5d286d560eda5;55;Male;Bachelor’s degree;Native speaker;4;['CNN', 'CBS News', 'Vice', 'ABC News', 'New York Times', 'CNN'];Very rarely;FALSCH
+bb1bef81447d4d0eb8b50c2767350734;55;Male;Bachelor’s degree;Near-native speaker;3;['New York Times', 'New York Times', 'CBS News', 'ABC News', 'USA Today'];Very rarely;FALSCH
+a6fbd41a3aa343c38450541c4280b4a2;55;Male;Bachelor’s degree;Native speaker;8;['Time magazine', 'MSNBC', 'The Guardian', 'Univision'];Very rarely;FALSCH
+14eb7d62d93440a39074879afe791be6;51;Female;Bachelor’s degree;Native speaker;2;['Fox News', 'Univision'];Never;FALSCH
+0bf1aaa367cc417590447f65d8eb3b89;51;Female;Bachelor’s degree;Native speaker;3;['The Federalist', 'ABC News', 'USA Today', 'ABC News'];Very rarely;FALSCH
+2aea237c19ef4a85be1c86a72327d6f5;29;Female;Bachelor’s degree;Native speaker;0;['BBC news'];Several times per week;FALSCH
+0fb1a3d1e7454fb6bbc15397571e74eb;55;Female;Bachelor’s degree;Native speaker;-4;['ABC News', 'CNN', 'The Washington Post', 'The Guardian', 'BuzzFeed', 'CBS News'];Several times per day;FALSCH
+7d253fd27d114de98c04ffa8075a486a;28;Male;Bachelor’s degree;Native speaker;-9;['CNN', 'Fox News', 'ABC News'];Every day;FALSCH
+78886baba9e742169465d9f1a319092a;32;Female;Bachelor’s degree;Native speaker;-7;['Fox News', 'CNN'];Every day;FALSCH
+83c4d145de914f3eb1b9d396e2c6d2f7;51;Male;Bachelor’s degree;Native speaker;3;['ABC News', 'Fox News'];Very rarely;FALSCH
+7a23c9a1e3b44131a8fbdddb0d90953a;52;Female;Bachelor’s degree;Native speaker;5;['Fox News', 'New York Times', 'CNN', 'The Washington Post', 'USA Today'];Every day;FALSCH
+c67211f473b841448aeed0e9c1c29c2b;51;Male;Bachelor’s degree;Native speaker;3;['Fox News', 'The Guardian', 'Univision', 'Univision', 'ABC News'];Very rarely;FALSCH
+2e252bd84c16449b81d98ff54728d9b9;54;Male;Associate degree;Native speaker;6;['Fox News', 'ABC News', 'USA Today', 'New York Post', 'New York Post', 'The Wall Street Journal'];Several times per week;FALSCH
+29e6105694554cb1a99862350e33ef2a;37;Male;Bachelor’s degree;Native speaker;10;['Fox News', 'Breitbart'];Every day;WAHR
+59f852ba24544f2eb424725d499b493d;27;Female;High school graduate;Native speaker;0;['New York Post', 'New York Times', 'The Washington Post', 'Vice'];Every day;WAHR
+05c34f02cf2b4e879c0cc7ae6e894d7e;30;Male;Graduate work;Native speaker;-7;['Fox News', 'New York Post', 'The Wall Street Journal', 'The Washington Post', 'CNN', 'New York Times', 'New York Post', 'CBS News'];Several times per day;FALSCH
+8cb8c69d693d4ec2b00f693b6da813d3;36;Male;Bachelor’s degree;Native speaker;0;['Vice'];Every day;WAHR
+87e92f13702f482a822164cc368c5c1a;27;Female;Some college;Native speaker;-4;['The Washington Post'];Several times per week;WAHR
+63dcbd4704b84f4e82c43952df22191d;55;Female;Some college;Native speaker;-4;['Vice', 'CNN', 'Reuters', 'BuzzFeed'];Every day;WAHR
+8ed49df15fa4426eaf7b5d2a9564e7a4;41;Male;Graduate work;Native speaker;-8;['CNN', 'New York Times'];Several times per week;WAHR
+2ae2f181af174127a793c4e058558f2e;38;Male;Bachelor’s degree;Native speaker;-7;['New York Times', 'Reuters', 'The Washington Post'];Several times per day;WAHR
+39cfd03aaaf1451a817607b656fb9495;40;Male;High school graduate;Native speaker;1;['New York Times'];Every day;FALSCH
+a2b4c8b010a04c97ac4066426a48e290;35;Male;Bachelor’s degree;Native speaker;8;['Fox News', 'New York Times', 'Business Insider', 'Huffington Post', 'info wars'];Several times per week;WAHR
+08b3bd0ed83848739086c81084170b97;55;Male;Vocational or technical school;Native speaker;-1;['The Washington Post', 'CNN'];Several times per week;WAHR
+911b3b1d437a40af9f3a0dd8cfd76f1c;29;Male;Bachelor’s degree;Native speaker;-10;['New York Times', 'CNN', 'MSNBC', 'USA Today', 'New York Post', 'The Wall Street Journal', 'The Guardian', 'Time magazine', 'Vice'];Every day;WAHR
+e5ba7cff0834430cb41316b327162e8f;32;Female;High school graduate;Native speaker;-9;['Fox News'];Every day;WAHR
+fb15538b7a9a437385b1f47fb4be548a;34;Male;Bachelor’s degree;Native speaker;10;['New York Times', 'CNN', 'Reuters'];Every day;WAHR
+3c5caed09bd54866a2db73e5a677a641;35;Female;Bachelor’s degree;Native speaker;-2;['New York Post', 'New York Times', 'The Wall Street Journal', 'New York Post', 'Reuters', 'The Washington Post', 'CNN'];Every day;WAHR
+67615472ee2941db8d3393ba99c5ecda;39;Female;Bachelor’s degree;Native speaker;-10;['New York Times'];Several times per week;WAHR
+6f21d8eb4e254c84b7e79b2aa1ba1490;32;Female;Some college;Native speaker;-6;['BBC', 'New York Times'];Several times per week;WAHR
+731a5457c0604c688daf568cf897ec35;36;Male;Some college;Native speaker;-10;['New York Times', 'The Washington Post'];Several times per day;WAHR
+3755eb74fef74fd4b71b20582cab1c47;38;Male;Graduate work;Native speaker;-8;['New York Times'];Several times per week;WAHR
+4f82b5820eae43c1b229da0ad7a6936c;28;Male;Bachelor’s degree;Native speaker;10;['Fox News'];Every day;FALSCH
+c261c10da60f4ec4975fe07d4e1bf547;37;Female;Bachelor’s degree;Native speaker;0;['The Wall Street Journal', 'Business Insider'];Every day;WAHR
+852e10accf56465481afa723f69da780;32;Male;Bachelor’s degree;Native speaker;-8;['CNN'];Every day;WAHR
+cd074017cce445869f289c55196cfc3e;31;Female;Bachelor’s degree;Native speaker;-1;['The Wall Street Journal'];Every day;WAHR
+ae91e3b8be124f709b28a269fdfec34b;32;Male;Bachelor’s degree;Native speaker;-10;['CNN'];Several times per week;WAHR
+ffb744b78ce2471cbc1ead6be531fc84;40;Male;Bachelor’s degree;Native speaker;4;['Fox News', 'The Wall Street Journal', 'The Federalist', 'Breitbart', 'Reuters'];Several times per day;WAHR
+ecf3fded9fd041589f18e73457fe31ab;39;Male;High school graduate;Native speaker;0;['CBS News', 'MSNBC'];Several times per week;FALSCH
+760f5c6c975c423f8b32eea09af4549d;34;Male;Some college;Native speaker;3;['Fox News'];Every day;WAHR
+ce1e4be20f85450185445fb6a539151c;52;Female;Bachelor’s degree;Near-native speaker;0;['Fox News', 'CNN'];Every day;WAHR
+9d69fecd8da744469b002b65f2904470;28;Male;Some college;Native speaker;-7;['New York Times', 'The Washington Post'];Very rarely;FALSCH
+438bf2bdd5e240969456b1121355cf55;26;Female;Bachelor’s degree;Native speaker;0;['Fox News', 'New York Times', 'ABC News', 'NBC'];Several times per week;WAHR
+c588dfd1aaf24ab0b451338b1874e874;38;Female;High school graduate;Native speaker;7;['Trusted sources I follow on facebook'];Very rarely;FALSCH
+cfc0c24259384bc385c7e62b2e864f86;29;Female;Some college;Native speaker;-9;['CNN'];Several times per month;FALSCH
+df88431ecee948c78a1ad152f94f9d48;29;Male;High school graduate;Native speaker;2;['OANN'];Several times per week;WAHR
+aba4737512954579bb56d54e9a8d1f9e;58;Female;Bachelor’s degree;Native speaker;-8;['CNN', 'MSNBC', 'USA Today'];Every day;FALSCH
+047fed8252d342f1be89a61c4d071a3a;26;Female;Some college;Native speaker;-10;['New York Times', 'CNN', 'Huffington Post', 'The Guardian', 'Vice', 'BuzzFeed', 'Google News '];Several times per day;WAHR
+df9798ec6c6443eaa2a768f8b0662c34;30;Male;Bachelor’s degree;Native speaker;-5;['The Washington Post'];Several times per day;WAHR
+50f63b27dacd4e9eb5646ee3c15521dd;29;Female;Graduate work;Native speaker;-7;['New York Times', 'Reuters', 'CNN', 'The Washington Post', 'CBS News'];Several times per day;WAHR
+345b85ce425045f9909f168b3881c5b7;54;Female;Graduate work;Native speaker;2;['Fox News', 'Business Insider', 'ABC News', 'The Wall Street Journal'];Several times per day;WAHR
+c3af43a78ae64700957e1957be4a4a5a;28;Male;Some high school;Native speaker;-10;['USA Today'];Several times per week;WAHR
+3e34b54cd2794eb1a57e1725c54472f2;50;Female;Associate degree;Native speaker;2;['New York Post'];Several times per day;WAHR
+1c71ec4f4d85499aa3b4b5400c35ea07;29;Female;Bachelor’s degree;Native speaker;0;['New York Times', 'The Washington Post', 'Business Insider'];Several times per month;WAHR
+38aa5c2886f7447f915492660bb29165;29;Female;Bachelor’s degree;Native speaker;-6;['CNN'];Several times per week;WAHR
+d6a92b5206ea4658b04e8b86804e33d0;40;Male;Associate degree;Native speaker;1;['CNN', 'ABC News', 'I also watch World News.'];Several times per month;WAHR
+1e733fe9ac504bc4bfe6fcfc082ea5de;33;Male;Associate degree;Native speaker;-8;['The Washington Post'];Several times per week;WAHR
+8a7e0deaeac244fb901945cb40503e76;37;Male;Bachelor’s degree;Native speaker;-10;['The Wall Street Journal', 'USA Today', 'Time magazine'];Very rarely;WAHR
+3b21d9bfa949446fa47c2e6f3ff1680f;36;Male;Associate degree;Native speaker;-4;['CNN'];Every day;WAHR
+8246973f557546cb86eaec67f23d5a0c;28;Female;Bachelor’s degree;Native speaker;-7;['The Washington Post', 'New York Times'];Several times per day;WAHR
+db640b929102488e91719de7205baa4d;23;Male;Some college;Native speaker;-8;['ABC News', 'New York Times'];Several times per week;WAHR
+8732f442a93e459a8ebd81e3f15bed2e;25;Male;Bachelor’s degree;Native speaker;10;['New York Times', 'CNN'];Several times per day;WAHR
+0c02148a893448e0aea311fee5c225a4;40;Male;Graduate work;Native speaker;10;['Fox News', 'New York Times', 'The Washington Post', 'USA Today', 'CNN'];Several times per day;WAHR
+4a2ba12c24e448478fea908840c2346b;44;Female;Graduate work;Native speaker;-10;['Huffington Post', 'Reuters', 'The Guardian', 'Business Insider', 'New York Times'];Several times per day;FALSCH
+4a7d87cf60584230adc50f795450a402;44;Female;Graduate work;Native speaker;-10;['New York Times', 'Huffington Post', 'Business Insider', 'The Guardian', 'Alternet'];Several times per day;WAHR
+198494fdbbdf4c57823696cb849a4ca8;33;Male;Bachelor’s degree;Native speaker;0;['NBC News'];Very rarely;FALSCH
+7bc3ee6759cb4b02960bc7b402d03e4c;23;Male;Bachelor’s degree;Native speaker;-4;['New York Times', 'The Washington Post', 'CNN', 'New York Post', 'The Wall Street Journal', 'The Guardian', 'The Guardian'];Very rarely;WAHR
+0045473f40ec42a2bd2ca0ee35df0b75;29;Male;Bachelor’s degree;Native speaker;7;['ABC News', 'MSNBC'];Every day;WAHR
+f20f6d67cf0d43cebd5afe1538919662;64;Male;Bachelor’s degree;Native speaker;-1;['Associated Press web site'];Several times per week;WAHR
+123ae9a303ef4487b978da3097c6e080;47;Female;Bachelor’s degree;Native speaker;-4;['CNN'];Every day;WAHR
+383ac085a55f49a7992e2f3c62d848df;69;Female;Some college;Native speaker;9;['Fox News'];Several times per day;WAHR
+1328ee94381e4eb58f43e9d12e5e932f;52;Female;Bachelor’s degree;Native speaker;3;['Fox News', 'CNN', 'USA Today', 'New York Times', 'Univision'];Every day;WAHR
+7332cf244376401493407c42e8ac75a0;44;Female;Graduate work;Near-native speaker;-6;['CNN', 'MSNBC'];Every day;FALSCH
+65b3435aaa77463b9dbd76cbc7a440c0;55;Female;Bachelor’s degree;Native speaker;5;['Fox News', 'New York Times', 'CNN', 'ABC News'];Every day;WAHR
+15bec64fdb5541af9ddff70191a1eb0e;0;Female;I prefer not to say;Native speaker;3;['Fox News', 'Fox News', 'Fox News'];Very rarely;WAHR
+d4cfb2b490714cc38cc3847c19292b64;38;Male;High school graduate;Native speaker;-6;['ABC News'];Several times per day;WAHR
+604fa944836741489fe2177eaff19f4f;65;Male;Some college;Native speaker;-6;['Breitbart', 'Huffington Post', 'Business Insider', 'Business Insider', 'Drudge Report'];Several times per day;WAHR
+301504bd6efe4fef818afe860dc7707c;46;Female;Associate degree;Native speaker;2;['citizen journalists on youtube and bitchute'];Several times per week;WAHR
+fdb9d9cac8204d7b9fabb173239632c8;29;Male;Bachelor’s degree;Native speaker;-9;['New York Times', 'Fox News', 'CNN', 'MSNBC', 'New York Post', 'The Washington Post', 'The Wall Street Journal', 'CBS News'];Every day;WAHR
+bb5d01bcd873406c9a6d1269125416d4;24;Female;Bachelor’s degree;Native speaker;4;['Fox News', 'New York Post', 'The Wall Street Journal', 'Vice', 'Business Insider', 'Huffington Post', 'Breitbart', 'Reuters'];Several times per day;WAHR
+70e9d2339dbb4e17b7bdaa764659ce76;30;Male;Some college;Native speaker;1;['Fox News'];Very rarely;WAHR
+536f27e93d1c4ca1a8bff21493510586;32;Male;Bachelor’s degree;Native speaker;-7;['CNN', 'New York Times', 'Fox News'];Every day;WAHR
+ee70a02023cc41acbcf1f625209aeb82;25;Male;Bachelor’s degree;Native speaker;-10;['Fox News'];Several times per week;WAHR
+e8eed2f6b1394f8688b8a74f41983872;42;Male;Bachelor’s degree;Native speaker;3;['Fox News', 'CNN'];Several times per day;WAHR
+a86bd3622aad4ccbba64a5e116913f1c;59;Female;Associate degree;Native speaker;-4;['CNN', 'MSNBC'];Every day;FALSCH
+0207f30745e54a6f8bfc54f411e3c835;42;Female;Bachelor’s degree;Native speaker;-4;['CNN'];Several times per week;WAHR
+848568de27134f25b9bcd97f2b98b2d1;25;Male;Bachelor’s degree;Native speaker;-10;['Reuters', 'Vice', 'The Washington Post', 'NPR'];Every day;WAHR
+c19dae4748b546159138caadc6d3e4c2;42;Female;Some college;Native speaker;-7;['The Washington Post', 'New York Times', 'CNN', 'MSNBC', 'Reuters', 'New York Post', 'The Wall Street Journal'];Several times per week;WAHR
+302a3904c1824c58892784be62954ab9;31;Male;Associate degree;Native speaker;4;['New York Times', 'CNN', 'MSNBC', 'Fox News', 'Huffington Post', 'New York Post'];Every day;WAHR
+c30faeb61de74fe69b144742dc07c03e;38;Female;Some college;Native speaker;6;['Fox News'];Several times per week;WAHR
+4828b1270eab4feebc2a2f6062c1979f;50;Female;Bachelor’s degree;Native speaker;-9;['CNN', 'MSNBC', 'Reuters', 'Huffington Post', 'New York Times', 'CBS News', 'ABC News', 'The Washington Post'];Several times per day;WAHR
+bceca0a7e59740149678af9479b45f74;43;Female;Bachelor’s degree;Native speaker;7;['Fox News'];Every day;WAHR
+9d859ecc2ce54c87bf4d15896a5848bd;34;Female;High school graduate;Native speaker;-6;['MSNBC', 'yahoo news'];Every day;WAHR
+f4bbba14655f41f1abfd48befb64d2d1;39;Male;Bachelor’s degree;Native speaker;5;['Fox News'];Every day;WAHR
+a5e7d89b8e1c4e1385283a2c648cce48;55;Female;High school graduate;Native speaker;-10;['New York Times', 'ABC News'];Every day;WAHR
+78c5c13eb1e94759a7c3d0b87d09ce89;61;Male;Some college;Native speaker;-9;['CNN', 'Huffington Post', 'The Washington Post', 'NPR'];Every day;WAHR
+37423b0f75f74eb197d463fc2f745f83;50;Male;Some college;Native speaker;0;['USA Today'];Several times per day;WAHR
+1b6bceab7bb547c28169c7161897617f;25;Other/Prefer not to say;Bachelor’s degree;Native speaker;-5;['The Washington Post'];Several times per month;WAHR
+f5e02b1ca50742b1ae204c22101bd377;29;Female;Associate degree;Native speaker;0;['New York Times', 'CNN'];Several times per day;WAHR
+4832c2de5ae045b9b95905bbbfc7094f;55;Female;Bachelor’s degree;Native speaker;-10;['CNN', 'The Washington Post', 'The Guardian'];Every day;WAHR
+af087f58f9b34c489b42e95cc9fbc2d5;33;Female;Bachelor’s degree;Native speaker;0;['CNN'];Several times per week;FALSCH
+2285b2c7d8b846cea59487453e646224;36;Male;Some college;Native speaker;0;['The Washington Post', 'Npr'];Several times per month;WAHR
+fa1e956bd1ad46d9b8f60cb46f883f4b;35;Female;Graduate work;Native speaker;-10;['New York Times'];Several times per day;WAHR
+dc61d420bcfc4837900a714f3d1863e3;28;Female;High school graduate;Native speaker;-8;['New York Times'];Several times per month;WAHR
+b3066845a1a042cc8e636c6495d0e434;25;Male;Bachelor’s degree;Native speaker;5;['ABC News'];Every day;WAHR
+0dac342756e34cf48ca4f199c23c4da9;37;Female;Associate degree;Native speaker;8;['USA Today', 'NJ101 Radio'];Every day;WAHR
+0af6c16a06144681959e6a2b61444484;34;Male;Bachelor’s degree;Native speaker;-7;['The Wall Street Journal', 'The Wall Street Journal', 'The Washington Post', 'Reuters'];Every day;WAHR
+6713d4a7767841b988329736f33a9157;36;Male;Some college;Native speaker;2;['Fox News', 'CNN', 'MSNBC', 'Breitbart', 'CBS News', 'ABC News'];Several times per day;WAHR
+626223fbf09d467c92be9cfad191e96f;35;Female;Bachelor’s degree;Native speaker;7;['Daily Mail'];Several times per day;WAHR
+a4d96dcfaefe4716acd8d56bb3a1f831;39;Female;Bachelor’s degree;Native speaker;9;['Fox News', 'Breitbart'];Every day;WAHR
+c229ac5057134bb4a1492ccaf057c399;36;Male;Graduate work;Native speaker;10;['Fox News'];Every day;WAHR
+d1ec704d0bb3460cb90b8ba277f4dc23;42;Female;Some college;Native speaker;-3;['New York Times', 'The Wall Street Journal', 'The Guardian', 'MSNBC'];Never;WAHR
+9f3aad57a4384643a6b0b79a4f3bf62f;59;Female;Associate degree;Native speaker;-8;['USA Today'];Several times per day;WAHR
+db236b13beab427583477f6ed6ad9d18;37;Female;Associate degree;Native speaker;8;['Fox News', 'Breitbart'];Every day;WAHR
+60939abc10bd404382f44dd368021c1f;30;Male;Some college;Native speaker;-5;['CNN', 'The Washington Post', 'MSNBC'];Several times per week;WAHR
+ee43aabbbfc541c49b30667bc71c2e29;64;Male;Some college;Native speaker;0;['USA Today', 'ABC News', 'CNN'];Every day;WAHR
+0cd40f4564da472dac11681c98bfbf2b;30;Female;Bachelor’s degree;Native speaker;-7;['MSNBC'];Several times per week;WAHR
+6f68332823404b1ca9082a88436bb2d3;44;Male;Graduate work;Native speaker;-7;['NPR'];Every day;WAHR
+acfa7a413f824de8a220769dc37d1767;30;Male;High school graduate;Native speaker;-7;['The Young Turks (Youtube)'];Several times per week;WAHR
+e41651752b32402aa872846460054631;31;Male;Bachelor’s degree;Native speaker;-6;['The Washington Post'];Several times per month;WAHR
+53dd58b0bba34adf80f2bc716b339b55;28;Female;Associate degree;Native speaker;8;['Fox News', 'ABC News', 'CNN'];Every day;WAHR
+992cc74e480e414f911743bf29bacafe;29;Male;Bachelor’s degree;Native speaker;10;['CBS News', 'politico'];Several times per week;WAHR
+81482b0422dd49f883f83847d11145b7;31;Male;Graduate work;Native speaker;-7;['The Washington Post', 'BBC'];Every day;WAHR
+71eda724f9f648558a1e5417d68e976d;36;Female;Bachelor’s degree;Native speaker;-8;['The Washington Post'];Every day;WAHR
+9aa1b966d5d744a2b019bc49c1aeb1f7;32;Female;Associate degree;Native speaker;-1;['BuzzFeed'];Never;WAHR
+deaaa67fbcf34fc4a72084c016cb3033;50;Male;Some college;Native speaker;-10;['CNN', 'ABC News', 'Vice'];Every day;WAHR
+0cfe420fecc44033b0082bfc8c3cbb14;36;Male;Bachelor’s degree;Native speaker;-7;['Fox News', 'CNN', 'MSNBC', 'CBS News', 'ABC News', 'Huffington Post'];Every day;WAHR
+067a01d6107242789a2268081c3344eb;37;Female;Bachelor’s degree;Native speaker;6;['CNN'];Every day;WAHR
+f899aca92c004a1ca169caf1e6c988a1;35;Male;High school graduate;Native speaker;-8;['The Guardian', 'The Washington Post', 'MSNBC'];Every day;WAHR
+83b9cef1aa8743c18ad3e0c7d0087ea3;33;Female;Some college;Native speaker;-10;['New York Times', 'Reuters', 'The Guardian'];Every day;WAHR
+1ded74bec85c4bc0946e8cef2a7ed2cd;36;Female;Associate degree;Native speaker;-9;['BuzzFeed', 'The Washington Post', 'New York Times'];Several times per week;WAHR
+382f44eb045f4d09824d6932a3cbcc21;31;Female;Bachelor’s degree;Native speaker;-6;['PBS', 'CNN', 'The Wall Street Journal', 'New York Times'];Several times per week;WAHR
+108b0105153e4db5826ed0414ce29270;39;Male;Some college;Native speaker;0;['New York Post', 'Fox News', 'CNN'];Several times per month;WAHR
+5faad8aa9015471192e62fcc435b66d7;25;Female;Bachelor’s degree;Native speaker;-10;['New York Times', 'Reuters', 'BuzzFeed'];Several times per day;WAHR
+094ca31312b546b49ddefd758f5a368f;52;Male;Some college;Native speaker;6;['Fox News', 'Breitbart'];Every day;FALSCH
+dbed1a1d40b449aaae455d54edcc42dc;43;Male;Associate degree;Native speaker;1;['Fox News', 'Breitbart'];Several times per day;WAHR
+fa5ffd71326d4b68a09289c181c1c8ad;36;Male;Bachelor’s degree;Native speaker;0;['New York Times', 'CNN', 'Reuters', 'The Washington Post', 'The Wall Street Journal', 'Business Insider'];Several times per week;FALSCH
+67b1a97cd45d4729b475fc55424b151d;44;Male;Graduate work;Native speaker;7;['news aggregators like google / bloomberg'];Every day;WAHR
+a951d123612c4797962ddde581493be2;32;Male;Graduate work;Native speaker;-5;['New York Times'];Every day;WAHR
+12a2c8524f424a22be5c03eb90d39c99;29;Male;Bachelor’s degree;Native speaker;-4;['New York Times', 'Reuters', 'The Wall Street Journal'];Several times per week;WAHR
+e27b81f366df49919ee7ca5c73c47855;28;Male;Bachelor’s degree;Native speaker;-9;['CNN', 'MSNBC', 'Reuters', 'The Washington Post'];Every day;WAHR
+feb931e7667e4aca87092bebbba74c0d;26;Male;Some college;Native speaker;0;['Fox News', 'CNN'];Every day;WAHR
+733dfbaf56ba44ec9bb5942d16a24c76;51;Female;High school graduate;Native speaker;-7;['New York Times', 'ABC News', 'CNN'];Several times per week;WAHR
+70c8692f6b134f92bb90e30341071905;20;Male;High school graduate;Native speaker;-10;['Fox News', 'Fox News', 'CNN'];Several times per week;WAHR
+f67f60ec8558401392fb92051f540339;24;Male;Bachelor’s degree;Native speaker;-10;['The Washington Post', 'The Wall Street Journal', 'Business Insider', 'Time magazine', 'The Guardian'];Several times per month;WAHR
+a64e8ffbb33346528e2dba4903fdd9d2;33;Male;Vocational or technical school;Native speaker;10;['Fox News', 'Reuters', 'Breitbart', 'The Wall Street Journal', 'Vice'];Every day;WAHR
+cc1f11deb9fd4eeb8b1403d53d189201;52;Male;Bachelor’s degree;Native speaker;-10;['CNN', 'New York Times', 'USA Today', 'Fox News'];Every day;WAHR
+9109a430b6944f3ba53f39d5cd38c5ad;33;Male;High school graduate;Native speaker;0;['Vice', 'Reuters'];Every day;WAHR
+6e49974c956c4cafb9840a3ca676835a;38;Male;Bachelor’s degree;Native speaker;-5;['New York Times', 'Fox News', 'USA Today', 'CNN'];Several times per week;WAHR
+1570bb51d9544a9ca4fbecb5279f6ad4;42;Male;Associate degree;Native speaker;9;['Fox News', 'New York Times', 'CNN', 'MSNBC', 'Reuters', 'Huffington Post', 'New York Post', 'USA Today', 'ABC News', 'CBS News', 'The Washington Post', 'The Wall Street Journal', 'The Guardian', 'Business Insider'];Several times per week;WAHR
+d5a1f702df1143ea886e417ec5d046a4;36;Male;Bachelor’s degree;Native speaker;10;['The Guardian'];Several times per month;WAHR
+3a6588f045ea4f80b8b003ab615ca42b;33;Male;Associate degree;Native speaker;-7;['CNN', 'MSNBC'];Several times per week;FALSCH
+f4bf596361094636a622b7a72865e949;30;Female;Bachelor’s degree;Native speaker;10;['CBS News', 'Fox News'];Every day;WAHR
+56e6637ab90a4d8cb44ef0d248906baa;27;Female;Some high school;Near-native speaker;-6;['Reuters', 'New York Times', 'New York Post', 'The Wall Street Journal', 'The Washington Post'];Never;WAHR
+755c6b56b1c341efb56c87226d51f1d1;30;Female;High school graduate;Native speaker;-10;['CNN', 'BuzzFeed'];Several times per week;WAHR
+22d265a0af124ab1990b50a807430184;44;Male;Some college;Native speaker;-3;['The Washington Post'];Several times per day;WAHR
+5e8769c4ae184f6791a67e1876fcfe4c;35;Male;Bachelor’s degree;Native speaker;-5;['CNN', 'CBS News', 'Huffington Post'];Every day;WAHR
+34d6c30421c648e8af345deab965ed75;22;Female;Bachelor’s degree;Native speaker;-10;['The Washington Post', 'New York Times', 'MSNBC', 'USA Today', 'The Wall Street Journal', 'google'];Every day;WAHR
+ab67c90be4d2494baa8480bf22d00535;52;Male;Bachelor’s degree;Native speaker;2;['Fox News'];Several times per day;WAHR
+afe15e8c93da49d9bfddb0c17202856b;46;Male;Associate degree;Native speaker;1;['CNN', 'Zerohedge'];Every day;WAHR
+3eab94b3f4844301a69a446f58ef1f17;58;Female;Some college;Native speaker;9;['ABC News', 'CBS News', 'MSNBC'];Several times per day;FALSCH
+28c737433be348f0961d767c84f0a382;23;Male;Some college;Native speaker;-6;['CNN', 'BuzzFeed', 'BuzzFeed', 'The Washington Post', 'New York Times'];Every day;WAHR
+4ad5f202b6dd4fa281d36cc3ebf8965d;46;Male;Bachelor’s degree;Native speaker;-6;['CNN', 'Reuters', 'Huffington Post', 'ABC News'];Several times per day;WAHR
+789ae43f234046e79aeee24b6e4392bc;28;Male;High school graduate;Native speaker;1;['Fox News', 'Vice', 'The Guardian', 'USA Today', 'Huffington Post', 'The Washington Post'];Never;WAHR
+1d28a6f7aed0466aa3be6d3ebf6361d6;34;Male;Bachelor’s degree;Native speaker;-10;['CNN', 'The Washington Post'];Every day;WAHR
+b76432137c8d4120b9adc9f99cac16a9;33;Female;Bachelor’s degree;Native speaker;-9;['The Wall Street Journal', 'New York Times', 'The Washington Post'];Every day;WAHR
+7097d20dc549449fa52a6b1f98648987;36;Other/Prefer not to say;Bachelor’s degree;Native speaker;-10;['MSNBC', 'The Washington Post', 'The Wall Street Journal', 'New York Times', 'Huffington Post', 'USA Today', 'BuzzFeed', 'The Guardian', 'Business Insider'];Every day;WAHR
+629e675cf916426ba597d025044ceed4;52;Female;Graduate work;Native speaker;-9;['The Guardian'];Every day;FALSCH
+4ac10983d1f04918b5010d1954cf6c0c;30;Male;High school graduate;Native speaker;-3;['Vice'];Several times per month;WAHR
+ccfb6509f4414f779bb22f1b6ce9d654;24;Female;Some college;Native speaker;-5;['New York Times', 'New York Post', 'The Wall Street Journal', 'The Guardian', 'USA Today', 'MSNBC', 'CNN', 'ABC News'];Every day;WAHR
+eb4d72fca80c49649995779cbf6382f1;62;Female;Associate degree;Native speaker;-10;['CNN', 'MSNBC', 'New York Times', 'The Washington Post'];Several times per day;WAHR
+1eef006776ff4b5ba36791cc690032d7;30;Female;Some college;Native speaker;-9;['CNN', 'CBS News', 'Huffington Post'];Several times per week;WAHR
+b96370fae8514e92a906ef25eee248fd;28;Male;Bachelor’s degree;Native speaker;-4;['Fox News', 'New York Times', 'CNN', 'New York Post', 'The Wall Street Journal', 'Vice', 'The Guardian'];Very rarely;WAHR
+e4a13c9b83a94596a56d690a0496dd0e;34;Male;Bachelor’s degree;Native speaker;7;['New York Times'];Every day;WAHR
+10739e89aa1f4691914c657cb5c711cf;28;Female;Bachelor’s degree;Native speaker;-8;['The Washington Post', 'The Guardian', 'ABC News', 'CBS News'];Every day;WAHR
+1a5176ca6e444825be87d3df8fc5dc03;38;Male;Bachelor’s degree;Native speaker;-3;['CNN'];Several times per day;WAHR
+e983f747796f47cba3554df2eab4c637;45;Male;Bachelor’s degree;Native speaker;2;['CNN', 'New York Times', 'USA Today', 'CBS News', 'CBS News', 'CBS News', 'Time magazine', 'MSNBC'];Several times per day;WAHR
+249a2d1dcfdb43c987c8e4c36dafee4e;37;Female;Some college;Native speaker;-10;['CNN', 'BuzzFeed'];Every day;WAHR
+6f96321ea00f40e582792a2b83f56177;30;Female;Bachelor’s degree;Native speaker;-10;['New York Times', 'Reuters', 'CNN', 'Huffington Post', 'The Washington Post', 'The Wall Street Journal', 'The Guardian', 'BBC'];Several times per week;WAHR
+cb1b5c8fd1194f3386158b30a0ebaaa7;39;Female;Associate degree;Native speaker;5;['Breitbart', 'The Federalist', 'Business Insider'];Several times per month;WAHR
+e64a6159496746b18a7c1c03442c78eb;41;Male;Associate degree;Native speaker;-7;['MSNBC', 'CNN', 'New York Times', 'Fox News', 'Reuters', 'DW'];Every day;WAHR
+3fc9434091d1416d8ac583cf09f3bfdf;35;Female;Bachelor’s degree;Native speaker;2;['Huffington Post', 'BuzzFeed', 'Local news outlets'];Several times per week;WAHR
+57ba3d8803aa4c4ca38bca55ddb96420;52;Male;Some college;Native speaker;-9;['CNN'];Several times per week;WAHR
+e4f97594d5c64d2bb48815433742534a;39;Male;Some college;Native speaker;0;['CNN'];Several times per month;FALSCH
+9241344444f646d1a09bf1039293c864;49;Female;Bachelor’s degree;Native speaker;5;['Fox News'];Every day;WAHR
+313466bd94ab4fd9b121d593dffe9a98;40;Female;Bachelor’s degree;Native speaker;10;['CNN'];Every day;FALSCH
+3577e8cdc745462d938df1a93d270df4;32;Female;Bachelor’s degree;Native speaker;-1;['ABC News', 'New York Times'];Every day;WAHR
+22327352bb3e468f9065e6a70a0eb07d;69;Male;High school graduate;Native speaker;10;['Fox News', 'Breitbart'];Several times per week;WAHR
+d9f210148a6944a593e862f7e4c0af33;30;Female;Bachelor’s degree;Native speaker;-6;['MSNBC', 'The Wall Street Journal', 'Time magazine', 'Reuters', 'CBS News', 'ABC News', 'The Washington Post'];Every day;WAHR
+a955551b37224258b6e3d56096dc1180;40;Female;Bachelor’s degree;Native speaker;10;['CNN'];Several times per month;WAHR
+c479aea2b61c4ee29162e0b3e441707f;25;Male;Bachelor’s degree;Native speaker;-6;['The Washington Post'];Very rarely;WAHR
+f5e6040232fa4a6faa84658241ee8a1a;50;Male;Bachelor’s degree;Native speaker;-6;['CNN'];Every day;WAHR
+befb2c4a953e4012b5bc186072dbaf82;43;Male;Bachelor’s degree;Native speaker;6;['CNN', 'Fox News', 'CBS News', 'CBS News', 'New York Post'];Every day;WAHR
+50577c742006471d980a0dc9c80143a7;68;Female;Graduate work;Native speaker;-2;['New York Times', 'CBS News', 'Fox News', 'CNN'];Every day;WAHR
+b237185ccdc74ea59167eccb710318b3;29;Male;Bachelor’s degree;Native speaker;-10;['New York Times', 'CNN', 'The Washington Post', 'New York Post', 'The Wall Street Journal'];Several times per day;FALSCH
+64f1e06f07f6482eb797d08cafdb394b;61;Male;Vocational or technical school;Native speaker;4;['Fox News', 'CBS News'];Several times per day;WAHR
+a6bb950276104e22b79b03bc5bc368e0;30;Male;Some college;Native speaker;-3;['New York Times', 'CNN', 'Reuters', 'Huffington Post', 'USA Today', 'ABC News', 'CBS News', 'The Washington Post', 'The Wall Street Journal', 'Vice'];Every day;WAHR
+2f4b0284bb30432d81104f006ec9109e;34;Male;Bachelor’s degree;Native speaker;7;['Fox News', 'Breitbart', 'The Guardian', 'Reddit'];Every day;WAHR
+2de5fc0e3bb64780bf04766ef7f0fa7e;38;Female;Bachelor’s degree;Native speaker;-10;['CNN'];Several times per week;WAHR
+528a9c60d5a440dca8d29ce83e8699f2;32;Male;Bachelor’s degree;Native speaker;-6;['CNN', 'The Washington Post', 'Politico'];Several times per day;WAHR
+517d80d55f404b6887b42bf29bf71fe2;37;Male;Some college;Native speaker;-7;['Business Insider', 'Vice', 'The Washington Post', 'MSNBC', 'BuzzFeed', 'The Guardian'];Several times per day;WAHR
+37c4fe19bd734146a67498f11074e7cd;34;Female;Bachelor’s degree;Native speaker;-7;['CNN', 'BBC news'];Several times per week;WAHR
+fbfbd2a2bf774e509643124a19247145;35;Female;Associate degree;Native speaker;-1;['MSNBC', 'Huffington Post'];Several times per week;WAHR
+99dcea1f077041c99e4896249e6e636a;30;Male;High school graduate;Native speaker;-1;['MSNBC', 'New York Post', 'USA Today', 'ABC News', 'Vice', 'The Guardian', 'Huffington Post', 'BBC'];Several times per day;WAHR
+dbba759d89d34bd0ae3faeaef0a60498;31;Female;Bachelor’s degree;Native speaker;8;['Breitbart'];Several times per week;WAHR
+66c509bdae364806b886962b0f0e6dce;45;Female;High school graduate;Native speaker;8;['Fox News'];Very rarely;WAHR
+5ba5c41b2005406b8979e1dd5be04d24;68;Female;High school graduate;Native speaker;-10;['ABC News'];Every day;FALSCH
+feda5e95e6114340b9d0eb945f6c626c;35;Male;Bachelor’s degree;Native speaker;3;['CNN', 'The Wall Street Journal', 'Bloomberg'];Every day;WAHR
+436f9cf405164be59341bf95ecec1a13;39;Male;Some college;Native speaker;-9;['CNN'];Every day;FALSCH
+ffa11d6fdf1846eaaf6b45acba71a35c;40;Male;Bachelor’s degree;Native speaker;-4;['Fox News', 'New York Times', 'CNN', 'MSNBC', 'Reuters', 'Huffington Post', 'ABC News', 'CBS News', 'Vice', 'The Washington Post'];Several times per day;WAHR
+674d4d9a765a43908c6ce2b2ab4e7dff;44;Male;Bachelor’s degree;Native speaker;10;['Fox News'];Several times per day;WAHR
+cc3e5a4aaaab457b84a42cb0c58d8535;31;Female;Some college;Native speaker;-10;['Fox News', 'CNN', 'MSNBC', 'Huffington Post', 'ABC News', 'The Washington Post', 'The Guardian', 'BuzzFeed', 'Vice', 'Business Insider'];Several times per day;FALSCH
+d14dcd2f295c4592a962c521881ee02d;34;Female;Graduate work;Native speaker;-10;['New York Times', 'The Daily'];Every day;WAHR
+a0704ce2fb56449895c36c1c45235254;32;Female;Associate degree;Native speaker;3;['Fox News'];Every day;WAHR
+4eb63210f4f4455b880808a26be38936;32;Female;Vocational or technical school;Native speaker;5;['Fox News'];Several times per day;WAHR
+58634d5194014fe18a5b0b99ac094bf2;25;Female;Bachelor’s degree;Native speaker;4;['Fox News', 'CNN'];Every day;WAHR
+2146ad5f4dff4c83b1a7bd0d3cf8aaeb;36;Male;Some college;Native speaker;-2;['Fox News', 'CNN', 'MSNBC'];Several times per week;WAHR
+c9ae85d9c27c44f6b76f4459909df2ec;49;Female;Graduate work;Native speaker;1;['CBS News'];Every day;WAHR
+f0d2cdfa85a8405cb35c43d46ca188ad;38;Female;Some college;Native speaker;-7;['New York Times', 'Reuters', 'Reuters', 'New York Times', 'yahoo news'];Every day;FALSCH
+ed4be580d49a4d1780b5c6e3cb62ed9e;68;Other/Prefer not to say;Some college;Native speaker;10;['Breitbart'];Every day;WAHR
+e215df02a82843f39743c469b25f9b44;32;Male;Bachelor’s degree;Native speaker;-6;['New York Times'];Several times per week;WAHR
+753721b199d04dd282d3dcaffd0d2203;32;Female;Associate degree;Native speaker;-1;['Fox News', 'New York Times', 'The Washington Post', 'ABC News', 'New York Post'];Several times per week;WAHR
+17403660f64c46b1b684ece5587ef37a;32;Male;Some college;Native speaker;-10;['Majority Report', 'New York Times', 'New York Times', 'CNN'];Several times per day;WAHR
+b040f7ad55f6405c86316435c6a1753a;41;Male;Bachelor’s degree;Native speaker;6;['Business Insider', 'CNBC'];Every day;WAHR
+bab72a31e8504d9eb10e25905a80ca0b;26;Male;Bachelor’s degree;Native speaker;-3;['CNN', 'Vice', 'Vice'];Several times per day;WAHR
+afe315d780f04cf6990cba3364d71c34;27;Male;Bachelor’s degree;Native speaker;-7;['CBS News', 'ABC News', 'The Washington Post', 'MSNBC', 'CNN', 'New York Times', 'Reuters', 'The Guardian', 'Business Insider'];Several times per day;WAHR
+7c4a352abb7d4dab944fcfa339f4b317;51;Female;Vocational or technical school;Near-native speaker;-2;['CNN', 'USA Today'];Every day;WAHR
+708d715542a44828871899405cbf95b2;32;Male;Bachelor’s degree;Native speaker;10;['Fox News', 'New York Times', 'CNN', 'CBS News', 'CBS News', 'MSNBC'];Several times per day;WAHR
+22a66491ce5341d3863c2ad0abdf22ab;35;Male;Associate degree;Native speaker;0;['Fox News', 'MSNBC', 'USA Today', 'USA Today', 'ABC News', 'CBS News'];Several times per day;WAHR
+3c19b42774aa4709b9ee1b4479a4cb69;24;Male;Bachelor’s degree;Native speaker;7;['Fox News', 'USA Today', 'Breitbart', 'The Wall Street Journal'];Several times per day;WAHR
+0a4ad4bdef354d9b89e40a17b1ea7479;26;Male;Some college;Native speaker;9;['Fox News'];Every day;WAHR
+45b02d2c4ca24afc9528b6b1b4c6b149;39;Male;Bachelor’s degree;Native speaker;0;['The Washington Post', 'CNN'];Every day;WAHR
+221943e9ab344806b9b75877d8cf89d0;25;Male;Associate degree;Native speaker;-3;['CNN', 'Business Insider', 'USA Today', 'Huffington Post', 'New York Post', 'The Wall Street Journal'];Every day;WAHR
+f3631b898bfc4795ae396521ef928a27;37;Male;High school graduate;Native speaker;-4;['CNN', 'Reuters', 'New York Times', 'NPR'];Every day;WAHR
+c4d3e2d06cdc45c99c03cf528fc59acb;45;Female;Bachelor’s degree;Native speaker;-7;['The Wall Street Journal', 'The Guardian', 'NPR'];Every day;WAHR
+de6cfac7c53f42a3bc0c176914a293c6;30;Female;Graduate work;Native speaker;-10;['CNN', 'New York Times', 'MSNBC', 'ABC News', 'The Washington Post'];Several times per day;FALSCH
+93be9609e9b849a197b36fb097b3018a;25;Female;Bachelor’s degree;Native speaker;-10;['Reuters', 'Vice'];Every day;WAHR
+bcb9bdc2ce504f779fcda39a4d176f2f;28;Female;High school graduate;Native speaker;-1;['CNN'];Several times per week;WAHR
+d9a9eea9dfcb471c95422d75e6a7acc3;44;Male;Some college;Native speaker;-2;['CBS News'];Several times per day;FALSCH
+0c9cb8d3ba434452a58d611e57dfc29e;35;Female;Graduate work;Native speaker;-6;['The Guardian'];Several times per week;WAHR
+49fab1bae21e4bcea965df039c139a66;35;Female;High school graduate;Native speaker;5;['Fox News', 'The Wall Street Journal', 'ABC News', 'CBS News'];Every day;WAHR
+4726ea93214d4ea4ac0a798faa6773ef;54;Female;Graduate work;Native speaker;-8;['CNN', 'CBS News'];Every day;WAHR
+15180f3a245f455ba504def9124142cd;39;Male;Associate degree;Native speaker;4;['CBS News', 'The Wall Street Journal', 'Time magazine', 'New York Times'];Every day;WAHR
+9d1c23cc22be4952b838397890373975;29;Female;Bachelor’s degree;Native speaker;-5;['CNN'];Several times per week;WAHR
+1e20d10547674485a450187aa20afd04;30;Female;Some college;Native speaker;10;['Fox News', 'The Federalist', 'The Washington Post', 'One American News'];Every day;WAHR
+22d189f0d309420281273f7ddc227b54;51;Male;High school graduate;Native speaker;-6;['CNN', 'New York Times'];Every day;WAHR
+b5843677a51a42f69ee43f63cbfb1d5e;27;Male;High school graduate;Native speaker;1;['Youtube'];Every day;WAHR
+172e7b0842b54408859f8edf7129ca76;27;Female;Bachelor’s degree;Native speaker;-8;['New York Times', 'MSNBC', 'The Washington Post', 'The Wall Street Journal'];Every day;FALSCH
+272f1337e15c47cf8c2be8245c7ef29d;27;Female;Bachelor’s degree;Native speaker;-3;['New York Times', 'New York Post'];Several times per month;WAHR
+880e3da9c9bb4ad9ba6fd2c1bee559e5;66;Male;Associate degree;Native speaker;9;['Fox News'];Every day;WAHR
+a8a307f8575949b2b0087fe43fabc14c;52;Male;Bachelor’s degree;Native speaker;1;['Fox News', 'New York Times', 'CNN', 'Reuters', 'The Wall Street Journal', 'Business Insider'];Every day;WAHR
+4a9d541cc0814613af566c0419d56d37;56;Female;Graduate work;Native speaker;-6;['CNN', 'Fox News', 'MSNBC', 'Huffington Post', 'The Washington Post'];Several times per day;WAHR
+19b98da388154e35b5baa81321d8599a;24;Male;Bachelor’s degree;Native speaker;0;['CNN', 'Fox News', 'CNN', ' Foxnews'];Several times per day;WAHR
+4b67be8cefa7406a961cbd62f9432316;31;Male;High school graduate;Native speaker;5;['Fox News', 'CNN'];Several times per day;WAHR
+6b7de2f9dc344f26ba5b69710f81ba0a;44;Male;Some college;Native speaker;2;['New York Times', 'CNN', 'USA Today', 'Fox News'];Several times per week;WAHR
+ea2659eb55894a07b442271b9b10c6dd;37;Male;Some college;Native speaker;-10;['New York Times', 'The Washington Post', 'npr', ' electoral-vote'];Several times per week;WAHR
+16368aa2159a425c95bf6c742740d672;45;Male;Bachelor’s degree;Native speaker;1;['CNN', 'New York Times', 'CBS News', 'CBS News', 'USA Today', 'Time magazine', 'New York Post'];Several times per day;WAHR
+cab308eb2fb94b56961c57112d5b8aaa;27;Male;Some college;Native speaker;-9;['New York Times', 'The Washington Post', 'The Washington Post', 'Vice'];Several times per week;WAHR
+f635563391da40299e19a49f7176f4ce;30;Male;Some college;Native speaker;-6;['Huffington Post', 'New York Times', 'BuzzFeed', 'The Guardian', 'ABC News', 'ABC News', 'MSNBC', 'CNN'];Every day;WAHR
+3f51a28c7e0145dab04136365bf7e91c;29;Female;Graduate work;Native speaker;-6;['New York Times'];Several times per week;WAHR
+f54008be0d374a0a8b265bff5ccf55c6;25;Female;Bachelor’s degree;Native speaker;-5;['CNN', 'ABC News'];Every day;WAHR
+d6e0cf44ca6547faa9e07e89562057c6;31;Female;Bachelor’s degree;Native speaker;-7;['CBS News', 'ABC News', 'MSNBC', 'local news'];Several times per week;WAHR
+1756a93afa5142c793eeebf814541d4f;24;Male;Bachelor’s degree;Native speaker;0;['Fox News', 'CNN', 'CNN', ' Foxnews'];Several times per day;WAHR
+a78ca7f8fe8f450c9f8c15d59d68f1ed;35;Male;Graduate work;Native speaker;3;['CNN', 'CBS News'];Every day;FALSCH
+fa62cb4cc4604d21929a08ad57d39424;36;Male;Bachelor’s degree;Native speaker;7;['Fox News', 'CNN'];Several times per day;FALSCH
+5d6a142034c844c48d82a31f9693632c;35;Male;Graduate work;Native speaker;1;['CNN'];Every day;FALSCH
+98cd7686825e4b948077aac4cd328f13;34;Female;High school graduate;Native speaker;4;['Fox News', 'ABC News'];Every day;FALSCH
+43c7032c56fc4331a42a79ceb933e888;30;Male;Associate degree;Native speaker;-10;['CNN'];Every day;FALSCH
+06d28f7ba88b4a2c9bf9673b578fa350;57;Female;Bachelor’s degree;Native speaker;-8;['MSNBC', 'New York Post', 'New York Post', 'Fox News', 'The Washington Post', 'New York Times'];Several times per day;FALSCH
+f6df55e7bf0848e1a52dfd1aa748cba6;57;Female;Bachelor’s degree;Native speaker;-8;['New York Times', 'CNN'];Every day;FALSCH
+fc7f8acef8144d11bf391dc0070e167c;32;Female;Some college;Native speaker;0;['New York Times'];Several times per day;FALSCH
+99b08d2be3dc42779afed212cc435d50;29;Female;Bachelor’s degree;Native speaker;0;['BBC news'];Several times per week;FALSCH
+14ce7b45050646e3b5d0b6ff79c0ec1d;41;Male;Associate degree;Native speaker;-8;['CNN', 'MSNBC', 'DW'];Every day;FALSCH
+5092993e84ac4cd4a23331338296c79e;45;Female;Bachelor’s degree;Native speaker;-5;['New York Times', 'MSNBC'];Several times per week;FALSCH
+ee1ac1b97d8d42bb964dc11be4ed3f6b;53;Male;Some college;Native speaker;3;['New York Post'];Several times per day;FALSCH
+2be1b0023e8d4be5b35bf1ea25123695;36;Female;Bachelor’s degree;Native speaker;1;['CNN'];Several times per day;FALSCH
+2a1dc5ca079c4025a65f4d343caadb0d;52;Female;Associate degree;Native speaker;10;['ABC News', 'CNN'];Several times per day;FALSCH
+bae07f27a91f4d268198886d8b19c9b3;30;Male;High school graduate;Native speaker;2;['CNN', 'ABC News'];Every day;FALSCH
+ed146dbbf4cf4c56be10a6e0f70d0e5d;28;Female;Graduate work;Native speaker;9;['New York Times', 'CNN', 'The Washington Post', 'Fox News'];Several times per month;FALSCH
+476dee2c52264d2993ed3b6ecb2fd7c7;59;Male;Graduate work;Native speaker;-3;['Fox News'];Several times per day;FALSCH
+e2c1ebc5c0264f578551c9c7c4d40c88;60;Male;Some college;Native speaker;-7;['CBS News'];Every day;FALSCH
+7317f0920b9f47b5ae8ddf729f34832a;48;Female;Bachelor’s degree;Native speaker;7;['Fox News'];Several times per week;FALSCH
+ee7d0552d47e4b7dbd1c09adaabc2e03;48;Female;Bachelor’s degree;Native speaker;8;['Fox News'];Several times per week;FALSCH
+c4c4bc51e8024a499661b44222e8c030;48;Female;Bachelor’s degree;Native speaker;8;['Fox News'];Several times per week;FALSCH
+18974fb762d7498f8e28c2f877d5bd2b;48;Female;Bachelor’s degree;Native speaker;8;['Fox News'];Several times per week;FALSCH
+a036b10a34c64739982b74e1c7477993;34;Male;Associate degree;Native speaker;3;['Fox News', 'Breitbart'];Several times per day;FALSCH
+f4181bd6be394463b80468dd99d5fc7b;29;Male;Graduate work;Native speaker;1;['Fox News', 'The Washington Post', 'The Wall Street Journal'];Several times per week;FALSCH
+c43d1c5813d2424eb038182b5b665fe7;69;Male;Associate degree;Native speaker;2;['Fox News', 'The Wall Street Journal'];Several times per day;FALSCH
+4394f3f117ed4c319a40efdf4c1f175f;59;Male;Graduate work;Native speaker;-3;['Fox News'];Every day;FALSCH
+25324f5ed2a74a9294f58bb45f8dac3c;45;Male;Bachelor’s degree;Native speaker;1;['CNN', 'New York Times', 'USA Today', 'ABC News', 'New York Post', 'New York Post', 'New York Post', 'Time magazine'];Never;FALSCH
+bad18b8fce9547b6b62a524dc4592a83;43;Female;Some college;Native speaker;10;['Fox News', 'Breitbart', 'One America News Network'];Several times per day;FALSCH
+5d0f7ef5f4054c259b1cd65eed044e16;51;Male;Bachelor’s degree;Near-native speaker;2;['New York Times'];Never;FALSCH
+96d5a62a307e423581eda165eda784f5;75;Male;Bachelor’s degree;Native speaker;-1;['ABC News'];Every day;FALSCH
+d48cb3c2629d48b0bd0cc49c82a9a075;45;Male;Associate degree;Native speaker;2;['CNN', 'ABC News', 'CBS News', 'New York Times', 'Time magazine', 'The Washington Post'];Several times per day;FALSCH
+4bd8d9c48d194e669117dde4e72b0536;61;Male;Some college;Native speaker;8;['Breitbart', 'WorldNetDaily'];Several times per week;FALSCH
+5b26e12704174b6cb608e6dfd7463be2;25;Male;Bachelor’s degree;Native speaker;-7;['The Washington Post'];Several times per month;FALSCH
+f417a5b0d619485fb2b8b4240c26fabe;34;Female;Some college;Native speaker;8;['The Guardian', 'New York Times', 'The Washington Post', 'CBS News'];Every day;FALSCH
+1aaffc436e1b47fd80c82c87e1081190;27;Female;Graduate work;Native speaker;-10;['Reuters'];Several times per day;FALSCH
