@@ -87,7 +87,7 @@ class Ratings:
     # Main entry point
     # -----------------------------------------------------------------
     async def run(self, texts: List[str], *, debug: bool = False) -> pd.DataFrame:
-        """Return DataFrame with a 'ratings' column (dict per row)."""
+        """Return DataFrame with one column per attribute rating."""
 
         prompts: List[str] = []
         ids: List[str] = []
@@ -140,7 +140,10 @@ class Ratings:
         ratings_list: List[Dict[str, Optional[float]]] = []
         for passage in texts:
             sha8 = hashlib.sha1(passage.encode()).hexdigest()[:8]
-            ratings_list.append(id_to_ratings.get(sha8, {}))
+            parsed = id_to_ratings.get(sha8, {})
+            ratings_list.append({attr: parsed.get(attr) for attr in self.cfg.attributes})
 
-        return pd.DataFrame({"text": texts, "ratings": ratings_list})
+        ratings_df = pd.DataFrame(ratings_list)
+        ratings_df.insert(0, "text", texts)
+        return ratings_df
 

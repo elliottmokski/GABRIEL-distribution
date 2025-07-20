@@ -44,6 +44,7 @@ def test_ratings_dummy(tmp_path):
     task = Ratings(cfg)
     df = asyncio.run(task.run(["hello"]))
     assert not df.empty
+    assert "helpfulness" in df.columns
 
 
 def test_deidentifier_dummy(tmp_path):
