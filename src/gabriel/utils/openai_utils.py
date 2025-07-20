@@ -79,9 +79,16 @@ async def get_response(
     search_context_size: str = "medium",
     reasoning_effort: str = "medium",
     use_dummy: bool = False,
+    verbose: bool = True,
     **kwargs: Any,
 ) -> Tuple[List[str], float]:
-    """Minimal async call to OpenAI's /responses endpoint or dummy response."""
+    """Minimal async call to OpenAI's /responses endpoint or dummy response.
+
+    Parameters
+    ----------
+    verbose : bool
+        If ``True``, print any API errors encountered before retrying.
+    """
     if use_dummy:
         return [f"DUMMY {prompt}" for _ in range(max(n, 1))], 0.0
 
@@ -123,9 +130,15 @@ async def get_response(
     try:
         raw = await asyncio.gather(*tasks)
     except asyncio.TimeoutError:
-        raise Exception(f"API call timed out after {timeout} s")
+        err = Exception(f"API call timed out after {timeout} s")
+        if verbose:
+            print(f"[get_response] {err}")
+        raise err
     except Exception as e:
-        raise Exception(f"API call resulted in exception: {e}")
+        err = Exception(f"API call resulted in exception: {e}")
+        if verbose:
+            print(f"[get_response] {err}")
+        raise err
 
     return [r.output_text for r in raw], time.time() - start
 
@@ -165,8 +178,17 @@ async def get_all_responses(
     search_context_size: str = "medium",
     tools: Optional[List[dict]] = None,
     tool_choice: Optional[dict] = None,
+    verbose: bool = True,
     **get_response_kwargs: Any,
 ) -> pd.DataFrame:
+    """Query an LLM for multiple prompts, retrying on failure.
+
+    Parameters
+    ----------
+    verbose : bool
+        If ``True``, print API errors encountered during retries.
+    """
+
     if identifiers is None:
         identifiers = prompts
 
@@ -247,6 +269,7 @@ async def get_all_responses(
                             max_tokens=max_tokens,
                             timeout=timeout,
                             use_dummy=use_dummy,
+                            verbose=verbose,
                             **get_response_kwargs,
                         ),
                         timeout=timeout,
@@ -258,7 +281,11 @@ async def get_all_responses(
                     if processed % save_every_x_responses == 0:
                         await flush()
                     break
-                except Exception:
+                except Exception as e:
+                    if verbose:
+                        print(
+                            f"[get_all_responses] Error on attempt {attempt} for {ident}: {e}"
+                        )
                     if attempt >= max_retries:
                         results.append({"Identifier": ident, "Response": None, "Time Taken": None})
                         processed += 1
