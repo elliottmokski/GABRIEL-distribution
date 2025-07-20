@@ -1,4 +1,6 @@
 import json
+import ast
+import re
 from pathlib import Path
 import pandas as pd
 
@@ -22,41 +24,76 @@ def _bundle_meta(df: pd.DataFrame, exclude: list[str]) -> pd.Series:
 # Dataset-specific cleaners
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def clean_anthropic_persuasion(base: Path) -> pd.DataFrame:
     df = pd.read_csv(base / "Anthropic Persuasion.csv")
     df["dataset"] = "Anthropic Persuasion"
     df["split"] = "orig"
     df["id"] = df.get("Unnamed: 0", df.index).astype(str)
     df["text"] = df["argument"].fillna("")
-    df["label"] = df["rating_final"]
+    df["persuasiveness"] = df["rating_final"]
+    df["label"] = None
     df["label_desc"] = (
         df["rating_final"].astype(str).str.split("-", n=1, expand=True)[1].str.strip()
     )
-    df["meta"] = _bundle_meta(df, ["Unnamed: 0", "argument", "rating_final", "label_desc", "text"] + SCHEMA)
-    return df[SCHEMA]
+    df["meta"] = _bundle_meta(
+        df,
+        [
+            "Unnamed: 0",
+            "argument",
+            "rating_final",
+            "label_desc",
+            "text",
+            "persuasiveness",
+        ]
+        + SCHEMA,
+    )
+    return df[SCHEMA + ["persuasiveness"]]
+
 
 def clean_convincingness(base: Path) -> pd.DataFrame:
     df = pd.read_csv(base / "UKPConvArg1Strict_all.csv")
     df["dataset"] = "Convincingness"
     df["split"] = "orig"
     df["id"] = df["id"].astype(str)
-    df["text"] = df.apply(lambda r: _to_json({"a1": r["sentence_a1"], "a2": r["sentence_a2"]}), axis=1)
+    df["text"] = df.apply(
+        lambda r: _to_json({"a1": r["sentence_a1"], "a2": r["sentence_a2"]}), axis=1
+    )
     df["label"] = df["label"]
     df["label_desc"] = None
     df["meta"] = _bundle_meta(df, ["sentence_a1", "sentence_a2", "label"] + SCHEMA)
     return df[SCHEMA]
+
 
 def clean_emobank(base: Path) -> pd.DataFrame:
     df = pd.read_csv(base / "emobank_with_reader_columns.csv")
     df["dataset"] = "EmoBank"
     df["split"] = df["split"].fillna("orig")
     df["id"] = df["id"].astype(str)
-    vad_cols = ["V_x", "A_x", "D_x", "V_y", "A_y", "D_y"]
+    df = df.rename(
+        columns={
+            "V_x": "valence_writer",
+            "A_x": "arousal_writer",
+            "D_x": "dominance_writer",
+            "V_y": "valence_reader",
+            "A_y": "arousal_reader",
+            "D_y": "dominance_reader",
+        }
+    )
+    vad_cols = [
+        "valence_writer",
+        "arousal_writer",
+        "dominance_writer",
+        "valence_reader",
+        "arousal_reader",
+        "dominance_reader",
+    ]
     df["text"] = df["text"]
-    df["label"] = df[vad_cols].apply(lambda r: _to_json(r.to_dict()), axis=1)
+    df["label"] = None
     df["label_desc"] = None
     df["meta"] = _bundle_meta(df, vad_cols + ["text"] + SCHEMA)
-    return df[SCHEMA]
+    return df[SCHEMA + vad_cols]
+
 
 def clean_formality_scores(base: Path) -> pd.DataFrame:
     df = pd.read_csv(base / "formality_scores.csv")
@@ -64,10 +101,14 @@ def clean_formality_scores(base: Path) -> pd.DataFrame:
     df["split"] = df.get("group", "orig")
     df["id"] = df.get("Unnamed: 0", df.index).astype(str)
     df["text"] = df["sentence"]
-    df["label"] = df["avg_score"]
+    df["formality"] = df["avg_score"]
+    df["label"] = None
     df["label_desc"] = None
-    df["meta"] = _bundle_meta(df, ["sentence", "avg_score", "group", "Unnamed: 0"] + SCHEMA)
-    return df[SCHEMA]
+    df["meta"] = _bundle_meta(
+        df, ["sentence", "avg_score", "group", "Unnamed: 0", "formality"] + SCHEMA
+    )
+    return df[SCHEMA + ["formality"]]
+
 
 def clean_global_populism(base: Path) -> pd.DataFrame:
     csv_path = base / "gpd_v2_20220427.csv"
@@ -79,14 +120,17 @@ def clean_global_populism(base: Path) -> pd.DataFrame:
         zip_path = base / "speeches_20220427" / "speeches_20220427.zip"
         if zip_path.exists():
             import zipfile
+
             with zipfile.ZipFile(zip_path) as zf:
                 zf.extractall(base / "speeches_20220427_unzipped")
             text_dir = base / "speeches_20220427_unzipped" / "speeches_20220427"
+
     def read_text(fn: str) -> str:
         fp = text_dir / fn
         if fp.exists():
             return fp.read_text(encoding="utf-8", errors="ignore")
         return ""
+
     df["dataset"] = "Global Populism"
     df["split"] = "orig"
     df["id"] = df.index.astype(str)
@@ -95,11 +139,15 @@ def clean_global_populism(base: Path) -> pd.DataFrame:
     else:
         df["text"] = df["speechtype"].astype(str)
     label_col = "rubricgrade" if "rubricgrade" in df.columns else None
-    df["label"] = df[label_col] if label_col else None
+    df["populism"] = df[label_col] if label_col else None
+    df["label"] = None
     df["label_desc"] = None
-    exclude = ["merging_variable"] + ([label_col] if label_col else []) + SCHEMA
+    exclude = (
+        ["merging_variable", "populism"] + ([label_col] if label_col else []) + SCHEMA
+    )
     df["meta"] = _bundle_meta(df, exclude)
-    return df[SCHEMA]
+    return df[SCHEMA + ["populism"]]
+
 
 def clean_go_emotion(base: Path) -> pd.DataFrame:
     df = pd.read_csv(base / "go_emotion.csv")
@@ -107,10 +155,51 @@ def clean_go_emotion(base: Path) -> pd.DataFrame:
     df["split"] = df["split"].fillna("orig")
     df["id"] = df["id"].astype(str)
     df["text"] = df["text"]
-    df["label"] = df["labels"]
+
+    def parse_labels(val: str) -> list[int]:
+        return [int(x) for x in re.findall(r"\d+", str(val))]
+
+    df["_labels_list"] = df["labels"].apply(parse_labels)
+    emotions = [
+        "admiration",
+        "amusement",
+        "anger",
+        "annoyance",
+        "approval",
+        "caring",
+        "confusion",
+        "curiosity",
+        "desire",
+        "disappointment",
+        "disapproval",
+        "disgust",
+        "embarrassment",
+        "excitement",
+        "fear",
+        "gratitude",
+        "grief",
+        "joy",
+        "love",
+        "nervousness",
+        "optimism",
+        "pride",
+        "realization",
+        "relief",
+        "remorse",
+        "sadness",
+        "surprise",
+        "neutral",
+    ]
+    for idx, emo in enumerate(emotions):
+        df[emo] = df["_labels_list"].apply(lambda ls, i=idx: int(i in ls))
+
+    df["label"] = None
     df["label_desc"] = None
-    df["meta"] = _bundle_meta(df, ["labels", "text"] + SCHEMA)
-    return df[SCHEMA]
+    df["meta"] = _bundle_meta(
+        df, ["labels", "_labels_list", "text"] + SCHEMA + emotions
+    )
+    return df[SCHEMA + emotions]
+
 
 def clean_good_news(base: Path) -> pd.DataFrame:
     df = pd.read_csv(base / "gne-release-v1.0.tsv", sep="\t")
@@ -123,6 +212,7 @@ def clean_good_news(base: Path) -> pd.DataFrame:
     df["meta"] = _bundle_meta(df, ["headline", "dominant_emotion"] + SCHEMA)
     return df[SCHEMA]
 
+
 def clean_humicroedit(base: Path) -> pd.DataFrame:
     df = pd.read_csv(base / "humicroedit.csv")
     df["dataset"] = "Humicroedit"
@@ -134,16 +224,19 @@ def clean_humicroedit(base: Path) -> pd.DataFrame:
     df["meta"] = _bundle_meta(df, ["edit", "meanGrade"] + SCHEMA)
     return df[SCHEMA]
 
+
 def clean_mbic(base: Path) -> pd.DataFrame:
     df = pd.read_excel(base / "labeled_dataset.xlsx")
     df["dataset"] = "MBIC"
     df["split"] = "orig"
     df["id"] = df.get("group_id", df.index).astype(str)
     df["text"] = df["sentence"]
-    df["label"] = df[["Label_bias", "Label_opinion"]].apply(lambda r: _to_json(r.to_dict()), axis=1)
+    df["label"] = None
     df["label_desc"] = None
-    df["meta"] = _bundle_meta(df, ["sentence", "Label_bias", "Label_opinion"] + SCHEMA)
-    return df[SCHEMA]
+    label_cols = ["Label_bias", "Label_opinion"]
+    df["meta"] = _bundle_meta(df, ["sentence"] + label_cols + SCHEMA)
+    return df[SCHEMA + label_cols]
+
 
 def clean_mint(base: Path) -> pd.DataFrame:
     df = pd.read_csv(base / "preprocess_train.csv")
@@ -156,6 +249,7 @@ def clean_mint(base: Path) -> pd.DataFrame:
     df["meta"] = _bundle_meta(df, ["label", "emo_label", "text"] + SCHEMA)
     return df[SCHEMA]
 
+
 def clean_persuade(base: Path) -> pd.DataFrame:
     df = pd.read_csv(base / "persuade_corpus_2.0_sample.csv")
     df["dataset"] = "PERSUADE 2.0"
@@ -164,8 +258,13 @@ def clean_persuade(base: Path) -> pd.DataFrame:
     df["text"] = df["full_text"]
     df["label"] = df["holistic_essay_score"]
     df["label_desc"] = df.get("discourse_effectiveness")
-    df["meta"] = _bundle_meta(df, ["full_text", "holistic_essay_score", "essay_id", "discourse_effectiveness"] + SCHEMA)
+    df["meta"] = _bundle_meta(
+        df,
+        ["full_text", "holistic_essay_score", "essay_id", "discourse_effectiveness"]
+        + SCHEMA,
+    )
     return df[SCHEMA]
+
 
 def _parse_sst_line(line: str):
     label = None
@@ -173,28 +272,29 @@ def _parse_sst_line(line: str):
     i = 0
     while i < len(line):
         ch = line[i]
-        if ch == '(':  # start of subtree with label
+        if ch == "(":  # start of subtree with label
             i += 1
-            num = ''
+            num = ""
             while i < len(line) and line[i].isdigit():
                 num += line[i]
                 i += 1
             if label is None and num:
                 label = int(num)
-        elif ch == ')':
+        elif ch == ")":
             i += 1
         else:
             j = i
-            while j < len(line) and line[j] not in '()':
+            while j < len(line) and line[j] not in "()":
                 j += 1
             token = line[i:j].strip()
             if token:
                 tokens.append(token)
             i = j
             continue
-        if i < len(line) and line[i] == ' ':
+        if i < len(line) and line[i] == " ":
             i += 1
-    return label, ' '.join(tokens)
+    return label, " ".join(tokens)
+
 
 def clean_sst(base: Path) -> pd.DataFrame:
     rows = []
@@ -208,16 +308,19 @@ def clean_sst(base: Path) -> pd.DataFrame:
                 if not line:
                     continue
                 label, text = _parse_sst_line(line)
-                rows.append({
-                    "dataset": "Sentiment Treebank",
-                    "split": split,
-                    "id": f"{split}-{idx}",
-                    "text": text,
-                    "label": label,
-                    "label_desc": None,
-                    "meta": _to_json({})
-                })
+                rows.append(
+                    {
+                        "dataset": "Sentiment Treebank",
+                        "split": split,
+                        "id": f"{split}-{idx}",
+                        "text": text,
+                        "label": label,
+                        "label_desc": None,
+                        "meta": _to_json({}),
+                    }
+                )
     return pd.DataFrame(rows, columns=SCHEMA)
+
 
 def clean_unify_emotion(base: Path) -> pd.DataFrame:
     df = pd.read_csv(base / "unified-dataset-sample.csv")
@@ -225,10 +328,37 @@ def clean_unify_emotion(base: Path) -> pd.DataFrame:
     df["split"] = df["split"].fillna("orig")
     df["id"] = df["id"].astype(str)
     df["text"] = df["text"]
-    df["label"] = df["emotions"]
+    df["emotions"] = df["emotions"].apply(ast.literal_eval)
+    df["VAD"] = df["VAD"].apply(ast.literal_eval)
+
+    all_emotions = sorted({k for d in df["emotions"] for k in d})
+    for emo in all_emotions:
+        df[emo] = df["emotions"].apply(lambda d, e=emo: d.get(e))
+
+    df["valence"] = df["VAD"].apply(lambda d: d.get("valence"))
+    df["arousal"] = df["VAD"].apply(lambda d: d.get("arousal"))
+    df["dominance"] = df["VAD"].apply(lambda d: d.get("dominance"))
+
+    df["label"] = None
     df["label_desc"] = None
-    df["meta"] = _bundle_meta(df, ["text", "emotions"] + SCHEMA)
-    return df[SCHEMA]
+    extra_cols = all_emotions + ["valence", "arousal", "dominance"]
+    df["meta"] = _bundle_meta(
+        df,
+        [
+            "text",
+            "emotions",
+            "VAD",
+            "source",
+            "emotion_model",
+            "domain",
+            "labeled",
+            "annotation_procedure",
+        ]
+        + SCHEMA
+        + extra_cols,
+    )
+    return df[SCHEMA + extra_cols]
+
 
 def clean_wassa(base: Path) -> pd.DataFrame:
     df = pd.read_csv(base / "emotion_intensity_all.tsv", sep="\t")
@@ -236,10 +366,27 @@ def clean_wassa(base: Path) -> pd.DataFrame:
     df["split"] = df["split"].fillna("orig")
     df["id"] = df["tweet_id"].astype(str)
     df["text"] = df["tweet"]
-    df["label"] = df["gold_label"]
-    df["label_desc"] = df["emotion"]
-    df["meta"] = _bundle_meta(df, ["tweet", "gold_label", "emotion"] + SCHEMA)
-    return df[SCHEMA]
+
+    wide = (
+        df.pivot_table(
+            index=["dataset", "split", "id", "text"],
+            columns="emotion",
+            values="gold_label",
+        )
+        .reset_index()
+        .rename_axis(None, axis=1)
+    )
+
+    emotions = ["anger", "fear", "joy", "sadness"]
+    for emo in emotions:
+        if emo not in wide.columns:
+            wide[emo] = None
+
+    wide["label"] = None
+    wide["label_desc"] = None
+    wide["meta"] = _bundle_meta(wide, emotions + SCHEMA)
+    return wide[SCHEMA + emotions]
+
 
 def clean_politeness(base: Path) -> pd.DataFrame:
     path = base / "utterances.jsonl"
@@ -248,16 +395,25 @@ def clean_politeness(base: Path) -> pd.DataFrame:
         for line in f:
             obj = json.loads(line)
             meta = obj.get("meta", {})
-            rows.append({
-                "dataset": "politeness_corpus",
-                "split": "orig",
-                "id": obj.get("id"),
-                "text": obj.get("text", ""),
-                "label": meta.get("Normalized Score"),
-                "label_desc": meta.get("Binary"),
-                "meta": _to_json({k: v for k, v in obj.items() if k not in {"id", "text", "meta"}}),
-            })
+            rows.append(
+                {
+                    "dataset": "politeness_corpus",
+                    "split": "orig",
+                    "id": obj.get("id"),
+                    "text": obj.get("text", ""),
+                    "label": meta.get("Normalized Score"),
+                    "label_desc": meta.get("Binary"),
+                    "meta": _to_json(
+                        {
+                            k: v
+                            for k, v in obj.items()
+                            if k not in {"id", "text", "meta"}
+                        }
+                    ),
+                }
+            )
     return pd.DataFrame(rows, columns=SCHEMA)
+
 
 # Mapping from folder name to cleaner
 CLEANERS = {
@@ -278,6 +434,7 @@ CLEANERS = {
     "politeness_corpus": clean_politeness,
 }
 
+
 def main() -> None:
     base = Path("Datasets")
     for name, func in CLEANERS.items():
@@ -291,6 +448,7 @@ def main() -> None:
             print(f"Saved {len(df)} rows to {d/'clean.csv'}")
         except Exception as e:
             print(f"Failed to clean {name}: {e}")
+
 
 if __name__ == "__main__":
     main()
