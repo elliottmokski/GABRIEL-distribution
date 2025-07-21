@@ -57,10 +57,19 @@ def clean_convincingness(base: Path) -> pd.DataFrame:
     df["text"] = df.apply(
         lambda r: _to_json({"a1": r["sentence_a1"], "a2": r["sentence_a2"]}), axis=1
     )
-    df["most_convincing"] = df["label"]
+    df["convincingness"] = df["label"]
     # df["label_desc"] = None
-    df["meta"] = _bundle_meta(df, ["sentence_a1", "sentence_a2", "label"] + SCHEMA)
-    return df[SCHEMA]
+    df["meta"] = _bundle_meta(
+        df,
+        [
+            "sentence_a1",
+            "sentence_a2",
+            "label",
+            "convincingness",
+        ]
+        + SCHEMA,
+    )
+    return df[SCHEMA + ["convincingness"]]
 
 def clean_emobank(base: Path) -> pd.DataFrame:
     df = pd.read_csv(base / "emobank_with_reader_columns.csv")
@@ -203,7 +212,7 @@ def clean_good_news(base: Path) -> pd.DataFrame:
     df["dominant_emotion"] = df["dominant_emotion"]
     # df["label_desc"] = None
     df["meta"] = _bundle_meta(df, ["headline", "dominant_emotion"] + SCHEMA)
-    return df[SCHEMA]
+    return df[SCHEMA + ["dominant_emotion"]]
 
 def clean_humicroedit(base: Path) -> pd.DataFrame:
     df = pd.read_csv(base / "humicroedit.csv")
@@ -213,8 +222,8 @@ def clean_humicroedit(base: Path) -> pd.DataFrame:
     df["text"] = df["edit"]
     df["funniness"] = df["meanGrade"]
     # df["label_desc"] = None
-    df["meta"] = _bundle_meta(df, ["edit", "meanGrade"] + SCHEMA)
-    return df[SCHEMA]
+    df["meta"] = _bundle_meta(df, ["edit", "meanGrade", "funniness"] + SCHEMA)
+    return df[SCHEMA + ["funniness"]]
 
 def clean_mbic(base: Path) -> pd.DataFrame:
     df = pd.read_excel(base / "labeled_dataset.xlsx")
@@ -310,7 +319,8 @@ def clean_sst(base: Path) -> pd.DataFrame:
                         "meta": _to_json({}),
                     }
                 )
-    return pd.DataFrame(rows, columns=SCHEMA)
+    df = pd.DataFrame(rows)
+    return df[SCHEMA + ["sentiment_valence"]]
 
 
 def clean_unify_emotion(base: Path) -> pd.DataFrame:
@@ -403,7 +413,8 @@ def clean_politeness(base: Path) -> pd.DataFrame:
                     ),
                 }
             )
-    return pd.DataFrame(rows, columns=SCHEMA)
+    df = pd.DataFrame(rows)
+    return df[SCHEMA + ["politeness"]]
 
 
 # Mapping from folder name to cleaner
