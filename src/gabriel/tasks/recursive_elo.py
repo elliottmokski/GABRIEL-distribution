@@ -189,7 +189,9 @@ class RecursiveEloRater:
 
     # ------------------------------ Public ------------------------------
 
-    async def run(self, df: pd.DataFrame, text_col: str, id_col: str) -> pd.DataFrame:
+    async def run(
+        self, df: pd.DataFrame, text_col: str, id_col: str, *, reset_files: bool = False
+    ) -> pd.DataFrame:
         """
         Execute recursive Elo rating.
 
@@ -254,7 +256,12 @@ class RecursiveEloRater:
 
             # Run EloRater
             elo = EloRater(self.tele, stage_cfg)
-            stage_df_out = await elo.run(stage_df_in, text_col="text", id_col="identifier")
+            stage_df_out = await elo.run(
+                stage_df_in,
+                text_col="text",
+                id_col="identifier",
+                reset_files=reset_files,
+            )
 
             # Record stage columns if desired
             if self.cfg.keep_stage_columns:

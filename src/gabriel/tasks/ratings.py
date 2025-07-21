@@ -86,7 +86,9 @@ class Ratings:
     # -----------------------------------------------------------------
     # Main entry point
     # -----------------------------------------------------------------
-    async def run(self, texts: List[str], *, debug: bool = False) -> pd.DataFrame:
+    async def run(
+        self, texts: List[str], *, debug: bool = False, reset_files: bool = False
+    ) -> pd.DataFrame:
         """Return DataFrame with one column per attribute rating."""
 
         prompts: List[str] = []
@@ -121,6 +123,7 @@ class Ratings:
             use_dummy=self.cfg.use_dummy,
             timeout=self.cfg.timeout,
             json_mode=True,
+            reset_files=reset_files,
         )
 
         # optional debug dump

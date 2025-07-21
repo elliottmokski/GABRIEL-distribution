@@ -347,7 +347,9 @@ class EloRater:
             )
         return self._pairs_adjacent(item_ids, texts_by_id, current_ratings, mpr)
 
-    async def run(self, df: pd.DataFrame, text_col: str, id_col: str) -> pd.DataFrame:
+    async def run(
+        self, df: pd.DataFrame, text_col: str, id_col: str, *, reset_files: bool = False
+    ) -> pd.DataFrame:
         final_path = os.path.join(self.save_path, self.cfg.final_filename)
         if os.path.exists(final_path):
             return pd.read_csv(final_path)
@@ -412,7 +414,7 @@ class EloRater:
                 model=self.cfg.model,
                 json_mode=True,
                 save_path=os.path.join(self.save_path, f"round{rnd}.csv"),
-                reset_files=False,
+                reset_files=reset_files,
                 use_dummy=self.cfg.use_dummy,
                 timeout=self.cfg.timeout,
                 print_example_prompt=self.cfg.print_example_prompt,
