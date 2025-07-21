@@ -44,7 +44,7 @@ def clean_anthropic_persuasion(base: Path) -> pd.DataFrame:
     df["split"] = "orig"
     df["id"] = df.get("Unnamed: 0", df.index).astype(str)
     df["text"] = df["argument"].fillna("")
-    df["persuasiveness"] = df["rating_final"]
+    df["persuasiveness"] = df.get("persuasiveness_metric", df["rating_final"])
     # df["label"] = None
     df["persuasiveness_desc"] = (
         df["rating_final"].astype(str).str.split("-", n=1, expand=True)[1].str.strip()
@@ -54,7 +54,9 @@ def clean_anthropic_persuasion(base: Path) -> pd.DataFrame:
         [
             "Unnamed: 0",
             "argument",
+            "rating_initial",
             "rating_final",
+            "persuasiveness_metric",
             "label_desc",
             "text",
             "persuasiveness",
@@ -144,11 +146,11 @@ def clean_global_populism(base: Path) -> pd.DataFrame:
                 zf.extractall(base / "speeches_20220427_unzipped")
             text_dir = base / "speeches_20220427_unzipped" / "speeches_20220427"
 
-    def read_text(fn: str) -> str:
+    def read_text(fn: str) -> str | None:
         fp = text_dir / fn
         if fp.exists():
             return fp.read_text(encoding="utf-8", errors="ignore")
-        return ""
+        return None
 
     df["dataset"] = "Global Populism"
     df["split"] = "orig"
@@ -234,10 +236,18 @@ def clean_humicroedit(base: Path) -> pd.DataFrame:
     df["dataset"] = "Humicroedit"
     df["split"] = df.get("split", "orig")
     df["id"] = df["id"].astype(str)
-    df["text"] = df["edit"]
+
+    def apply_edit(row: pd.Series) -> str:
+        original = str(row.get("original", ""))
+        edit = str(row.get("edit", ""))
+        return re.sub(r"<[^>]+/>", edit, original)
+
+    df["text"] = df.apply(apply_edit, axis=1)
     df["funniness"] = df["meanGrade"]
     # df["label_desc"] = None
-    df["meta"] = _bundle_meta(df, ["edit", "meanGrade", "funniness"] + SCHEMA)
+    df["meta"] = _bundle_meta(
+        df, ["original", "edit", "grades", "meanGrade", "funniness"] + SCHEMA
+    )
     return df[SCHEMA + ["funniness"]]
 
 def clean_mbic(base: Path) -> pd.DataFrame:
@@ -268,7 +278,10 @@ def clean_mint(base: Path) -> pd.DataFrame:
     return df[SCHEMA + ["intimacy"]]
 
 def clean_persuade(base: Path) -> pd.DataFrame:
-    df = pd.read_csv(base / "persuade_corpus_2.0_train.csv", index_col=0)
+    csv_path = base / "persuade_corpus_2.0_train.csv"
+    if not csv_path.exists():
+        csv_path = base / "persuade_corpus_2.0_sample.csv"
+    df = pd.read_csv(csv_path, index_col=0)
     df["dataset"] = "PERSUADE 2.0"
     df["split"] = "orig"
     df["id"] = df["essay_id_comp"].astype(str)
