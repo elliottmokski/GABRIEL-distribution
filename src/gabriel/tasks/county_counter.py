@@ -102,7 +102,9 @@ class CountyCounter:
                     timeout=self.elo_timeout,
                 )
             rater = EloRater(self.tele, cfg)
-            elo_df = await rater.run(df_topic, text_col="text", id_col="identifier")
+            elo_df = await rater.run(
+                df_topic, text_col="text", id_col="identifier", reset_files=reset_files
+            )
             elo_df["identifier"] = elo_df["identifier"].astype(str)
             results["region"] = results["region"].astype(str)
             if self.elo_attributes:
