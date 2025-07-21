@@ -18,6 +18,21 @@ def _bundle_meta(df: pd.DataFrame, exclude: list[str]) -> pd.Series:
     meta = df.drop(columns=cols)
     return meta.apply(lambda r: _to_json(r.dropna().to_dict()), axis=1)
 
+
+def _add_attribute_multiindex(df: pd.DataFrame) -> pd.DataFrame:
+    """Wrap attribute columns in a MultiIndex for saving."""
+    attr_cols = [c for c in df.columns if c not in SCHEMA]
+    if not attr_cols:
+        return df
+    tuples = []
+    for col in df.columns:
+        if col in attr_cols:
+            tuples.append(("attributes", col))
+        else:
+            tuples.append((col, ""))
+    df.columns = pd.MultiIndex.from_tuples(tuples)
+    return df
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Dataset-specific cleaners
 # ─────────────────────────────────────────────────────────────────────────────
@@ -247,23 +262,30 @@ def clean_mint(base: Path) -> pd.DataFrame:
     df["text"] = df["text"]
     df["intimacy"] = df["label"]
     df["intimacy_desc"] = df["emo_label"] if "emo_label" in df.columns else None
-    df["meta"] = _bundle_meta(df, ["label", "emo_label", "text"] + SCHEMA)
-    return df[SCHEMA]
+    df["meta"] = _bundle_meta(
+        df, ["label", "emo_label", "text", "intimacy", "intimacy_desc"] + SCHEMA
+    )
+    return df[SCHEMA + ["intimacy"]]
 
 def clean_persuade(base: Path) -> pd.DataFrame:
-    df = pd.read_csv(base / "persuade_corpus_2.0_train.csv")
+    df = pd.read_csv(base / "persuade_corpus_2.0_train.csv", index_col=0)
     df["dataset"] = "PERSUADE 2.0"
     df["split"] = "orig"
-    df["id"] = df["essay_id"].astype(str)
+    df["id"] = df["essay_id_comp"].astype(str)
     df["text"] = df["full_text"]
     df["discourse_effectiveness"] = df["holistic_essay_score"]
-    df["discourse_effectiveness_desc"] = df.get("discourse_effectiveness")
     df["meta"] = _bundle_meta(
         df,
-        ["full_text", "holistic_essay_score", "essay_id", "discourse_effectiveness"]
+        [
+            "full_text",
+            "holistic_essay_score",
+            "essay_id",
+            "essay_id_comp",
+            "discourse_effectiveness",
+        ]
         + SCHEMA,
     )
-    return df[SCHEMA]
+    return df[SCHEMA + ["discourse_effectiveness"]]
 
 
 def _parse_sst_line(line: str):
@@ -446,7 +468,8 @@ def main() -> None:
         print(f"Cleaning {name}...")
         try:
             df = func(d)
-            df.to_csv(d / "clean.csv", index=False)
+            df_to_save = _add_attribute_multiindex(df.copy())
+            df_to_save.to_csv(d / "clean.csv", index=False)
             print(f"Saved {len(df)} rows to {d/'clean.csv'}")
         except Exception as e:
             print(f"Failed to clean {name}: {e}")
