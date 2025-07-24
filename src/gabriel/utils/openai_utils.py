@@ -602,7 +602,6 @@ async def get_all_responses(
                                         errors[rec.get("custom_id")] = rec.get("error")
                                     except Exception:
                                         pass
-                    # Parse output file
                     for line in text_data.splitlines():
                         try:
                             rec = json.loads(line)
@@ -611,20 +610,31 @@ async def get_all_responses(
                         ident = rec.get("custom_id")
                         if not ident:
                             continue
+                        # Extract response text depending on the API
+                        resp_text = None
                         if rec.get("response"):
                             body = rec["response"].get("body")
-                            if isinstance(body, dict) and "output_text" in body:
-                                resp_text = body["output_text"]
-                            elif isinstance(body, dict) and "choices" in body:
-                                choice = body["choices"][0]
-                                msg = choice.get("message") or choice.get("delta") or {}
-                                resp_text = msg.get("content")
-                            else:
-                                resp_text = None
-                            completed_rows.append({"Identifier": ident, "Response": [resp_text], "Time Taken": None})
-                        else:
-                            err = rec.get("error") or errors.get(ident)
-                            completed_rows.append({"Identifier": ident, "Response": None, "Time Taken": None, "Error": err})
+                            if isinstance(body, dict):
+                                if "output_text" in body:
+                                    resp_text = body["output_text"]                       # Responses API
+                                elif "choices" in body:
+                                    choice = body["choices"][0]
+                                    msg = choice.get("message") or choice.get("delta") or {}
+                                    resp_text = msg.get("content")                       # Chat Completions
+                                elif "output" in body:
+                                    out_list = body["output"]
+                                    if isinstance(out_list, list) and out_list:
+                                        first_item = out_list[0]
+                                        if isinstance(first_item, dict):
+                                            content_list = first_item.get("content")
+                                            if isinstance(content_list, list):
+                                                for piece in content_list:
+                                                    if isinstance(piece, dict) and "text" in piece:
+                                                        resp_text = piece["text"]
+                                                        break
+                        completed_rows.append({"Identifier": ident,
+                                               "Response": [resp_text],
+                                               "Time Taken": None})
                     # Remove completed batch from state and disk
                     unfinished_batches.remove(b)
                     state["batches"] = [bb for bb in state.get("batches", []) if bb.get("batch_id") != bid]
