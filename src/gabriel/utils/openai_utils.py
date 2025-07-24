@@ -345,17 +345,18 @@ async def get_all_responses(
         ``Time Taken``.  In batch mode, ``Time Taken`` is ``None`` because
         individual timings are not available.
     """
-    # Default identifiers mirror prompts
+
+    # Assign identifiers if none provided
     if identifiers is None:
         identifiers = prompts
 
-    # Prepare default values for extra kwargs
+    # Default per-call parameters
     get_response_kwargs.setdefault("web_search", use_web_search)
     get_response_kwargs.setdefault("search_context_size", search_context_size)
     get_response_kwargs.setdefault("tools", tools)
     get_response_kwargs.setdefault("tool_choice", tool_choice)
 
-    # Always load or initialise the CSV
+    # Load or initialise result CSV
     if os.path.exists(save_path) and not reset_files:
         df = pd.read_csv(save_path)
         df["Response"] = df["Response"].apply(_de)
@@ -364,24 +365,22 @@ async def get_all_responses(
         df = pd.DataFrame(columns=["Identifier", "Response", "Time Taken"])
         done = set()
 
-    # Filter prompts/identifiers based on what is already completed
+    # Filter out already processed prompts
     todo_pairs = [(p, i) for p, i in zip(prompts, identifiers) if i not in done]
     if not todo_pairs:
         return df
 
+    # ------------------------------ BATCH PATH ------------------------------
     if use_batch:
-        # ------------------------------------------------------------
-        # Batch API path
-        # ------------------------------------------------------------
-        # Compose path to store batch state metadata
         state_path = save_path + ".batch_state.json"
 
-        # Helper to append results into DataFrame and save to CSV
         def _append_results(rows: List[Dict[str, Any]]) -> None:
+            """Serialize results and append to CSV and in-memory DataFrame."""
             nonlocal df
+            if not rows:
+                return
             batch_df = pd.DataFrame(rows)
             batch_df["Response"] = batch_df["Response"].apply(_ser)
-            # Append to CSV preserving header only for first write
             batch_df.to_csv(
                 save_path,
                 mode="a",
@@ -389,27 +388,53 @@ async def get_all_responses(
                 index=False,
                 quoting=csv.QUOTE_MINIMAL,
             )
-            # Merge into in‑memory DataFrame as Python objects
             batch_df["Response"] = batch_df["Response"].apply(_de)
             df = pd.concat([df, batch_df], ignore_index=True)
 
-        # Attempt to resume an existing batch job if state file exists
+        client = openai.AsyncOpenAI()
+
+        # Load existing batch state if present
         if os.path.exists(state_path) and not reset_files:
             with open(state_path, "r") as f:
                 state = json.load(f)
-            batch_id = state.get("batch_id")
         else:
             state = {}
-            batch_id = None
 
-        client = openai.AsyncOpenAI()
+        # Upgrade old state format
+        if state.get("batch_id"):
+            state = {"batches": [
+                {
+                    "batch_id": state["batch_id"],
+                    "input_file_id": state.get("input_file_id"),
+                    "total": None,
+                    "submitted_at": None,
+                }
+            ]}
 
-        # If no existing batch, prepare and submit a new one
-        if batch_id is None:
-            # Build tasks for the prompts not yet processed
-            tasks = []
+        # Cancel unfinished batches if requested
+        if cancel_existing_batch and state.get("batches"):
+            if verbose:
+                print("Cancelling unfinished batch jobs...")
+            for b in state["batches"]:
+                bid = b.get("batch_id")
+                try:
+                    await client.batches.cancel(bid)
+                    if verbose:
+                        print(f"Cancelled batch {bid}.")
+                except Exception as exc:
+                    if verbose:
+                        print(f"Failed to cancel batch {bid}: {exc}")
+            try:
+                os.remove(state_path)
+            except OSError:
+                pass
+            state = {}
+
+        # If no unfinished batches remain, create new ones
+        if not state.get("batches"):
+            tasks: List[Dict[str, Any]] = []
             for prompt, ident in todo_pairs:
-                # Build the request body using _build_params
+                # Build per-request parameters
                 input_data = (
                     [{"role": "user", "content": prompt}]
                     if get_response_kwargs.get("model", "o4-mini").startswith("o")
@@ -444,318 +469,389 @@ async def get_all_responses(
                     }
                 )
 
-            # Write tasks to temporary JSONL file
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl") as f:
+            if tasks:
+                # Split into multiple batches if needed
+                batches: List[List[Dict[str, Any]]] = []
+                current_batch: List[Dict[str, Any]] = []
+                current_size = 0
                 for obj in tasks:
-                    f.write(json.dumps(obj).encode("utf-8") + b"\n")
-                input_filename = f.name
+                    line_bytes = len(json.dumps(obj, ensure_ascii=False).encode("utf-8")) + 1
+                    if (
+                        len(current_batch) >= max_batch_requests
+                        or current_size + line_bytes > max_batch_file_bytes
+                    ):
+                        if current_batch:
+                            batches.append(current_batch)
+                        current_batch = []
+                        current_size = 0
+                    current_batch.append(obj)
+                    current_size += line_bytes
+                if current_batch:
+                    batches.append(current_batch)
 
-            # Upload the file for batch processing
-            uploaded = await client.files.create(file=open(input_filename, "rb"), purpose="batch")
-
-            # Create the batch job
-            batch = await client.batches.create(
-                input_file_id=uploaded.id,
-                endpoint="/v1/responses",
-                completion_window=batch_completion_window,
-            )
-
-            batch_id = batch.id
-            # Persist batch state so we can resume later
-            state = {"batch_id": batch_id, "input_file_id": uploaded.id}
-            with open(state_path, "w") as f:
-                json.dump(state, f)
-
-            if verbose:
-                print(f"Submitted batch {batch_id} with {len(tasks)} requests.")
-
-            # If we are not waiting for completion, return current df immediately
-            if not batch_wait_for_completion:
-                return df
-
-        # At this point we have a batch ID (existing or newly created).  Poll
-        # until it completes or until we decide to return early.
-        while True:
-            job = await client.batches.retrieve(batch_id)
-            status = job.status
-            if status == "completed":
-                break
-            if status in {"failed", "cancelled", "expired"}:
-                # Clean up state file on failure
-                if os.path.exists(state_path):
-                    os.remove(state_path)
-                raise RuntimeError(f"Batch job {batch_id} finished with status {status}.")
-            # If we are not waiting, just inform user and return current df
-            if not batch_wait_for_completion:
-                if verbose:
-                    rc = job.request_counts
-                    print(
-                        f"Batch {batch_id} status: {status}; completed {rc.completed}/{rc.total}."
+                state["batches"] = []
+                for batch_tasks in batches:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl") as tmp:
+                        for obj in batch_tasks:
+                            tmp.write(json.dumps(obj).encode("utf-8") + b"\n")
+                        input_filename = tmp.name
+                    uploaded = await client.files.create(file=open(input_filename, "rb"), purpose="batch")
+                    batch = await client.batches.create(
+                        input_file_id=uploaded.id,
+                        endpoint="/v1/responses",
+                        completion_window=batch_completion_window,
                     )
-                return df
-            if verbose:
-                rc = job.request_counts
-                print(
-                    f"Batch {batch_id} in progress: {status}; completed {rc.completed}/{rc.total}."
-                )
-            await asyncio.sleep(batch_poll_interval)
+                    state["batches"].append(
+                        {
+                            "batch_id": batch.id,
+                            "input_file_id": uploaded.id,
+                            "total": len(batch_tasks),
+                            "submitted_at": int(time.time()),
+                        }
+                    )
+                    if verbose:
+                        print(f"Submitted batch {batch.id} with {len(batch_tasks)} requests.")
+                with open(state_path, "w") as f:
+                    json.dump(state, f)
 
-        # Job completed: download results and errors
-        output_file_id = job.output_file_id
-        error_file_id = job.error_file_id
-        if verbose:
-            print(f"Batch {batch_id} completed. Downloading results...")
-
-        # Retrieve output file contents
-        file_response = await client.files.content(output_file_id)
-        text_data = await file_response.text()
-
-        # Retrieve error file contents if available
-        errors: Dict[str, Any] = {}
-        if error_file_id:
-            err_response = await client.files.content(error_file_id)
-            err_text = await err_response.text()
-            for line in err_text.splitlines():
-                rec = json.loads(line)
-                errors[rec["custom_id"]] = rec.get("error")
-
-        # Parse each line of the results
-        rows: List[Dict[str, Any]] = []
-        for line in text_data.splitlines():
-            rec = json.loads(line)
-            ident = rec["custom_id"]
-            if rec.get("response"):
-                body = rec["response"]["body"]
-                # Extract assistant message for chat/completions or responses
-                if isinstance(body, dict) and "output_text" in body:
-                    resp_text = body["output_text"]
-                elif isinstance(body, dict) and "choices" in body:
-                    resp_text = body["choices"][0]["message"]["content"]
-                else:
-                    resp_text = None
-                rows.append({"Identifier": ident, "Response": [resp_text], "Time Taken": None})
-            else:
-                err = rec.get("error") or errors.get(ident)
-                rows.append({"Identifier": ident, "Response": None, "Time Taken": None, "Error": err})
-
-        # Append the results to CSV/DataFrame and remove batch state
-        _append_results(rows)
-        if os.path.exists(state_path):
-            os.remove(state_path)
-
-        return df
-
-    else:
-        # ------------------------------------------------------------
-        # Non‑batch path (original behaviour)
-        # ------------------------------------------------------------
-        if print_example_prompt:
-            prompt_example, ident_example = todo_pairs[0]
-            print(f"Example prompt: {prompt_example}\n")
-
-        # Short‑circuit for dummy mode
-        if use_dummy:
-            rows = [
-                {
-                    "Identifier": ident,
-                    "Response": [f"DUMMY {ident}"] * n,
-                    "Time Taken": 0.0,
-                }
-                for _, ident in todo_pairs
-            ]
-            df = pd.concat([df, pd.DataFrame(rows)], ignore_index=True)
-            df.to_csv(save_path, index=False)
+        # Return immediately if not waiting for completion
+        if not batch_wait_for_completion:
             return df
 
-        # Initialise rate limiters.  These will be rebuilt if dynamic_rate_limit
-        # adjusts the rate_limit_factor.
-        nonlocal_timeout = timeout  # local copy to allow reassignment
-        current_rate_limit_factor = rate_limit_factor
+        # Poll each unfinished batch until completion
+        unfinished_batches: List[Dict[str, Any]] = list(state.get("batches", []))
+        completed_rows: List[Dict[str, Any]] = []
+        while unfinished_batches:
+            for b in list(unfinished_batches):
+                bid = b.get("batch_id")
+                try:
+                    job = await client.batches.retrieve(bid)
+                except Exception as exc:
+                    if verbose:
+                        print(f"Failed to retrieve batch {bid}: {exc}")
+                    continue
+                status = job.status
+                if status == "completed":
+                    output_file_id = job.output_file_id
+                    error_file_id = job.error_file_id
+                    if verbose:
+                        print(f"Batch {bid} completed. Downloading results...")
+                    # Download output file (string, bytes, or response object)
+                    try:
+                        file_response = await client.files.content(output_file_id)
+                    except Exception as exc:
+                        if verbose:
+                            print(f"Failed to download output file for batch {bid}: {exc}")
+                        unfinished_batches.remove(b)
+                        continue
+                    # Normalise file content to text
+                    text_data: Optional[str] = None
+                    try:
+                        if isinstance(file_response, str):
+                            text_data = file_response
+                        elif isinstance(file_response, bytes):
+                            text_data = file_response.decode("utf-8", errors="replace")
+                        elif hasattr(file_response, "text"):
+                            attr = getattr(file_response, "text")
+                            text_data = await attr() if callable(attr) else attr
+                        if text_data is None and hasattr(file_response, "read"):
+                            content_bytes = await file_response.read()
+                            if isinstance(content_bytes, bytes):
+                                text_data = content_bytes.decode("utf-8", errors="replace")
+                            else:
+                                text_data = str(content_bytes)
+                    except Exception as exc:
+                        if verbose:
+                            print(f"Failed to extract text from output file for batch {bid}: {exc}")
+                    if text_data is None:
+                        if verbose:
+                            print(f"No data found in output file for batch {bid}.")
+                        unfinished_batches.remove(b)
+                        continue
+                    # Download and parse error file if present
+                    errors: Dict[str, Any] = {}
+                    if error_file_id:
+                        try:
+                            err_response = await client.files.content(error_file_id)
+                        except Exception as exc:
+                            if verbose:
+                                print(f"Failed to download error file for batch {bid}: {exc}")
+                            err_response = None
+                        if err_response is not None:
+                            err_text: Optional[str] = None
+                            try:
+                                if isinstance(err_response, str):
+                                    err_text = err_response
+                                elif isinstance(err_response, bytes):
+                                    err_text = err_response.decode("utf-8", errors="replace")
+                                elif hasattr(err_response, "text"):
+                                    attr = getattr(err_response, "text")
+                                    err_text = await attr() if callable(attr) else attr
+                                if err_text is None and hasattr(err_response, "read"):
+                                    content_bytes = await err_response.read()
+                                    if isinstance(content_bytes, bytes):
+                                        err_text = content_bytes.decode("utf-8", errors="replace")
+                                    else:
+                                        err_text = str(content_bytes)
+                            except Exception:
+                                err_text = None
+                            if err_text:
+                                for line in err_text.splitlines():
+                                    try:
+                                        rec = json.loads(line)
+                                        errors[rec.get("custom_id")] = rec.get("error")
+                                    except Exception:
+                                        pass
+                    # Parse output file
+                    for line in text_data.splitlines():
+                        try:
+                            rec = json.loads(line)
+                        except Exception:
+                            continue
+                        ident = rec.get("custom_id")
+                        if not ident:
+                            continue
+                        if rec.get("response"):
+                            body = rec["response"].get("body")
+                            if isinstance(body, dict) and "output_text" in body:
+                                resp_text = body["output_text"]
+                            elif isinstance(body, dict) and "choices" in body:
+                                choice = body["choices"][0]
+                                msg = choice.get("message") or choice.get("delta") or {}
+                                resp_text = msg.get("content")
+                            else:
+                                resp_text = None
+                            completed_rows.append({"Identifier": ident, "Response": [resp_text], "Time Taken": None})
+                        else:
+                            err = rec.get("error") or errors.get(ident)
+                            completed_rows.append({"Identifier": ident, "Response": None, "Time Taken": None, "Error": err})
+                    # Remove completed batch from state and disk
+                    unfinished_batches.remove(b)
+                    state["batches"] = [bb for bb in state.get("batches", []) if bb.get("batch_id") != bid]
+                    with open(state_path, "w") as f:
+                        json.dump(state, f)
+                elif status in {"failed", "cancelled", "expired"}:
+                    if verbose:
+                        print(f"Batch {bid} finished with status {status}.")
+                    unfinished_batches.remove(b)
+                    state["batches"] = [bb for bb in state.get("batches", []) if bb.get("batch_id") != bid]
+                    with open(state_path, "w") as f:
+                        json.dump(state, f)
+                else:
+                    if verbose:
+                        rc = job.request_counts
+                        print(f"Batch {bid} in progress: {status}; completed {rc.completed}/{rc.total}.")
+            if unfinished_batches:
+                await asyncio.sleep(batch_poll_interval)
+        # Clean up and append results
+        if os.path.exists(state_path):
+            os.remove(state_path)
+        _append_results(completed_rows)
+        return df
+
+    # -------------------------- NON-BATCH PATH --------------------------
+    # Print example if requested
+    if print_example_prompt:
+        print(f"Example prompt: {todo_pairs[0][0]}\n")
+
+    # Dummy mode
+    if use_dummy:
+        rows = [
+            {
+                "Identifier": ident,
+                "Response": [f"DUMMY {ident}"] * n,
+                "Time Taken": 0.0,
+            }
+            for _, ident in todo_pairs
+        ]
+        df = pd.concat([df, pd.DataFrame(rows)], ignore_index=True)
+        df.to_csv(save_path, index=False)
+        return df
+
+    # Initialize rate limiters
+    nonlocal_timeout = timeout
+    current_rate_limit_factor = rate_limit_factor
+    req_lim = AsyncLimiter(int(requests_per_minute * current_rate_limit_factor), 60)
+    tok_lim = AsyncLimiter(int(tokens_per_minute * current_rate_limit_factor), 60)
+
+    # Dynamic timeout tracking
+    response_times: List[float] = []
+    timeout_errors = 0
+    call_count = 0
+    min_samples_for_timeout = max(100, n_parallels)  # threshold for stable estimates
+
+    # Queue for workers
+    queue: asyncio.Queue[Tuple[str, str]] = asyncio.Queue()
+    for item in todo_pairs:
+        queue.put_nowait(item)
+
+    results: List[Dict[str, Any]] = []
+    processed = 0
+    pbar = tqdm(total=len(todo_pairs), desc="Processing prompts")
+
+    async def flush() -> None:
+        nonlocal results, df
+        if results:
+            batch_df = pd.DataFrame(results)
+            batch_df["Response"] = batch_df["Response"].apply(_ser)
+            batch_df.to_csv(
+                save_path,
+                mode="a",
+                header=not os.path.exists(save_path),
+                index=False,
+                quoting=csv.QUOTE_MINIMAL,
+            )
+            batch_df["Response"] = batch_df["Response"].apply(_de)
+            df = pd.concat([df, batch_df], ignore_index=True)
+            results = []
+
+    async def adjust_timeout() -> None:
+        nonlocal nonlocal_timeout
+        if not dynamic_timeout:
+            return
+        # Only adjust when we have enough samples
+        if len(response_times) < min_samples_for_timeout:
+            return
+        try:
+            sorted_times = sorted(response_times)
+            q95_index = max(0, int(0.95 * (len(sorted_times) - 1)))
+            q95 = sorted_times[q95_index]
+            new_timeout = min(max_timeout, max(timeout, timeout_factor * q95))
+            if new_timeout > nonlocal_timeout * 1.2 or new_timeout < nonlocal_timeout * 0.8:
+                if verbose:
+                    print(f"[dynamic timeout] Updating timeout from {nonlocal_timeout:.1f}s to {new_timeout:.1f}s based on observed latency.")
+                nonlocal_timeout = new_timeout
+        except Exception:
+            pass
+
+    async def rebuild_limiters() -> None:
+        nonlocal req_lim, tok_lim, current_rate_limit_factor
+        current_rate_limit_factor = max(0.1, current_rate_limit_factor)
         req_lim = AsyncLimiter(int(requests_per_minute * current_rate_limit_factor), 60)
         tok_lim = AsyncLimiter(int(tokens_per_minute * current_rate_limit_factor), 60)
+        if verbose:
+            print(
+                f"[dynamic rate-limit] Adjusted rate_limit_factor to {current_rate_limit_factor:.2f}. "
+                f"New RPM limit: {int(requests_per_minute * current_rate_limit_factor)}, "
+                f"TPM limit: {int(tokens_per_minute * current_rate_limit_factor)}."
+            )
 
-        # Maintain response times for dynamic timeout adjustment
-        response_times: List[float] = []
-        timeout_errors = 0
-        call_count = 0
-
-        # Use a queue to distribute work among workers
-        queue: asyncio.Queue[Tuple[str, str]] = asyncio.Queue()
-        for item in todo_pairs:
-            queue.put_nowait(item)
-
-        results: List[Dict[str, Any]] = []
-        processed = 0
-        pbar = tqdm(total=len(todo_pairs), desc="Processing prompts")
-
-        async def flush() -> None:
-            """Flush accumulated results to disk and memory."""
-            nonlocal results, df
-            if results:
-                batch_df = pd.DataFrame(results)
-                batch_df["Response"] = batch_df["Response"].apply(_ser)
-                batch_df.to_csv(
-                    save_path,
-                    mode="a",
-                    header=not os.path.exists(save_path),
-                    index=False,
-                    quoting=csv.QUOTE_MINIMAL,
-                )
-                # Merge into in‑memory DataFrame as Python objects
-                batch_df["Response"] = batch_df["Response"].apply(_de)
-                df = pd.concat([df, batch_df], ignore_index=True)
-                results = []
-
-        async def adjust_timeout() -> None:
-            """Recalculate timeout based on observed response times."""
-            nonlocal nonlocal_timeout
-            if not dynamic_timeout:
-                return
-            # Only adjust if we have enough samples
-            if len(response_times) < 5:
-                return
+    async def worker() -> None:
+        nonlocal processed, timeout_errors, call_count, current_rate_limit_factor, nonlocal_timeout
+        while True:
             try:
-                # Compute 95th percentile using statistics.quantiles
-                sorted_times = sorted(response_times)
-                # 95th percentile = 19th quantile out of 20 partitions
-                q95_index = max(0, int(0.95 * (len(sorted_times) - 1)))
-                q95 = sorted_times[q95_index]
-                new_timeout = min(max_timeout, max(timeout, timeout_factor * q95))
-                # If new timeout is significantly lower or higher, update
-                if new_timeout > nonlocal_timeout * 1.2 or new_timeout < nonlocal_timeout * 0.8:
-                    if verbose:
-                        print(f"[dynamic timeout] Updating timeout from {nonlocal_timeout:.1f}s to {new_timeout:.1f}s based on observed latency.")
-                    nonlocal_timeout = new_timeout
-            except Exception:
-                pass
-
-        async def rebuild_limiters() -> None:
-            """Rebuild request/token limiters when rate limit factor changes."""
-            nonlocal req_lim, tok_lim, current_rate_limit_factor
-            # Ensure factor does not fall below a reasonable floor
-            current_rate_limit_factor = max(0.1, current_rate_limit_factor)
-            req_lim = AsyncLimiter(int(requests_per_minute * current_rate_limit_factor), 60)
-            tok_lim = AsyncLimiter(int(tokens_per_minute * current_rate_limit_factor), 60)
-            if verbose:
-                print(
-                    f"[dynamic rate-limit] Adjusted rate_limit_factor to {current_rate_limit_factor:.2f}. New RPM limit: {int(requests_per_minute * current_rate_limit_factor)}, TPM limit: {int(tokens_per_minute * current_rate_limit_factor)}."
-                )
-
-        async def worker() -> None:
-            nonlocal processed, timeout_errors, call_count, current_rate_limit_factor, nonlocal_timeout
-            while True:
+                prompt, ident = await queue.get()
+            except asyncio.CancelledError:
+                break
+            attempt = 1
+            while attempt <= max_retries:
                 try:
-                    prompt, ident = await queue.get()
-                except asyncio.CancelledError:
-                    break
-                attempt = 1
-                while attempt <= max_retries:
-                    try:
-                        # Estimate prompt length in tokens (rough heuristic)
-                        approx = int(len(prompt.split()) * 1.5)
-                        # Acquire rate limit tokens
-                        await req_lim.acquire()
-                        await tok_lim.acquire((approx + max_tokens) * n)
-                        call_count += 1
-                        # Make the API call with dynamic timeout
-                        resps, t = await asyncio.wait_for(
-                            get_response(
-                                prompt,
-                                n=n,
-                                max_tokens=max_tokens,
-                                timeout=nonlocal_timeout,
-                                use_dummy=use_dummy,
-                                verbose=verbose,
-                                **get_response_kwargs,
-                            ),
+                    # Estimate token usage and acquire rate-limit tokens
+                    approx = int(len(prompt.split()) * 1.5)
+                    await req_lim.acquire()
+                    await tok_lim.acquire((approx + max_tokens) * n)
+                    call_count += 1
+                    # Make API call with dynamic timeout
+                    resps, t = await asyncio.wait_for(
+                        get_response(
+                            prompt,
+                            n=n,
+                            max_tokens=max_tokens,
                             timeout=nonlocal_timeout,
-                        )
-                        # Record response time and adjust timeout periodically
-                        response_times.append(t)
-                        await adjust_timeout()
-                        results.append({"Identifier": ident, "Response": resps, "Time Taken": t})
-                        processed += 1
-                        pbar.update(1)
-                        if processed % save_every_x_responses == 0:
-                            await flush()
-                        break
-                    except asyncio.TimeoutError:
-                        timeout_errors += 1
-                        if verbose:
-                            print(f"[get_all_responses] Timeout on attempt {attempt} for {ident} after {nonlocal_timeout:.1f}s.")
-                        if dynamic_timeout and call_count > 0 and timeout_errors / call_count > 0.05:
-                            # Increase timeout modestly
-                            new_t = min(max_timeout, nonlocal_timeout * 1.2)
-                            if new_t > nonlocal_timeout:
-                                if verbose:
-                                    print(f"[dynamic timeout] Increasing timeout to {new_t:.1f}s due to high timeout rate.")
-                                nonlocal_timeout = new_t
-                        if attempt >= max_retries:
-                            results.append({"Identifier": ident, "Response": None, "Time Taken": None})
-                            processed += 1
-                            pbar.update(1)
-                            await flush()
-                            break
-                        # Exponential backoff before retrying
-                        await asyncio.sleep(5 * attempt)
-                        attempt += 1
-                    except RateLimitError as e:
-                        # Handle rate limit errors: reduce effective limits and retry
-                        if verbose:
-                            print(f"[get_all_responses] Rate limit error on attempt {attempt} for {ident}: {e!r}")
-                        if dynamic_rate_limit:
-                            current_rate_limit_factor *= rate_limit_adjust_factor
-                            await rebuild_limiters()
-                        if attempt >= max_retries:
-                            results.append({"Identifier": ident, "Response": None, "Time Taken": None})
-                            processed += 1
-                            pbar.update(1)
-                            await flush()
-                            break
-                        await asyncio.sleep(5 * attempt)
-                        attempt += 1
-                    except (APIError, BadRequestError, AuthenticationError, InvalidRequestError) as e:
-                        # Fatal or semi-fatal errors: log and stop retrying
-                        if verbose:
-                            print(f"[get_all_responses] API error for {ident}: {e!r}")
+                            use_dummy=use_dummy,
+                            verbose=verbose,
+                            **get_response_kwargs,
+                        ),
+                        timeout=nonlocal_timeout,
+                    )
+                    response_times.append(t)
+                    await adjust_timeout()
+                    results.append({"Identifier": ident, "Response": resps, "Time Taken": t})
+                    processed += 1
+                    pbar.update(1)
+                    if processed % save_every_x_responses == 0:
+                        await flush()
+                    break
+                except asyncio.TimeoutError:
+                    timeout_errors += 1
+                    if verbose:
+                        print(f"[get_all_responses] Timeout on attempt {attempt} for {ident} after {nonlocal_timeout:.1f}s. "
+                              "Consider increasing the 'timeout' parameter if timeouts persist.")
+                    # If more than 5% of calls are timing out, raise the timeout using 95th percentile or fallback
+                    if dynamic_timeout and call_count > 0 and timeout_errors / call_count > 0.05:
+                        if len(response_times) >= min_samples_for_timeout:
+                            try:
+                                sorted_times = sorted(response_times)
+                                q95_index = max(0, int(0.95 * (len(sorted_times) - 1)))
+                                q95 = sorted_times[q95_index]
+                                new_t = min(max_timeout, max(nonlocal_timeout, timeout_factor * q95))
+                            except Exception:
+                                new_t = min(max_timeout, nonlocal_timeout * timeout_factor)
+                        else:
+                            new_t = min(max_timeout, nonlocal_timeout * timeout_factor)
+                        if new_t > nonlocal_timeout:
+                            if verbose:
+                                print(f"[dynamic timeout] Increasing timeout to {new_t:.1f}s due to high timeout rate.")
+                            nonlocal_timeout = new_t
+                    if attempt >= max_retries:
                         results.append({"Identifier": ident, "Response": None, "Time Taken": None})
                         processed += 1
                         pbar.update(1)
                         await flush()
                         break
-                    except Exception as e:
-                        # Generic exception
-                        if verbose:
-                            print(f"[get_all_responses] Error on attempt {attempt} for {ident}: {e!r}")
-                        if attempt >= max_retries:
-                            results.append({"Identifier": ident, "Response": None, "Time Taken": None})
-                            processed += 1
-                            pbar.update(1)
-                            await flush()
-                            break
-                        await asyncio.sleep(5 * attempt)
-                        attempt += 1
-                queue.task_done()
-
-        # Spawn worker tasks
-        workers = [asyncio.create_task(worker()) for _ in range(n_parallels)]
-        # Optional periodic flushing
-        ticker = None
-        if save_every_x_seconds:
-            async def periodic() -> None:
-                while True:
-                    await asyncio.sleep(save_every_x_seconds)
+                    await asyncio.sleep(5 * attempt)
+                    attempt += 1
+                except RateLimitError as e:
+                    if verbose:
+                        print(f"[get_all_responses] Rate limit error on attempt {attempt} for {ident}: {e}")
+                    if dynamic_rate_limit:
+                        current_rate_limit_factor *= rate_limit_adjust_factor
+                        await rebuild_limiters()
+                    if attempt >= max_retries:
+                        results.append({"Identifier": ident, "Response": None, "Time Taken": None})
+                        processed += 1
+                        pbar.update(1)
+                        await flush()
+                        break
+                    await asyncio.sleep(5 * attempt)
+                    attempt += 1
+                except (APIError, BadRequestError, AuthenticationError, InvalidRequestError) as e:
+                    if verbose:
+                        print(f"[get_all_responses] API error for {ident}: {e}")
+                    results.append({"Identifier": ident, "Response": None, "Time Taken": None})
+                    processed += 1
+                    pbar.update(1)
                     await flush()
-            ticker = asyncio.create_task(periodic())
+                    break
+                except Exception as e:
+                    if verbose:
+                        print(f"[get_all_responses] Error on attempt {attempt} for {ident}: {e}")
+                    if attempt >= max_retries:
+                        results.append({"Identifier": ident, "Response": None, "Time Taken": None})
+                        processed += 1
+                        pbar.update(1)
+                        await flush()
+                        break
+                    await asyncio.sleep(5 * attempt)
+                    attempt += 1
+            queue.task_done()
 
-        # Wait for queue to empty
-        await queue.join()
-        # Cancel workers
-        for w in workers:
-            w.cancel()
-        await flush()
-        if ticker:
-            ticker.cancel()
-        pbar.close()
-        return df
+    # Spawn workers
+    workers = [asyncio.create_task(worker()) for _ in range(n_parallels)]
+    ticker = None
+    if save_every_x_seconds:
+        async def periodic() -> None:
+            while True:
+                await asyncio.sleep(save_every_x_seconds)
+                await flush()
+        ticker = asyncio.create_task(periodic())
 
+    # Wait until all tasks are processed
+    await queue.join()
+    for w in workers:
+        w.cancel()
+    await flush()
+    if ticker:
+        ticker.cancel()
+    pbar.close()
+    return df
