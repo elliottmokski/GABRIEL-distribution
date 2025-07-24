@@ -5,12 +5,22 @@ import csv
 import json
 import os
 import time
+import tempfile
+import statistics
 from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 from aiolimiter import AsyncLimiter
 from tqdm import tqdm
 import openai
+try:
+    from openai import APIError, AuthenticationError, BadRequestError, InvalidRequestError, RateLimitError
+except Exception:  # pragma: no cover - fallback for older openai versions
+    RateLimitError = Exception  # type: ignore
+    APIError = Exception  # type: ignore
+    BadRequestError = Exception  # type: ignore
+    AuthenticationError = Exception  # type: ignore
+    InvalidRequestError = Exception  # type: ignore
 from .parsing import safe_json
 
 # single connection pool per process, created lazily
@@ -135,7 +145,7 @@ async def get_response(
             print(f"[get_response] {err}")
         raise err
     except Exception as e:
-        err = Exception(f"API call resulted in exception: {e}")
+        err = Exception(f"API call resulted in exception: {e!r}")
         if verbose:
             print(f"[get_response] {err}")
         raise err
@@ -186,36 +196,6 @@ This implementation uses ``openai.AsyncOpenAI`` for non‑blocking I/O when
 interacting with the Batch API.  See the inline documentation for more
 details.
 """
-
-from __future__ import annotations
-
-import asyncio
-import csv
-import json
-import os
-import tempfile
-import time
-from typing import Any, Dict, List, Optional, Tuple
-
-import pandas as pd
-from aiolimiter import AsyncLimiter
-from tqdm import tqdm
-import openai
-import statistics
-
-# Bring in specific error classes for granular handling
-try:
-    from openai import RateLimitError, APIError, BadRequestError, AuthenticationError, InvalidRequestError
-except Exception:
-    RateLimitError = Exception  # type: ignore
-    APIError = Exception  # type: ignore
-    BadRequestError = Exception  # type: ignore
-    AuthenticationError = Exception  # type: ignore
-    InvalidRequestError = Exception  # type: ignore
-
-from gabriel.utils.parsing import safe_json
-from gabriel.utils.openai_utils import _build_params, _ser, _de, get_response
-
 
 async def get_all_responses(
     *,
@@ -722,7 +702,7 @@ async def get_all_responses(
                     except RateLimitError as e:
                         # Handle rate limit errors: reduce effective limits and retry
                         if verbose:
-                            print(f"[get_all_responses] Rate limit error on attempt {attempt} for {ident}: {e}")
+                            print(f"[get_all_responses] Rate limit error on attempt {attempt} for {ident}: {e!r}")
                         if dynamic_rate_limit:
                             current_rate_limit_factor *= rate_limit_adjust_factor
                             await rebuild_limiters()
@@ -737,7 +717,7 @@ async def get_all_responses(
                     except (APIError, BadRequestError, AuthenticationError, InvalidRequestError) as e:
                         # Fatal or semi-fatal errors: log and stop retrying
                         if verbose:
-                            print(f"[get_all_responses] API error for {ident}: {e}")
+                            print(f"[get_all_responses] API error for {ident}: {e!r}")
                         results.append({"Identifier": ident, "Response": None, "Time Taken": None})
                         processed += 1
                         pbar.update(1)
@@ -746,7 +726,7 @@ async def get_all_responses(
                     except Exception as e:
                         # Generic exception
                         if verbose:
-                            print(f"[get_all_responses] Error on attempt {attempt} for {ident}: {e}")
+                            print(f"[get_all_responses] Error on attempt {attempt} for {ident}: {e!r}")
                         if attempt >= max_retries:
                             results.append({"Identifier": ident, "Response": None, "Time Taken": None})
                             processed += 1
@@ -779,162 +759,3 @@ async def get_all_responses(
         pbar.close()
         return df
 
-"""
-async def get_all_responses(
-    *,
-    prompts: List[str],
-    identifiers: Optional[List[str]] = None,
-    n_parallels: int = 100,
-    save_path: str = "temp.csv",
-    reset_files: bool = False,
-    n: int = 1,
-    max_tokens: int = 25_000,
-    requests_per_minute: int = 40_000,
-    tokens_per_minute: int = 15_000_000_000,
-    rate_limit_factor: float = 0.8,
-    timeout: int = 90,
-    max_retries: int = 7,
-    save_every_x_responses: int = 1_000,
-    save_every_x_seconds: Optional[int] = None,
-    use_dummy: bool = False,
-    print_example_prompt: bool = False,
-    use_web_search: bool = False,
-    search_context_size: str = "medium",
-    tools: Optional[List[dict]] = None,
-    tool_choice: Optional[dict] = None,
-    verbose: bool = True,
-    **get_response_kwargs: Any,
-) -> pd.DataFrame:
-    """Query an LLM for multiple prompts, retrying on failure.
-
-    Parameters
-    ----------
-    verbose : bool
-        If ``True``, print API errors encountered during retries.
-    """
-
-    if identifiers is None:
-        identifiers = prompts
-
-    get_response_kwargs.setdefault("web_search", use_web_search)
-    get_response_kwargs.setdefault("search_context_size", search_context_size)
-    get_response_kwargs.setdefault("tools", tools)
-    get_response_kwargs.setdefault("tool_choice", tool_choice)
-
-    if os.path.exists(save_path) and not reset_files:
-        df = pd.read_csv(save_path)
-        df["Response"] = df["Response"].apply(_de)
-        done = set(df["Identifier"])
-    else:
-        df = pd.DataFrame(columns=["Identifier", "Response", "Time Taken"])
-        done = set()
-
-    todo = [(p, i) for p, i in zip(prompts, identifiers) if i not in done]
-    total = len(todo)
-    if total == 0:
-        return df
-
-    if print_example_prompt:
-        print(f"Example prompt: {todo[0][0]}\n")
-
-    if use_dummy:
-        rows = [
-            {"Identifier": i, "Response": [f"DUMMY {i}"] * n, "Time Taken": 0.0}
-            for _, i in todo
-        ]
-        df = pd.concat([df, pd.DataFrame(rows)], ignore_index=True)
-        df.to_csv(save_path, index=False)
-        return df
-
-    req_lim = AsyncLimiter(int(requests_per_minute * rate_limit_factor), 60)
-    tok_lim = AsyncLimiter(int(tokens_per_minute * rate_limit_factor), 60)
-
-    queue: asyncio.Queue[Tuple[str, str]] = asyncio.Queue()
-    for item in todo:
-        queue.put_nowait(item)
-
-    results: List[Dict[str, Any]] = []
-    processed = 0
-    pbar = tqdm(total=total, desc="Processing prompts")
-
-    async def flush() -> None:
-        nonlocal results
-        if results:
-            batch = pd.DataFrame(results)
-            batch["Response"] = batch["Response"].apply(_ser)
-            batch.to_csv(
-                save_path,
-                mode="a",
-                header=not os.path.exists(save_path),
-                index=False,
-                quoting=csv.QUOTE_MINIMAL,
-            )
-            results = []
-
-    async def worker() -> None:
-        nonlocal processed
-        while True:
-            try:
-                prompt, ident = await queue.get()
-            except asyncio.CancelledError:
-                break
-
-            attempt = 1
-            while attempt <= max_retries:
-                try:
-                    approx = int(len(prompt.split()) * 1.5)
-                    await req_lim.acquire()
-                    await tok_lim.acquire((approx + max_tokens) * n)
-
-                    resps, t = await asyncio.wait_for(
-                        get_response(
-                            prompt,
-                            n=n,
-                            max_tokens=max_tokens,
-                            timeout=timeout,
-                            use_dummy=use_dummy,
-                            verbose=verbose,
-                            **get_response_kwargs,
-                        ),
-                        timeout=timeout,
-                    )
-
-                    results.append({"Identifier": ident, "Response": resps, "Time Taken": t})
-                    processed += 1
-                    pbar.update(1)
-                    if processed % save_every_x_responses == 0:
-                        await flush()
-                    break
-                except Exception as e:
-                    if verbose:
-                        print(
-                            f"[get_all_responses] Error on attempt {attempt} for {ident}: {e}"
-                        )
-                    if attempt >= max_retries:
-                        results.append({"Identifier": ident, "Response": None, "Time Taken": None})
-                        processed += 1
-                        pbar.update(1)
-                        await flush()
-                        break
-                    await asyncio.sleep(5 * attempt)
-                    attempt += 1
-            queue.task_done()
-
-    workers = [asyncio.create_task(worker()) for _ in range(n_parallels)]
-    if save_every_x_seconds:
-        async def periodic() -> None:
-            while True:
-                await asyncio.sleep(save_every_x_seconds)
-                await flush()
-        ticker = asyncio.create_task(periodic())
-
-    await queue.join()
-    for w in workers:
-        w.cancel()
-    await flush()
-    if save_every_x_seconds:
-        ticker.cancel()
-    pbar.close()
-
-    return pd.read_csv(save_path).assign(Response=lambda d: d.Response.apply(_de))
-"""
