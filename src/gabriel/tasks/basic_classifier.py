@@ -14,10 +14,15 @@ from ..utils.openai_utils import get_all_responses
 from ..utils import safe_json
 
 
+# ────────────────────────────
+# Configuration dataclass
+# ────────────────────────────
 @dataclass
 class BasicClassifierConfig:
-    labels: Dict[str, str]
-    save_dir: str = "classifier"
+    """Configuration for :class:`BasicClassifier`."""
+
+    labels: Dict[str, str]  # {"label_name": "description", ...}
+    save_path: str = "classifier/basic_classifier_responses.csv"
     model: str = "o4-mini"
     n_parallels: int = 400
     additional_instructions: str = ""
@@ -26,42 +31,64 @@ class BasicClassifierConfig:
     timeout: float = 60.0
 
 
+# ────────────────────────────
+# Main Basic classifier task
+# ────────────────────────────
 class BasicClassifier:
-    """Robust passage classifier using an LLM."""
+    """Robust passage classifier using an LLM.
+
+    * Accepts a list of *texts* (not a DataFrame) just like :class:`Ratings`.
+    * Persists/reads cached responses via the **save_path** attribute (same pattern as
+      :class:`Ratings`).
+    """
 
     _FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.S)
 
-    def __init__(self, cfg: BasicClassifierConfig, template: PromptTemplate | None = None) -> None:
+    # -----------------------------------------------------------------
+    def __init__(self, cfg: BasicClassifierConfig, template: PromptTemplate | None = None) -> None:  # noqa: D401,E501
         self.cfg = cfg
         self.template = template or PromptTemplate.from_package(
             "basic_classifier_prompt.jinja2"
         )
-        os.makedirs(cfg.save_dir, exist_ok=True)
 
-    def _build(self, df: pd.DataFrame, text_col: str):
+        # Ensure the directory part of *save_path* exists (if provided)
+        save_dir = os.path.dirname(cfg.save_path)
+        if save_dir:
+            os.makedirs(save_dir, exist_ok=True)
+
+    # -----------------------------------------------------------------
+    # Build prompts (deduplicating identical passages)
+    # -----------------------------------------------------------------
+    def _build(self, texts: List[str]):
         prompts: List[str] = []
         ids: List[str] = []
         id_to_rows: DefaultDict[str, List[int]] = defaultdict(list)
-        for row, txt in df[text_col].astype(str).items():
-            clean = " ".join(txt.split())
+
+        for row, passage in enumerate(texts):
+            clean = " ".join(str(passage).split())
             sha8 = hashlib.sha1(clean.encode()).hexdigest()[:8]
             id_to_rows[sha8].append(row)
             if len(id_to_rows[sha8]) > 1:
-                continue
+                continue  # duplicate passage – no need to prompt again
+
             prompts.append(
                 self.template.render(
-                    text=txt,
+                    text=passage,
                     labels=self.cfg.labels,
                     additional_instructions=self.cfg.additional_instructions,
                     additional_guidelines=self.cfg.additional_guidelines,
                 )
             )
             ids.append(sha8)
-        dup_ct = len(df) - len(prompts)
+
+        dup_ct = len(texts) - len(prompts)
         if dup_ct:
             print(f"[BasicClassifier] Skipped {dup_ct} duplicate prompt(s).")
         return prompts, ids, id_to_rows
 
+    # -----------------------------------------------------------------
+    # Helpers for parsing raw model output
+    # -----------------------------------------------------------------
     @staticmethod
     def _regex(raw: str, labels: Dict[str, str]) -> Dict[str, Optional[bool]]:
         out: Dict[str, Optional[bool]] = {}
@@ -72,6 +99,7 @@ class BasicClassifier:
         return out
 
     def _parse(self, resp: Any) -> Dict[str, Optional[bool]]:
+        # unwrap common response containers (list-of-one, bytes, fenced blocks)
         if isinstance(resp, list) and len(resp) == 1:
             resp = resp[0]
         if isinstance(resp, (bytes, bytearray)):
@@ -80,6 +108,7 @@ class BasicClassifier:
             m = self._FENCE_RE.search(resp)
             if m:
                 resp = m.group(1).strip()
+
         data = safe_json(resp)
         if isinstance(data, dict):
             norm = {
@@ -93,19 +122,29 @@ class BasicClassifier:
                 for k, v in data.items()
             }
             return {lab: norm.get(lab.lower(), None) for lab in self.cfg.labels}
+
+        # fallback to regex extraction
         return self._regex(str(resp), self.cfg.labels)
 
+    # -----------------------------------------------------------------
+    # Main entry point
+    # -----------------------------------------------------------------
     async def run(
-        self, df: pd.DataFrame, text_column: str, *, reset_files: bool = False, **kwargs: Any
+        self,
+        texts: List[str],
+        *,
+        reset_files: bool = False,
+        **kwargs: Any,
     ) -> pd.DataFrame:
-        prompts, ids, id_to_rows = self._build(df, text_column)
-        csv_path = os.path.join(self.cfg.save_dir, "basic_classifier_responses.csv")
+        """Classify *texts* and return a DataFrame with one column per label."""
+
+        prompts, ids, id_to_rows = self._build(texts)
 
         df_resp = await get_all_responses(
             prompts=prompts,
             identifiers=ids,
             n_parallels=self.cfg.n_parallels,
-            save_path=csv_path,
+            save_path=self.cfg.save_path,
             reset_files=reset_files,
             json_mode=True,
             model=self.cfg.model,
@@ -117,7 +156,8 @@ class BasicClassifier:
         if not isinstance(df_resp, pd.DataFrame):
             raise RuntimeError("get_all_responses returned no DataFrame")
 
-        parsed_master = {idx: {lab: None for lab in self.cfg.labels} for idx in df.index}
+        # map parsed responses back to every original passage index
+        parsed_master = {idx: {lab: None for lab in self.cfg.labels} for idx in range(len(texts))}
         orphans = 0
         for ident, raw in zip(df_resp.Identifier, df_resp.Response):
             if ident not in id_to_rows:
@@ -135,12 +175,18 @@ class BasicClassifier:
         print(f"[BasicClassifier] Filled {filled}/{len(parsed_master)} rows.")
 
         parsed_df = pd.DataFrame.from_dict(parsed_master, orient="index")
+        parsed_df.insert(0, "text", texts)
 
+        # quick coverage report (mirrors `Ratings`)
         total = len(parsed_df)
         print("\n=== Label coverage (non-null) ===")
         for lab in self.cfg.labels:
             n = parsed_df[lab].notna().sum()
             print(f"{lab:<55s}: {n / total:6.2%} ({n}/{total})")
+        print("=================================\n")
+
+        return parsed_df
+
         print("=================================\n")
 
         return df.join(parsed_df, how="left")
