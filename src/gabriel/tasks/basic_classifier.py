@@ -185,7 +185,7 @@ class BasicClassifier:
             print(f"{lab:<55s}: {n / total:6.2%} ({n}/{total})")
         print("=================================\n")
         out_path = self.cfg.save_path.split(".csv")[0] + "_final.csv"
-        parsed_df.to_csv(out_path)
+        parsed_df.to_csv(out_path, index = False)
         return parsed_df
 
         print("=================================\n")
