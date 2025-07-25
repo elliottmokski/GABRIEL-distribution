@@ -148,5 +148,7 @@ class Ratings:
 
         ratings_df = pd.DataFrame(ratings_list)
         ratings_df.insert(0, "text", texts)
+        out_path = self.cfg.save_path.split(".csv")[0] + "_final.csv"
+        ratings_df.to_csv(out_path)
         return ratings_df
 
