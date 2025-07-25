@@ -25,7 +25,6 @@ except Exception:
     InvalidRequestError = Exception  # type: ignore
 
 from gabriel.utils.parsing import safe_json
-from gabriel.utils.openai_utils import _build_params, _ser, _de, get_response
 
 # single connection pool per process, created lazily
 client_async: Optional[openai.AsyncOpenAI] = None
