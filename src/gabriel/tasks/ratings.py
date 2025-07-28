@@ -115,13 +115,10 @@ class Ratings:
                 continue
             prompts.append(
                 self.template.render(
-                    attributes=list(self.cfg.attributes.keys()),
-                    descriptions=list(self.cfg.attributes.values()),
-                    passage=passage,
-                    object_category="text",
-                    attribute_category="attributes",
-                    rating_scale=self.cfg.rating_scale,
-                    additional_guidelines=self.cfg.additional_guidelines,
+                    text=passage,
+                    attributes=self.cfg.attributes,
+                    scale=self.cfg.rating_scale,
+                    additional_instructions=self.cfg.additional_guidelines,
                 )
             )
             ids.append(sha8)
