@@ -40,9 +40,10 @@ def test_get_all_responses_dummy(tmp_path):
 
 
 def test_ratings_dummy(tmp_path):
-    cfg = RatingsConfig(attributes={"helpfulness": ""}, save_path=str(tmp_path/"ratings.csv"), use_dummy=True)
+    cfg = RatingsConfig(attributes={"helpfulness": ""}, save_dir=str(tmp_path), file_name="ratings.csv", use_dummy=True)
     task = Ratings(cfg)
-    df = asyncio.run(task.run(["hello"]))
+    data = pd.DataFrame({"text": ["hello"]})
+    df = asyncio.run(task.run(data, text_column="text"))
     assert not df.empty
     assert "helpfulness" in df.columns
 
@@ -89,11 +90,13 @@ def test_county_counter_dummy(tmp_path):
 def test_prompt_paraphraser_ratings(tmp_path):
     cfg = RatingsConfig(
         attributes={"quality": ""},
-        save_path=str(tmp_path / "rat.csv"),
+        save_dir=str(tmp_path),
+        file_name="rat.csv",
         use_dummy=True,
     )
     parap_cfg = PromptParaphraserConfig(n_variants=2, save_dir=str(tmp_path / "para"), use_dummy=True)
     paraphraser = PromptParaphraser(parap_cfg)
-    df = asyncio.run(paraphraser.run(Ratings, cfg, ["hello"]))
+    data = pd.DataFrame({"txt": ["hello"]})
+    df = asyncio.run(paraphraser.run(Ratings, cfg, data, text_column="txt"))
     assert set(df.prompt_variant) == {"baseline", "variant_1", "variant_2"}
 

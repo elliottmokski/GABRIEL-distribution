@@ -22,7 +22,8 @@ class BasicClassifierConfig:
     """Configuration for :class:`BasicClassifier`."""
 
     labels: Dict[str, str]  # {"label_name": "description", ...}
-    save_path: str = "classifier/basic_classifier_responses.csv"
+    save_dir: str = "classifier"
+    file_name: str = "basic_classifier_responses.csv"
     model: str = "o4-mini"
     n_parallels: int = 400
     additional_instructions: str = ""
@@ -51,10 +52,7 @@ class BasicClassifier:
             "basic_classifier_prompt.jinja2"
         )
 
-        # Ensure the directory part of *save_path* exists (if provided)
-        save_dir = os.path.dirname(cfg.save_path)
-        if save_dir:
-            os.makedirs(save_dir, exist_ok=True)
+        os.makedirs(self.cfg.save_dir, exist_ok=True)
 
     # -----------------------------------------------------------------
     # Build prompts (deduplicating identical passages)
@@ -131,20 +129,26 @@ class BasicClassifier:
     # -----------------------------------------------------------------
     async def run(
         self,
-        texts: List[str],
+        df: pd.DataFrame,
+        text_column: str,
         *,
         reset_files: bool = False,
         **kwargs: Any,
     ) -> pd.DataFrame:
-        """Classify *texts* and return a DataFrame with one column per label."""
+        """Classify texts in ``df[text_column]`` and return ``df`` with label columns."""
+
+        df_proc = df.reset_index(drop=True).copy()
+        texts = df_proc[text_column].astype(str).tolist()
 
         prompts, ids, id_to_rows = self._build(texts)
+
+        csv_path = os.path.join(self.cfg.save_dir, self.cfg.file_name)
 
         df_resp = await get_all_responses(
             prompts=prompts,
             identifiers=ids,
             n_parallels=self.cfg.n_parallels,
-            save_path=self.cfg.save_path,
+            save_path=csv_path,
             reset_files=reset_files,
             json_mode=True,
             model=self.cfg.model,
@@ -175,7 +179,6 @@ class BasicClassifier:
         print(f"[BasicClassifier] Filled {filled}/{len(parsed_master)} rows.")
 
         parsed_df = pd.DataFrame.from_dict(parsed_master, orient="index")
-        parsed_df.insert(0, "text", texts)
 
         # quick coverage report (mirrors `Ratings`)
         total = len(parsed_df)
@@ -184,11 +187,9 @@ class BasicClassifier:
             n = parsed_df[lab].notna().sum()
             print(f"{lab:<55s}: {n / total:6.2%} ({n}/{total})")
         print("=================================\n")
-        out_path = self.cfg.save_path.split(".csv")[0] + "_final.csv"
-        parsed_df.to_csv(out_path, index = False)
-        return parsed_df
 
-        print("=================================\n")
-
-        return df.join(parsed_df, how="left")
+        out_path = os.path.splitext(csv_path)[0] + "_final.csv"
+        result = df_proc.join(parsed_df, how="left")
+        result.to_csv(out_path, index=False)
+        return result
 

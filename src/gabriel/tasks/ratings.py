@@ -9,6 +9,7 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, DefaultDict, Dict, List, Optional
+import os
 
 import pandas as pd
 
@@ -25,7 +26,8 @@ class RatingsConfig:
     attributes: Dict[str, str]          # {"clarity": "description", ...}
     model: str = "o4-mini"
     n_parallels: int = 50
-    save_path: str = "ratings.csv"
+    save_dir: str = "ratings"
+    file_name: str = "ratings.csv"
     use_dummy: bool = False
     timeout: float = 60.0
     rating_scale: str = "0-100"
@@ -43,6 +45,7 @@ class Ratings:
     def __init__(self, cfg: RatingsConfig, template: PromptTemplate | None = None) -> None:
         self.cfg = cfg
         self.template = template or PromptTemplate.from_package("ratings_prompt.jinja2")
+        os.makedirs(self.cfg.save_dir, exist_ok=True)
 
     # -----------------------------------------------------------------
     # Parse raw LLM output into {attribute: float}
@@ -87,9 +90,17 @@ class Ratings:
     # Main entry point
     # -----------------------------------------------------------------
     async def run(
-        self, texts: List[str], *, debug: bool = False, reset_files: bool = False
+        self,
+        df: pd.DataFrame,
+        text_column: str,
+        *,
+        debug: bool = False,
+        reset_files: bool = False,
     ) -> pd.DataFrame:
-        """Return DataFrame with one column per attribute rating."""
+        """Return ``df`` with one column per attribute rating."""
+
+        df_proc = df.reset_index(drop=True).copy()
+        texts = df_proc[text_column].astype(str).tolist()
 
         prompts: List[str] = []
         ids: List[str] = []
@@ -114,12 +125,14 @@ class Ratings:
             )
             ids.append(sha8)
 
+        csv_path = os.path.join(self.cfg.save_dir, self.cfg.file_name)
+
         df_resp = await get_all_responses(
             prompts=prompts,
             identifiers=ids,
             n_parallels=self.cfg.n_parallels,
             model=self.cfg.model,
-            save_path=self.cfg.save_path,
+            save_path=csv_path,
             use_dummy=self.cfg.use_dummy,
             timeout=self.cfg.timeout,
             json_mode=True,
@@ -147,7 +160,7 @@ class Ratings:
             ratings_list.append({attr: parsed.get(attr) for attr in self.cfg.attributes})
 
         ratings_df = pd.DataFrame(ratings_list)
-        ratings_df.insert(0, "text", texts)
-        out_path = self.cfg.save_path.split(".csv")[0] + "_final.csv"
-        ratings_df.to_csv(out_path, index = False)
-        return ratings_df
+        out_path = os.path.splitext(csv_path)[0] + "_final.csv"
+        result = df_proc.join(ratings_df, how="left")
+        result.to_csv(out_path, index=False)
+        return result
