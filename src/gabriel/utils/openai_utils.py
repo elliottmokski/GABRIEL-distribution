@@ -1115,51 +1115,46 @@ async def get_all_responses(
                                 timeout=nonlocal_timeout,
                                 use_dummy=use_dummy,
                                 verbose=verbose,
+                                images=prompt_images.get(str(ident)) if prompt_images else None,
                                 **get_response_kwargs,
                             ),
                             timeout=nonlocal_timeout,
-                            use_dummy=use_dummy,
-                            verbose=verbose,
-                            images=prompt_images.get(str(ident)) if prompt_images else None,
-                            **get_response_kwargs,
-                        ),
-                        timeout=nonlocal_timeout,
-                    )
-                    response_times.append(t)
-                    await adjust_timeout()
-                    # Check for empty outputs.  If all returned strings are empty or whitespace,
-                    # notify the user that the safety cutoff or tier limits may have truncated the output.
-                    if resps and all((isinstance(r, str) and not r.strip()) for r in resps):
-                        if verbose:
-                            print(
-                                f"[get_all_responses] Timeout on attempt {attempt} for {ident} after {nonlocal_timeout:.1f}s. Consider increasing the 'timeout' parameter if timeouts persist."
-                            )
-                        if (
-                            dynamic_timeout
-                            and call_count > 0
-                            and timeout_errors / call_count > 0.05
-                        ):
-                            if len(response_times) >= min_samples_for_timeout:
-                                try:
-                                    sorted_times = sorted(response_times)
-                                    q95_index = max(0, int(0.95 * (len(sorted_times) - 1)))
-                                    q95 = sorted_times[q95_index]
-                                    new_t = min(
-                                        max_timeout,
-                                        max(nonlocal_timeout, timeout_factor * q95),
-                                    )
-                                except Exception:
-                                    new_t = min(
-                                        max_timeout, nonlocal_timeout * timeout_factor
-                                    )
-                            else:
-                                new_t = min(max_timeout, nonlocal_timeout * timeout_factor)
-                            if new_t > nonlocal_timeout:
-                                if verbose:
-                                    print(
-                                        f"[dynamic timeout] Increasing timeout to {new_t:.1f}s due to high timeout rate."
-                                    )
-                                nonlocal_timeout = new_t
+                        )
+                        response_times.append(t)
+                        await adjust_timeout()
+                        # Check for empty outputs.  If all returned strings are empty or whitespace,
+                        # notify the user that the safety cutoff or tier limits may have truncated the output.
+                        if resps and all((isinstance(r, str) and not r.strip()) for r in resps):
+                            if verbose:
+                                print(
+                                    f"[get_all_responses] Timeout on attempt {attempt} for {ident} after {nonlocal_timeout:.1f}s. Consider increasing the 'timeout' parameter if timeouts persist."
+                                )
+                            if (
+                                dynamic_timeout
+                                and call_count > 0
+                                and timeout_errors / call_count > 0.05
+                            ):
+                                if len(response_times) >= min_samples_for_timeout:
+                                    try:
+                                        sorted_times = sorted(response_times)
+                                        q95_index = max(0, int(0.95 * (len(sorted_times) - 1)))
+                                        q95 = sorted_times[q95_index]
+                                        new_t = min(
+                                            max_timeout,
+                                            max(nonlocal_timeout, timeout_factor * q95),
+                                        )
+                                    except Exception:
+                                        new_t = min(
+                                            max_timeout, nonlocal_timeout * timeout_factor
+                                        )
+                                else:
+                                    new_t = min(max_timeout, nonlocal_timeout * timeout_factor)
+                                if new_t > nonlocal_timeout:
+                                    if verbose:
+                                        print(
+                                            f"[dynamic timeout] Increasing timeout to {new_t:.1f}s due to high timeout rate."
+                                        )
+                                    nonlocal_timeout = new_t
                         if attempt >= max_retries:
                             results.append(
                                 {"Identifier": ident, "Response": None, "Time Taken": None}
