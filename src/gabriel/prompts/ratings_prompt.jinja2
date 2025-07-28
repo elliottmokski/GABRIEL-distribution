@@ -23,7 +23,17 @@ If no definition is provided, use your own best and most consistent definition o
 Use the following scale to rate the text:
 
 BEGIN RATING SCALE
+{% if scale %}
 {{ scale }}
+{% else %}
+All ratings are on a scale of 0 to 100, inclusive.
+A rating close to 0 means the attribute is absent or minimally manifested by the text.
+A rating close to 100 means the attribute is highly manifested by the text to an extreme degree.
+A rating close to 50 means the attribute is exhibited by the text to a moderate but not extraordinary degree.
+Be precise to the nearest integer, not vaguely rounding to the nearest multiple of 5 or 10.
+A rating of 11 captures a meaningful difference from a rating of 23; a rating of 67 captures a meaningful difference from a rating of 74, and so on.
+Robustly use every increment on the whole spectrum; do not confine yourself to a subset of the spectrum.
+{% endif %}
 END RATING SCALE
 
 It is crucial that you stick to the scale provided above. 
@@ -31,6 +41,13 @@ You must carefully consider the full range of the scale.
 You must avoid rounding. Be precise to every possible value in the scale, not just vague approximations.
 By thoroughly reading the text, you should be able to accomplish this subtle precision.
 Be willing and able to use the full range of the scale as needed.
+Do not round.
+Be willing to use to whole spectrum of the scale, not just the middle or any other small subset of the spectrum.
+First grasp the big picture on where broadly on the ratings spectrum the text falls for the attribute in question.
+Then, consider the subtleties of the text, and arrive at a precise and unrounded rating.
+Consider what each gradiation means from lowest to slightly less low to middle to higher to highest.
+This goes from not manifesting the attribute at all, to manifesting it very faintly, to exhibiting it a little less faintly, to a clearer but still modest expression of the attribute, to manifesting it clearly but moderately, to manifesting it clearly and abundantly, to manifesting it to an extreme and extraordinary degree.
+Every increment on the whole ratings spectrum matters and deserves careful consideration.
 
 Again, the attributes your are measuring in the text are: {{ attributes.keys() | shuffled }}
 In your output, you must use these attribute names verbatim, with absolutely no modification.
