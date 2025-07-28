@@ -50,8 +50,8 @@ class Ratings:
     # -----------------------------------------------------------------
     # Parse raw LLM output into {attribute: float}
     # -----------------------------------------------------------------
-    def _parse(self, raw: Any) -> Dict[str, Optional[float]]:
-        obj = safe_json(raw)
+    async def _parse(self, raw: Any) -> Dict[str, Optional[float]]:
+        obj = await safe_json(raw, use_dummy=self.cfg.use_dummy)
         out: Dict[str, Optional[float]] = {}
 
         # shape A: {"data":[{"attribute":"clarity","rating":88}, …]}
@@ -151,7 +151,7 @@ class Ratings:
         id_to_ratings: Dict[str, Dict[str, Optional[float]]] = {}
         for ident, raw in zip(df_resp.Identifier, df_resp.Response):
             main = raw[0] if isinstance(raw, list) and raw else raw
-            id_to_ratings[ident] = self._parse(main)
+            id_to_ratings[ident] = await self._parse(main)
 
         ratings_list: List[Dict[str, Optional[float]]] = []
         for passage in texts:

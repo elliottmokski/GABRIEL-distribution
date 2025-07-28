@@ -96,7 +96,7 @@ class BasicClassifier:
             out[lab] = None if not m else m.group(1).lower() == "true"
         return out
 
-    def _parse(self, resp: Any) -> Dict[str, Optional[bool]]:
+    async def _parse(self, resp: Any) -> Dict[str, Optional[bool]]:
         # unwrap common response containers (list-of-one, bytes, fenced blocks)
         if isinstance(resp, list) and len(resp) == 1:
             resp = resp[0]
@@ -107,7 +107,7 @@ class BasicClassifier:
             if m:
                 resp = m.group(1).strip()
 
-        data = safe_json(resp)
+        data = await safe_json(resp, use_dummy=self.cfg.use_dummy)
         if isinstance(data, dict):
             norm = {
                 k.strip().lower(): (
@@ -167,7 +167,7 @@ class BasicClassifier:
             if ident not in id_to_rows:
                 orphans += 1
                 continue
-            parsed = self._parse(raw)
+            parsed = await self._parse(raw)
             for row in id_to_rows[ident]:
                 parsed_master[row] = parsed
 

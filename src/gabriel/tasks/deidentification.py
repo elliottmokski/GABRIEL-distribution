@@ -108,7 +108,7 @@ class Deidentifier:
             for ident, resp in zip(batch_df["Identifier"], batch_df["Response"]):
                 gid = ident.split("_seg_")[0]
                 main = resp[0] if isinstance(resp, list) and resp else ""
-                parsed = safe_json(main)
+                parsed = await safe_json(main, use_dummy=self.cfg.use_dummy)
                 if parsed:
                     group_to_map[gid] = parsed
 

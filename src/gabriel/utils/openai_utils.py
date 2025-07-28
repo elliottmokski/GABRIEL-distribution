@@ -71,7 +71,7 @@ except Exception:
     AuthenticationError = Exception  # type: ignore
     InvalidRequestError = Exception  # type: ignore
 
-from gabriel.utils.parsing import safe_json
+from gabriel.utils.parsing import parse_json
 
 # single connection pool per process, created lazily
 client_async: Optional[openai.AsyncOpenAI] = None
@@ -441,7 +441,7 @@ def _de(x: Any) -> Any:
     """Deserialize JSON strings back to Python objects."""
     if pd.isna(x):
         return None
-    parsed = safe_json(x)
+    parsed = parse_json(x)
     return parsed if parsed else None
 
 
@@ -495,6 +495,11 @@ async def get_all_responses(
     parameter ``max_tokens`` has been renamed to ``max_output_tokens``.
     When both are provided, ``max_output_tokens`` takes precedence.
     """
+    # Disable dynamic behaviours when using dummy responses
+    if use_dummy:
+        dynamic_timeout = False
+        dynamic_rate_limit = False
+
     # Backwards compatibility for identifiers
     if identifiers is None:
         identifiers = prompts
@@ -508,8 +513,8 @@ async def get_all_responses(
     get_response_kwargs.setdefault("temperature", temperature)
     get_response_kwargs.setdefault("reasoning_effort", reasoning_effort)
     # Decide default cutoff once per job using cached rate headers
-    # Fetch rate headers once to avoid multiple API calls
-    rate_headers = _get_rate_limit_headers()
+    # Skip fetching headers when using dummy responses
+    rate_headers = None if use_dummy else _get_rate_limit_headers()
     user_cutoff = max_output_tokens if max_output_tokens is not None else max_tokens
     cutoff = _decide_default_max_output_tokens(user_cutoff, rate_headers)
     get_response_kwargs.setdefault("max_output_tokens", cutoff)
@@ -524,6 +529,16 @@ async def get_all_responses(
     # Filter prompts/identifiers based on what is already completed
     todo_pairs = [(p, i) for p, i in zip(prompts, identifiers) if i not in done]
     if not todo_pairs:
+        return df
+    # Fast path when using dummy responses
+    if use_dummy and not use_batch:
+        rows = [
+            {"Identifier": i, "Response": [f"DUMMY {p}"], "Time Taken": 0.0}
+            for p, i in todo_pairs
+        ]
+        df_new = pd.DataFrame(rows)
+        df = pd.concat([df, df_new], ignore_index=True)
+        df.to_csv(save_path, index=False)
         return df
     # Print usage summary and example prompt
     if print_example_prompt and todo_pairs:
@@ -898,7 +913,6 @@ async def get_all_responses(
                         get_response(
                             prompt,
                             n=n,
-                            max_output_tokens=cutoff,
                             timeout=nonlocal_timeout,
                             use_dummy=use_dummy,
                             verbose=verbose,

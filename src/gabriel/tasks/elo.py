@@ -379,21 +379,21 @@ class EloRater:
                     continue
 
                 # robust dict coercion
-                def _coerce_dict(raw: Any) -> Dict[str, Any]:
-                    obj = safe_json(raw)
+                async def _coerce_dict(raw: Any) -> Dict[str, Any]:
+                    obj = await safe_json(raw, use_dummy=self.cfg.use_dummy)
                     if isinstance(obj, dict):
                         return obj
                     if isinstance(obj, str):
-                        obj2 = safe_json(obj)
+                        obj2 = await safe_json(obj, use_dummy=self.cfg.use_dummy)
                         if isinstance(obj2, dict):
                             return obj2
                     if isinstance(obj, list) and obj:
-                        inner = safe_json(obj[0])
+                        inner = await safe_json(obj[0], use_dummy=self.cfg.use_dummy)
                         if isinstance(inner, dict):
                             return inner
                     return {}
 
-                safe_obj = _coerce_dict(resp)
+                safe_obj = await _coerce_dict(resp)
                 if not safe_obj:
                     continue
 
