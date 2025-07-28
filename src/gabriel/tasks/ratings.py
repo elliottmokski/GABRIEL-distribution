@@ -96,6 +96,7 @@ class Ratings:
         *,
         debug: bool = False,
         reset_files: bool = False,
+        **kwargs: Any,
     ) -> pd.DataFrame:
         """Return ``df`` with one column per attribute rating."""
 
@@ -137,6 +138,7 @@ class Ratings:
             timeout=self.cfg.timeout,
             json_mode=True,
             reset_files=reset_files,
+            **kwargs,
         )
 
         # optional debug dump
