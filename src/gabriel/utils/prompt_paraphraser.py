@@ -69,6 +69,9 @@ class PromptParaphraser:
         for idx, text in enumerate(variants, start=1):
             variant_template = PromptTemplate(text)
             cfg_variant = copy.deepcopy(task_cfg)
+            if hasattr(cfg_variant, "file_name"):
+                base, ext = os.path.splitext(cfg_variant.file_name)
+                cfg_variant.file_name = f"{base}_p{idx}{ext}"
             if hasattr(cfg_variant, "save_path"):
                 base, ext = os.path.splitext(cfg_variant.save_path)
                 cfg_variant.save_path = f"{base}_p{idx}{ext}"
