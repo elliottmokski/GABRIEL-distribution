@@ -81,12 +81,32 @@ DEFAULT_MAX_OUTPUT_TOKENS = 2500
 
 # Usage tiers with qualifications and monthly limits for printing
 TIER_INFO = [
-    {"tier": "Free", "qualification": "User must be in an allowed geography", "monthly_quota": "$100 / month"},
+    {
+        "tier": "Free",
+        "qualification": "User must be in an allowed geography",
+        "monthly_quota": "$100 / month",
+    },
     {"tier": "Tier 1", "qualification": "$5 paid", "monthly_quota": "$100 / month"},
-    {"tier": "Tier 2", "qualification": "$50 paid and 7+ days since first payment", "monthly_quota": "$500 / month"},
-    {"tier": "Tier 3", "qualification": "$100 paid and 7+ days since first payment", "monthly_quota": "$1 000 / month"},
-    {"tier": "Tier 4", "qualification": "$250 paid and 14+ days since first payment", "monthly_quota": "$5 000 / month"},
-    {"tier": "Tier 5", "qualification": "$1 000 paid and 30+ days since first payment", "monthly_quota": "$200 000 / month"},
+    {
+        "tier": "Tier 2",
+        "qualification": "$50 paid and 7+ days since first payment",
+        "monthly_quota": "$500 / month",
+    },
+    {
+        "tier": "Tier 3",
+        "qualification": "$100 paid and 7+ days since first payment",
+        "monthly_quota": "$1 000 / month",
+    },
+    {
+        "tier": "Tier 4",
+        "qualification": "$250 paid and 14+ days since first payment",
+        "monthly_quota": "$5 000 / month",
+    },
+    {
+        "tier": "Tier 5",
+        "qualification": "$1 000 paid and 30+ days since first payment",
+        "monthly_quota": "$200 000 / month",
+    },
 ]
 
 # Truncated pricing table (USD per million tokens) for a few common models
@@ -94,14 +114,29 @@ MODEL_PRICING: Dict[str, Dict[str, float]] = {
     # model family       input   cached_input   output   batch_factor
     "gpt-4.1": {"input": 2.00, "cached_input": 0.50, "output": 8.00, "batch": 0.5},
     "gpt-4.1-mini": {"input": 0.40, "cached_input": 0.10, "output": 1.60, "batch": 0.5},
-    "gpt-4.1-nano": {"input": 0.10, "cached_input": 0.025, "output": 0.40, "batch": 0.5},
+    "gpt-4.1-nano": {
+        "input": 0.10,
+        "cached_input": 0.025,
+        "output": 0.40,
+        "batch": 0.5,
+    },
     "gpt-4o": {"input": 2.50, "cached_input": 1.25, "output": 10.00, "batch": 0.5},
     "gpt-4o-mini": {"input": 0.15, "cached_input": 0.075, "output": 0.60, "batch": 0.5},
     "o3": {"input": 2.00, "cached_input": 0.50, "output": 8.00, "batch": 0.5},
     "o4-mini": {"input": 1.10, "cached_input": 0.275, "output": 4.40, "batch": 0.5},
     "o3-mini": {"input": 1.10, "cached_input": 0.55, "output": 4.40, "batch": 0.5},
-    "o3-deep-research": {"input": 10.00, "cached_input": 2.50, "output": 40.00, "batch": 0.5},
-    "o4-mini-deep-research": {"input": 2.00, "cached_input": 0.50, "output": 8.00, "batch": 0.5},
+    "o3-deep-research": {
+        "input": 10.00,
+        "cached_input": 2.50,
+        "output": 40.00,
+        "batch": 0.5,
+    },
+    "o4-mini-deep-research": {
+        "input": 2.00,
+        "cached_input": 0.50,
+        "output": 8.00,
+        "batch": 0.5,
+    },
 }
 
 
@@ -117,16 +152,25 @@ def _print_tier_explainer(verbose: bool = True) -> None:
     if not verbose:
         return
     print("\n===== Tier explainer =====")
-    print("Your organization’s ability to call the OpenAI API is governed by usage tiers.")
-    print("As you spend more on the API, you are automatically graduated to higher tiers with larger token and request limits.")
+    print(
+        "Your organization’s ability to call the OpenAI API is governed by usage tiers."
+    )
+    print(
+        "As you spend more on the API, you are automatically graduated to higher tiers with larger token and request limits."
+    )
     print("Here are the current tiers and how to qualify:")
     for tier in TIER_INFO:
-        print(f"  • {tier['tier']}: qualify by {tier['qualification']}; monthly quota {tier['monthly_quota']}")
+        print(
+            f"  • {tier['tier']}: qualify by {tier['qualification']}; monthly quota {tier['monthly_quota']}"
+        )
     print("If you are encountering rate limits or truncated outputs, consider:")
-    print("  – Checking your current spend and ensuring you have met the payment criteria for a higher tier.")
-    print("  – Adding funds or updating billing details at https://platform.openai.com/settings/organization/billing/.")
+    print(
+        "  – Checking your current spend and ensuring you have met the payment criteria for a higher tier."
+    )
+    print(
+        "  – Adding funds or updating billing details at https://platform.openai.com/settings/organization/billing/."
+    )
     print("  – Reducing the number of parallel requests or batching your workload.")
-
 
 
 def _approx_tokens(text: str) -> int:
@@ -143,7 +187,13 @@ def _lookup_model_pricing(model: str) -> Optional[Dict[str, float]]:
     return None
 
 
-def _estimate_cost(prompts: List[str], n: int, max_output_tokens: Optional[int], model: str, use_batch: bool) -> Optional[Dict[str, float]]:
+def _estimate_cost(
+    prompts: List[str],
+    n: int,
+    max_output_tokens: Optional[int],
+    model: str,
+    use_batch: bool,
+) -> Optional[Dict[str, float]]:
     """Estimate input/output tokens and cost for a set of prompts.
 
     Returns a dict with keys ``input_tokens``, ``output_tokens``, ``input_cost``, ``output_cost``, and ``total_cost``.
@@ -171,6 +221,16 @@ def _estimate_cost(prompts: List[str], n: int, max_output_tokens: Optional[int],
         "output_cost": cost_out,
         "total_cost": cost_in + cost_out,
     }
+
+
+def _require_api_key() -> str:
+    """Return the API key or raise a runtime error if missing."""
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError(
+            "OPENAI_API_KEY environment variable must be set or passed via OpenAIClient(api_key)."
+        )
+    return api_key
 
 
 def _get_rate_limit_headers() -> Optional[Dict[str, str]]:
@@ -238,7 +298,9 @@ def _print_usage_overview(
             lim_r = int(float(rl.get("limit_requests") or 0))
             rem_r = int(float(rl.get("remaining_requests") or 0))
             reset_r = rl.get("reset_requests")
-            print(f"Requests per minute: {lim_r:,} (remaining {rem_r:,}); resets in {reset_r}")
+            print(
+                f"Requests per minute: {lim_r:,} (remaining {rem_r:,}); resets in {reset_r}"
+            )
             print(f"Approx. requests per day: {lim_r * 60 * 24:,}")
         except Exception:
             pass
@@ -246,38 +308,60 @@ def _print_usage_overview(
             lim_t = int(float(rl.get("limit_tokens") or 0))
             rem_t = int(float(rl.get("remaining_tokens") or 0))
             reset_t = rl.get("reset_tokens")
-            print(f"Tokens per minute: {lim_t:,} (remaining {rem_t:,}); resets in {reset_t}")
+            print(
+                f"Tokens per minute: {lim_t:,} (remaining {rem_t:,}); resets in {reset_t}"
+            )
             words_per_min = lim_t // 2
             words_per_day = lim_t * 60 * 24 // 2
-            print(f"≈ {words_per_min:,} words per minute, ≈ {words_per_day:,} words per day")
+            print(
+                f"≈ {words_per_min:,} words per minute, ≈ {words_per_day:,} words per day"
+            )
         except Exception:
             pass
     else:
         eff_rpm = int(requests_per_minute * rate_limit_factor)
         eff_tpm = int(tokens_per_minute * rate_limit_factor)
         print(f"Requests per minute: {eff_rpm:,} (effective)")
-        print(f"Tokens per minute: {eff_tpm:,} (≈ {eff_tpm // 2:,} words); per day ≈ {(eff_tpm * 60 * 24) // 2:,} words")
+        print(
+            f"Tokens per minute: {eff_tpm:,} (≈ {eff_tpm // 2:,} words); per day ≈ {(eff_tpm * 60 * 24) // 2:,} words"
+        )
     print("\nUsage tiers:")
     for tier in TIER_INFO:
-        print(f"  • {tier['tier']}: qualifies by {tier['qualification']}; monthly quota {tier['monthly_quota']}")
+        print(
+            f"  • {tier['tier']}: qualifies by {tier['qualification']}; monthly quota {tier['monthly_quota']}"
+        )
     pricing = _lookup_model_pricing(model)
     est = _estimate_cost(prompts, n, max_output_tokens, model, use_batch)
     if pricing and est:
-        print(f"\nPricing for model '{model}': input ${pricing['input']}/1M, output ${pricing['output']}/1M")
+        print(
+            f"\nPricing for model '{model}': input ${pricing['input']}/1M, output ${pricing['output']}/1M"
+        )
         if use_batch:
             print("Batch API prices are half the synchronous rates.")
-        print(f"Estimated token usage: input {est['input_tokens']:,}, output {est['output_tokens']:,}")
-        print(f"Estimated {'batch' if use_batch else 'synchronous'} cost: ${est['total_cost']:.4f}")
+        print(
+            f"Estimated token usage: input {est['input_tokens']:,}, output {est['output_tokens']:,}"
+        )
+        print(
+            f"Estimated {'batch' if use_batch else 'synchronous'} cost: ${est['total_cost']:.4f}"
+        )
     else:
         print(f"\nPricing for model '{model}' is unavailable; cannot estimate cost.")
-    print("\nAdd funds or manage your billing here: https://platform.openai.com/settings/organization/billing/")
+    print(
+        "\nAdd funds or manage your billing here: https://platform.openai.com/settings/organization/billing/"
+    )
     if max_output_tokens is None:
-        print("\nmax_output_tokens: None (using model default – note this does not cap total tokens)")
+        print(
+            "\nmax_output_tokens: None (using model default – note this does not cap total tokens)"
+        )
     else:
-        print(f"\nmax_output_tokens: {max_output_tokens} (safety cutoff; generation will stop if this is reached)")
+        print(
+            f"\nmax_output_tokens: {max_output_tokens} (safety cutoff; generation will stop if this is reached)"
+        )
 
 
-def _decide_default_max_output_tokens(user_specified: Optional[int], rate_headers: Optional[Dict[str, str]] = None) -> Optional[int]:
+def _decide_default_max_output_tokens(
+    user_specified: Optional[int], rate_headers: Optional[Dict[str, str]] = None
+) -> Optional[int]:
     """Decide a default ``max_output_tokens`` based on current token budget.
 
     If ``user_specified`` is not ``None``, return it unchanged.  Otherwise,
@@ -335,7 +419,9 @@ def _build_params(
         )
     all_tools = list(tools) if tools else []
     if web_search:
-        all_tools.append({"type": "web_search_preview", "search_context_size": search_context_size})
+        all_tools.append(
+            {"type": "web_search_preview", "search_context_size": search_context_size}
+        )
     if all_tools:
         params["tools"] = all_tools
     if tool_choice is not None:
@@ -380,12 +466,11 @@ async def get_response(
     # Use dummy for testing without calling the API
     if use_dummy:
         return [f"DUMMY {prompt}" for _ in range(max(n, 1))], 0.0
+    _require_api_key()
     # Derive the effective cutoff
     cutoff = max_output_tokens if max_output_tokens is not None else max_tokens
     # Build system message only for non‑o series
-    system_instruction = (
-        "Please provide a helpful response to this inquiry for purposes of academic research."
-    )
+    system_instruction = "Please provide a helpful response to this inquiry for purposes of academic research."
     input_data = (
         [{"role": "user", "content": prompt}]
         if model.startswith("o")
@@ -414,7 +499,10 @@ async def get_response(
         client_async = openai.AsyncOpenAI()
     start = time.time()
     # Create parallel tasks for `n` completions
-    tasks = [client_async.responses.create(**params, timeout=timeout) for _ in range(max(n, 1))]
+    tasks = [
+        client_async.responses.create(**params, timeout=timeout)
+        for _ in range(max(n, 1))
+    ]
     try:
         raw = await asyncio.gather(*tasks)
     except asyncio.TimeoutError:
@@ -495,6 +583,8 @@ async def get_all_responses(
     parameter ``max_tokens`` has been renamed to ``max_output_tokens``.
     When both are provided, ``max_output_tokens`` takes precedence.
     """
+    if not use_dummy:
+        _require_api_key()
     # Backwards compatibility for identifiers
     if identifiers is None:
         identifiers = prompts
@@ -546,6 +636,7 @@ async def get_all_responses(
     # Batch submission path
     if use_batch:
         state_path = save_path + ".batch_state.json"
+
         # Helper to append batch rows
         def _append_results(rows: List[Dict[str, Any]]) -> None:
             nonlocal df
@@ -562,6 +653,7 @@ async def get_all_responses(
             )
             batch_df["Response"] = batch_df["Response"].apply(_de)
             df = pd.concat([df, batch_df], ignore_index=True)
+
         client = openai.AsyncOpenAI()
         # Load existing state
         if os.path.exists(state_path) and not reset_files:
@@ -571,14 +663,16 @@ async def get_all_responses(
             state = {}
         # Convert single batch format
         if state.get("batch_id"):
-            state = {"batches": [
-                {
-                    "batch_id": state["batch_id"],
-                    "input_file_id": state.get("input_file_id"),
-                    "total": None,
-                    "submitted_at": None,
-                }
-            ]}
+            state = {
+                "batches": [
+                    {
+                        "batch_id": state["batch_id"],
+                        "input_file_id": state.get("input_file_id"),
+                        "total": None,
+                        "submitted_at": None,
+                    }
+                ]
+            }
         # Cancel unfinished batches if requested
         if cancel_existing_batch and state.get("batches"):
             if verbose:
@@ -606,7 +700,10 @@ async def get_all_responses(
                     [{"role": "user", "content": prompt}]
                     if get_response_kwargs.get("model", "o4-mini").startswith("o")
                     else [
-                        {"role": "system", "content": "Please provide a helpful response to this inquiry for purposes of academic research."},
+                        {
+                            "role": "system",
+                            "content": "Please provide a helpful response to this inquiry for purposes of academic research.",
+                        },
                         {"role": "user", "content": prompt},
                     ]
                 )
@@ -619,18 +716,31 @@ async def get_all_responses(
                     tools=get_response_kwargs.get("tools"),
                     tool_choice=get_response_kwargs.get("tool_choice"),
                     web_search=get_response_kwargs.get("web_search", False),
-                    search_context_size=get_response_kwargs.get("search_context_size", "medium"),
+                    search_context_size=get_response_kwargs.get(
+                        "search_context_size", "medium"
+                    ),
                     json_mode=get_response_kwargs.get("json_mode", False),
                     expected_schema=get_response_kwargs.get("expected_schema"),
-                    reasoning_effort=get_response_kwargs.get("reasoning_effort", "medium"),
+                    reasoning_effort=get_response_kwargs.get(
+                        "reasoning_effort", "medium"
+                    ),
                 )
-                tasks.append({"custom_id": str(ident), "method": "POST", "url": "/v1/responses", "body": body})
+                tasks.append(
+                    {
+                        "custom_id": str(ident),
+                        "method": "POST",
+                        "url": "/v1/responses",
+                        "body": body,
+                    }
+                )
             if tasks:
                 batches: List[List[Dict[str, Any]]] = []
                 current_batch: List[Dict[str, Any]] = []
                 current_size = 0
                 for obj in tasks:
-                    line_bytes = len(json.dumps(obj, ensure_ascii=False).encode("utf-8")) + 1
+                    line_bytes = (
+                        len(json.dumps(obj, ensure_ascii=False).encode("utf-8")) + 1
+                    )
                     if (
                         len(current_batch) >= max_batch_requests
                         or current_size + line_bytes > max_batch_file_bytes
@@ -645,24 +755,32 @@ async def get_all_responses(
                     batches.append(current_batch)
                 state["batches"] = []
                 for batch_tasks in batches:
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl") as tmp:
+                    with tempfile.NamedTemporaryFile(
+                        delete=False, suffix=".jsonl"
+                    ) as tmp:
                         for obj in batch_tasks:
                             tmp.write(json.dumps(obj).encode("utf-8") + b"\n")
                         input_filename = tmp.name
-                    uploaded = await client.files.create(file=open(input_filename, "rb"), purpose="batch")
+                    uploaded = await client.files.create(
+                        file=open(input_filename, "rb"), purpose="batch"
+                    )
                     batch = await client.batches.create(
                         input_file_id=uploaded.id,
                         endpoint="/v1/responses",
                         completion_window=batch_completion_window,
                     )
-                    state["batches"].append({
-                        "batch_id": batch.id,
-                        "input_file_id": uploaded.id,
-                        "total": len(batch_tasks),
-                        "submitted_at": int(time.time()),
-                    })
+                    state["batches"].append(
+                        {
+                            "batch_id": batch.id,
+                            "input_file_id": uploaded.id,
+                            "total": len(batch_tasks),
+                            "submitted_at": int(time.time()),
+                        }
+                    )
                     if verbose:
-                        print(f"Submitted batch {batch.id} with {len(batch_tasks)} requests.")
+                        print(
+                            f"Submitted batch {batch.id} with {len(batch_tasks)} requests."
+                        )
                 with open(state_path, "w") as f:
                     json.dump(state, f)
         # Return immediately if not waiting for completion
@@ -689,7 +807,9 @@ async def get_all_responses(
                         file_response = await client.files.content(output_file_id)
                     except Exception as exc:
                         if verbose:
-                            print(f"Failed to download output file for batch {bid}: {exc}")
+                            print(
+                                f"Failed to download output file for batch {bid}: {exc}"
+                            )
                         unfinished_batches.remove(b)
                         continue
                     # Normalize file response to plain text
@@ -704,7 +824,11 @@ async def get_all_responses(
                             text_data = await attr() if callable(attr) else attr  # type: ignore
                         if text_data is None and hasattr(file_response, "read"):
                             content_bytes = await file_response.read()  # type: ignore
-                            text_data = content_bytes.decode("utf-8", errors="replace") if isinstance(content_bytes, bytes) else str(content_bytes)
+                            text_data = (
+                                content_bytes.decode("utf-8", errors="replace")
+                                if isinstance(content_bytes, bytes)
+                                else str(content_bytes)
+                            )
                     except Exception:
                         pass
                     if text_data is None:
@@ -718,7 +842,9 @@ async def get_all_responses(
                             err_response = await client.files.content(error_file_id)
                         except Exception as exc:
                             if verbose:
-                                print(f"Failed to download error file for batch {bid}: {exc}")
+                                print(
+                                    f"Failed to download error file for batch {bid}: {exc}"
+                                )
                             err_response = None
                         if err_response is not None:
                             err_text: Optional[str] = None
@@ -726,13 +852,19 @@ async def get_all_responses(
                                 if isinstance(err_response, str):
                                     err_text = err_response
                                 elif isinstance(err_response, bytes):
-                                    err_text = err_response.decode("utf-8", errors="replace")
+                                    err_text = err_response.decode(
+                                        "utf-8", errors="replace"
+                                    )
                                 elif hasattr(err_response, "text"):
                                     attr = getattr(err_response, "text")
                                     err_text = await attr() if callable(attr) else attr  # type: ignore
                                 if err_text is None and hasattr(err_response, "read"):
                                     content_bytes = await err_response.read()  # type: ignore
-                                    err_text = content_bytes.decode("utf-8", errors="replace") if isinstance(content_bytes, bytes) else str(content_bytes)
+                                    err_text = (
+                                        content_bytes.decode("utf-8", errors="replace")
+                                        if isinstance(content_bytes, bytes)
+                                        else str(content_bytes)
+                                    )
                             except Exception:
                                 err_text = None
                             if err_text:
@@ -752,33 +884,54 @@ async def get_all_responses(
                             continue
                         if rec.get("response") is None:
                             err = rec.get("error") or errors.get(ident)
-                            completed_rows.append({"Identifier": ident, "Response": None, "Time Taken": None, "Error": err})
+                            completed_rows.append(
+                                {
+                                    "Identifier": ident,
+                                    "Response": None,
+                                    "Time Taken": None,
+                                    "Error": err,
+                                }
+                            )
                             continue
                         resp_obj = rec["response"]
                         resp_text: Optional[str] = None
                         # Determine candidate payload
-                        candidate = resp_obj.get("body", resp_obj) if isinstance(resp_obj, dict) else None
+                        candidate = (
+                            resp_obj.get("body", resp_obj)
+                            if isinstance(resp_obj, dict)
+                            else None
+                        )
                         search_objs: List[Dict[str, Any]] = []
                         if isinstance(candidate, dict):
                             search_objs.append(candidate)
                         if isinstance(resp_obj, dict):
                             search_objs.append(resp_obj)
                         for obj in search_objs:
-                            if resp_text is None and isinstance(obj.get("output_text"), (str, bytes)):
+                            if resp_text is None and isinstance(
+                                obj.get("output_text"), (str, bytes)
+                            ):
                                 resp_text = obj["output_text"]
                                 break
-                            if resp_text is None and isinstance(obj.get("choices"), list):
+                            if resp_text is None and isinstance(
+                                obj.get("choices"), list
+                            ):
                                 choices = obj.get("choices")
                                 if choices:
                                     choice = choices[0]
                                     if isinstance(choice, dict):
-                                        msg = choice.get("message") or choice.get("delta") or {}
+                                        msg = (
+                                            choice.get("message")
+                                            or choice.get("delta")
+                                            or {}
+                                        )
                                         if isinstance(msg, dict):
                                             content = msg.get("content")
                                             if isinstance(content, str):
                                                 resp_text = content
                                                 break
-                            if resp_text is None and isinstance(obj.get("output"), list):
+                            if resp_text is None and isinstance(
+                                obj.get("output"), list
+                            ):
                                 out_list = obj.get("output")
                                 for item in out_list:
                                     if not isinstance(item, dict):
@@ -786,36 +939,57 @@ async def get_all_responses(
                                     content_list = item.get("content")
                                     if isinstance(content_list, list):
                                         for piece in content_list:
-                                            if isinstance(piece, dict) and "text" in piece:
+                                            if (
+                                                isinstance(piece, dict)
+                                                and "text" in piece
+                                            ):
                                                 txt = piece.get("text")
                                                 if isinstance(txt, str):
                                                     resp_text = txt
                                                     break
                                         if resp_text is not None:
                                             break
-                                    if resp_text is None and isinstance(item.get("text"), str):
+                                    if resp_text is None and isinstance(
+                                        item.get("text"), str
+                                    ):
                                         resp_text = item["text"]
                                         break
                                     if resp_text is not None:
                                         break
                                 if resp_text is not None:
                                     break
-                        completed_rows.append({"Identifier": ident, "Response": [resp_text], "Time Taken": None})
+                        completed_rows.append(
+                            {
+                                "Identifier": ident,
+                                "Response": [resp_text],
+                                "Time Taken": None,
+                            }
+                        )
                     unfinished_batches.remove(b)
-                    state["batches"] = [bb for bb in state.get("batches", []) if bb.get("batch_id") != bid]
+                    state["batches"] = [
+                        bb
+                        for bb in state.get("batches", [])
+                        if bb.get("batch_id") != bid
+                    ]
                     with open(state_path, "w") as f:
                         json.dump(state, f)
                 elif status in {"failed", "cancelled", "expired"}:
                     if verbose:
                         print(f"Batch {bid} finished with status {status}.")
                     unfinished_batches.remove(b)
-                    state["batches"] = [bb for bb in state.get("batches", []) if bb.get("batch_id") != bid]
+                    state["batches"] = [
+                        bb
+                        for bb in state.get("batches", [])
+                        if bb.get("batch_id") != bid
+                    ]
                     with open(state_path, "w") as f:
                         json.dump(state, f)
                 else:
                     if verbose:
                         rc = job.request_counts
-                        print(f"Batch {bid} in progress: {status}; completed {rc.completed}/{rc.total}.")
+                        print(
+                            f"Batch {bid} in progress: {status}; completed {rc.completed}/{rc.total}."
+                        )
             if unfinished_batches:
                 await asyncio.sleep(batch_poll_interval)
         # Append and return
@@ -837,6 +1011,7 @@ async def get_all_responses(
     results: List[Dict[str, Any]] = []
     processed = 0
     pbar = tqdm(total=len(todo_pairs), desc="Processing prompts")
+
     async def flush() -> None:
         nonlocal results, df
         if results:
@@ -852,6 +1027,7 @@ async def get_all_responses(
             batch_df["Response"] = batch_df["Response"].apply(_de)
             df = pd.concat([df, batch_df], ignore_index=True)
             results = []
+
     async def adjust_timeout() -> None:
         nonlocal nonlocal_timeout
         if not dynamic_timeout:
@@ -863,12 +1039,18 @@ async def get_all_responses(
             q95_index = max(0, int(0.95 * (len(sorted_times) - 1)))
             q95 = sorted_times[q95_index]
             new_timeout = min(max_timeout, max(timeout, timeout_factor * q95))
-            if new_timeout > nonlocal_timeout * 1.2 or new_timeout < nonlocal_timeout * 0.8:
+            if (
+                new_timeout > nonlocal_timeout * 1.2
+                or new_timeout < nonlocal_timeout * 0.8
+            ):
                 if verbose:
-                    print(f"[dynamic timeout] Updating timeout from {nonlocal_timeout:.1f}s to {new_timeout:.1f}s based on observed latency.")
+                    print(
+                        f"[dynamic timeout] Updating timeout from {nonlocal_timeout:.1f}s to {new_timeout:.1f}s based on observed latency."
+                    )
                 nonlocal_timeout = new_timeout
         except Exception:
             pass
+
     async def rebuild_limiters() -> None:
         nonlocal req_lim, tok_lim, current_rate_limit_factor
         current_rate_limit_factor = max(0.1, current_rate_limit_factor)
@@ -878,6 +1060,7 @@ async def get_all_responses(
             print(
                 f"[dynamic rate-limit] Adjusted rate_limit_factor to {current_rate_limit_factor:.2f}. New RPM limit: {int(requests_per_minute * current_rate_limit_factor)}, TPM limit: {int(tokens_per_minute * current_rate_limit_factor)}."
             )
+
     async def worker() -> None:
         nonlocal processed, timeout_errors, call_count, current_rate_limit_factor, nonlocal_timeout
         while True:
@@ -898,7 +1081,6 @@ async def get_all_responses(
                         get_response(
                             prompt,
                             n=n,
-                            max_output_tokens=cutoff,
                             timeout=nonlocal_timeout,
                             use_dummy=use_dummy,
                             verbose=verbose,
@@ -910,11 +1092,17 @@ async def get_all_responses(
                     await adjust_timeout()
                     # Check for empty outputs.  If all returned strings are empty or whitespace,
                     # notify the user that the safety cutoff or tier limits may have truncated the output.
-                    if resps and all((isinstance(r, str) and not r.strip()) for r in resps):
+                    if resps and all(
+                        (isinstance(r, str) and not r.strip()) for r in resps
+                    ):
                         if verbose:
-                            print(f"[get_all_responses] No visible output for {ident}. This can occur when max_output_tokens is too low or when hidden reasoning consumes the entire token budget.")
+                            print(
+                                f"[get_all_responses] No visible output for {ident}. This can occur when max_output_tokens is too low or when hidden reasoning consumes the entire token budget."
+                            )
                             _print_tier_explainer(verbose=verbose)
-                    results.append({"Identifier": ident, "Response": resps, "Time Taken": t})
+                    results.append(
+                        {"Identifier": ident, "Response": resps, "Time Taken": t}
+                    )
                     processed += 1
                     pbar.update(1)
                     if processed % save_every_x_responses == 0:
@@ -923,24 +1111,39 @@ async def get_all_responses(
                 except asyncio.TimeoutError:
                     timeout_errors += 1
                     if verbose:
-                        print(f"[get_all_responses] Timeout on attempt {attempt} for {ident} after {nonlocal_timeout:.1f}s. Consider increasing the 'timeout' parameter if timeouts persist.")
-                    if dynamic_timeout and call_count > 0 and timeout_errors / call_count > 0.05:
+                        print(
+                            f"[get_all_responses] Timeout on attempt {attempt} for {ident} after {nonlocal_timeout:.1f}s. Consider increasing the 'timeout' parameter if timeouts persist."
+                        )
+                    if (
+                        dynamic_timeout
+                        and call_count > 0
+                        and timeout_errors / call_count > 0.05
+                    ):
                         if len(response_times) >= min_samples_for_timeout:
                             try:
                                 sorted_times = sorted(response_times)
                                 q95_index = max(0, int(0.95 * (len(sorted_times) - 1)))
                                 q95 = sorted_times[q95_index]
-                                new_t = min(max_timeout, max(nonlocal_timeout, timeout_factor * q95))
+                                new_t = min(
+                                    max_timeout,
+                                    max(nonlocal_timeout, timeout_factor * q95),
+                                )
                             except Exception:
-                                new_t = min(max_timeout, nonlocal_timeout * timeout_factor)
+                                new_t = min(
+                                    max_timeout, nonlocal_timeout * timeout_factor
+                                )
                         else:
                             new_t = min(max_timeout, nonlocal_timeout * timeout_factor)
                         if new_t > nonlocal_timeout:
                             if verbose:
-                                print(f"[dynamic timeout] Increasing timeout to {new_t:.1f}s due to high timeout rate.")
+                                print(
+                                    f"[dynamic timeout] Increasing timeout to {new_t:.1f}s due to high timeout rate."
+                                )
                             nonlocal_timeout = new_t
                     if attempt >= max_retries:
-                        results.append({"Identifier": ident, "Response": None, "Time Taken": None})
+                        results.append(
+                            {"Identifier": ident, "Response": None, "Time Taken": None}
+                        )
                         processed += 1
                         pbar.update(1)
                         await flush()
@@ -950,22 +1153,33 @@ async def get_all_responses(
                     attempt += 1
                 except RateLimitError as e:
                     if verbose:
-                        print(f"[get_all_responses] Rate limit error on attempt {attempt} for {ident}: {e}")
+                        print(
+                            f"[get_all_responses] Rate limit error on attempt {attempt} for {ident}: {e}"
+                        )
                     if dynamic_rate_limit:
                         current_rate_limit_factor *= rate_limit_adjust_factor
                         await rebuild_limiters()
                     if attempt >= max_retries:
-                        results.append({"Identifier": ident, "Response": None, "Time Taken": None})
+                        results.append(
+                            {"Identifier": ident, "Response": None, "Time Taken": None}
+                        )
                         processed += 1
                         pbar.update(1)
                         await flush()
                         break
                     await asyncio.sleep(random.uniform(1, 2) * (2 ** (attempt - 1)))
                     attempt += 1
-                except (APIError, BadRequestError, AuthenticationError, InvalidRequestError) as e:
+                except (
+                    APIError,
+                    BadRequestError,
+                    AuthenticationError,
+                    InvalidRequestError,
+                ) as e:
                     if verbose:
                         print(f"[get_all_responses] API error for {ident}: {e}")
-                    results.append({"Identifier": ident, "Response": None, "Time Taken": None})
+                    results.append(
+                        {"Identifier": ident, "Response": None, "Time Taken": None}
+                    )
                     processed += 1
                     pbar.update(1)
                     await flush()
@@ -973,11 +1187,14 @@ async def get_all_responses(
                 except Exception as e:
                     if verbose:
                         print(f"[get_all_responses] Unexpected error for {ident}: {e}")
-                    results.append({"Identifier": ident, "Response": None, "Time Taken": None})
+                    results.append(
+                        {"Identifier": ident, "Response": None, "Time Taken": None}
+                    )
                     processed += 1
                     pbar.update(1)
                     await flush()
                     break
+
     # Spawn workers
     workers = [asyncio.create_task(worker()) for _ in range(n_parallels)]
     await queue.join()
