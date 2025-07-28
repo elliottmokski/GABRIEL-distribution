@@ -1,6 +1,7 @@
 """Utility helpers for GABRIEL."""
 
 from .openai_utils import get_response, get_all_responses
+from .image_utils import encode_image
 from .logging import get_logger
 from .teleprompter import Teleprompter
 from .maps import create_county_choropleth
@@ -17,4 +18,5 @@ __all__ = [
     "PromptParaphraserConfig",
     "safe_json",
     "safest_json",
+    "encode_image",
 ]

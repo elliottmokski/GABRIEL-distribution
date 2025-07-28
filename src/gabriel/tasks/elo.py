@@ -293,7 +293,15 @@ class EloRater:
         return self._pairs_adjacent(item_ids, texts_by_id, current_ratings, mpr)
 
     # ---------- main ----------
-    async def run(self, df: pd.DataFrame, text_col: str, id_col: str, *, reset_files: bool = False) -> pd.DataFrame:
+    async def run(
+        self,
+        df: pd.DataFrame,
+        text_col: str,
+        id_col: str,
+        *,
+        reset_files: bool = False,
+        **kwargs: Any,
+    ) -> pd.DataFrame:
         final_path = os.path.join(self.save_path, self.cfg.final_filename)
         if not reset_files and os.path.exists(final_path):
             return pd.read_csv(final_path)
@@ -357,6 +365,7 @@ class EloRater:
                 use_dummy=self.cfg.use_dummy,
                 timeout=self.cfg.timeout,
                 print_example_prompt=self.cfg.print_example_prompt,
+                **kwargs,
             )
 
             for ident, resp in zip(resp_df.Identifier, resp_df.Response):
