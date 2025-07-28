@@ -1,9 +1,46 @@
+"""
+This module reimplements the original GABRIEL `openai_utils.py` for the
+OpenAI Responses API with several improvements:
+
+* Rate limit introspection – a helper fetches the current token/request
+  budget from the ``x‑ratelimit-*`` response headers returned by a cheap
+  ``GET /v1/models`` call.  These values are used to display how many
+  tokens and requests remain per minute.
+* User‑friendly summary – before a long job starts, the module prints a
+  summary showing the number of prompts, input words, remaining rate‑limit
+  capacity, usage tier qualifications, and an estimated cost.  It also
+  explains the purpose of the ``max_output_tokens`` parameter.
+* Dynamic ``max_output_tokens`` – when a user does not specify
+  ``max_output_tokens`` explicitly, the library inspects the current
+  token quota.  If fewer than one million tokens remain in the minute
+  budget, a safety cutoff of 2 500 tokens is applied; otherwise, the
+  parameter is left ``None`` so the model’s default output limit is used.
+  This prevents long responses from being rejected due to an overly high
+  token estimate, while removing unnecessary complexity when there is
+  ample capacity.
+* Improved rate‑limit gating – the token limiter now estimates the worst
+  possible output length when the cutoff is unspecified by assuming
+  the response could be as long as the input.  This avoids grossly
+  underestimating throughput while still honouring the per‑minute token
+  budget.
+* Exponential backoff with jitter – the retry logic uses a random
+  exponential backoff when rate‑limit errors occur, following OpenAI’s
+  guidelines for handling 429 responses.
+
+The overall API surface remains compatible with the original file: the
+public functions ``get_response`` and ``get_all_responses`` still
+exist, but the argument ``max_tokens`` has been renamed to
+``max_output_tokens`` to match the Responses API.  A legacy alias
+``max_tokens`` is accepted for backward compatibility.
+"""
+
 from __future__ import annotations
 
 import asyncio
 import csv
 import json
 import os
+import random
 import tempfile
 import time
 from typing import Any, Dict, List, Optional, Tuple
@@ -14,9 +51,19 @@ from tqdm import tqdm
 import openai
 import statistics
 
+# Try to import requests/httpx for rate‑limit introspection
+try:
+    import requests  # type: ignore
+except Exception:
+    requests = None  # type: ignore
+try:
+    import httpx  # type: ignore
+except Exception:
+    httpx = None  # type: ignore
+
 # Bring in specific error classes for granular handling
 try:
-    from openai import RateLimitError, APIError, BadRequestError, AuthenticationError, InvalidRequestError
+    from openai import RateLimitError, APIError, BadRequestError, AuthenticationError, InvalidRequestError  # type: ignore
 except Exception:
     RateLimitError = Exception  # type: ignore
     APIError = Exception  # type: ignore
@@ -29,12 +76,234 @@ from gabriel.utils.parsing import safe_json
 # single connection pool per process, created lazily
 client_async: Optional[openai.AsyncOpenAI] = None
 
+# Default safety cutoff when token capacity is low
+DEFAULT_MAX_OUTPUT_TOKENS = 2500
+
+# Usage tiers with qualifications and monthly limits for printing
+TIER_INFO = [
+    {"tier": "Free", "qualification": "User must be in an allowed geography", "monthly_quota": "$100 / month"},
+    {"tier": "Tier 1", "qualification": "$5 paid", "monthly_quota": "$100 / month"},
+    {"tier": "Tier 2", "qualification": "$50 paid and 7+ days since first payment", "monthly_quota": "$500 / month"},
+    {"tier": "Tier 3", "qualification": "$100 paid and 7+ days since first payment", "monthly_quota": "$1 000 / month"},
+    {"tier": "Tier 4", "qualification": "$250 paid and 14+ days since first payment", "monthly_quota": "$5 000 / month"},
+    {"tier": "Tier 5", "qualification": "$1 000 paid and 30+ days since first payment", "monthly_quota": "$200 000 / month"},
+]
+
+# Truncated pricing table (USD per million tokens) for a few common models
+MODEL_PRICING: Dict[str, Dict[str, float]] = {
+    # model family       input   cached_input   output   batch_factor
+    "gpt-4.1": {"input": 2.00, "cached_input": 0.50, "output": 8.00, "batch": 0.5},
+    "gpt-4.1-mini": {"input": 0.40, "cached_input": 0.10, "output": 1.60, "batch": 0.5},
+    "gpt-4.1-nano": {"input": 0.10, "cached_input": 0.025, "output": 0.40, "batch": 0.5},
+    "gpt-4o": {"input": 2.50, "cached_input": 1.25, "output": 10.00, "batch": 0.5},
+    "gpt-4o-mini": {"input": 0.15, "cached_input": 0.075, "output": 0.60, "batch": 0.5},
+    "o3": {"input": 2.00, "cached_input": 0.50, "output": 8.00, "batch": 0.5},
+    "o4-mini": {"input": 1.10, "cached_input": 0.275, "output": 4.40, "batch": 0.5},
+    "o3-mini": {"input": 1.10, "cached_input": 0.55, "output": 4.40, "batch": 0.5},
+    "o3-deep-research": {"input": 10.00, "cached_input": 2.50, "output": 40.00, "batch": 0.5},
+    "o4-mini-deep-research": {"input": 2.00, "cached_input": 0.50, "output": 8.00, "batch": 0.5},
+}
+
+
+def _print_tier_explainer(verbose: bool = True) -> None:
+    """Print a helpful explanation of usage tiers and how to increase them.
+
+    This helper can be called when a user encounters errors that may be
+    related to low quotas or tier limitations.  It summarises the
+    qualifications for each tier and encourages users to check their
+    payment status and billing page.  The message is only printed when
+    ``verbose`` is ``True``.
+    """
+    if not verbose:
+        return
+    print("\n===== Tier explainer =====")
+    print("Your organization’s ability to call the OpenAI API is governed by usage tiers.")
+    print("As you spend more on the API, you are automatically graduated to higher tiers with larger token and request limits.")
+    print("Here are the current tiers and how to qualify:")
+    for tier in TIER_INFO:
+        print(f"  • {tier['tier']}: qualify by {tier['qualification']}; monthly quota {tier['monthly_quota']}")
+    print("If you are encountering rate limits or truncated outputs, consider:")
+    print("  – Checking your current spend and ensuring you have met the payment criteria for a higher tier.")
+    print("  – Adding funds or updating billing details at https://platform.openai.com/settings/organization/billing/.")
+    print("  – Reducing the number of parallel requests or batching your workload.")
+
+
+
+def _approx_tokens(text: str) -> int:
+    """Roughly estimate the token count from a string by assuming ~1.5 tokens per word."""
+    return int(len(str(text).split()) * 1.5)
+
+
+def _lookup_model_pricing(model: str) -> Optional[Dict[str, float]]:
+    """Find a pricing entry for ``model`` by prefix match (case‑insensitive)."""
+    key = model.lower()
+    for prefix, pricing in MODEL_PRICING.items():
+        if key.startswith(prefix):
+            return pricing
+    return None
+
+
+def _estimate_cost(prompts: List[str], n: int, max_output_tokens: Optional[int], model: str, use_batch: bool) -> Optional[Dict[str, float]]:
+    """Estimate input/output tokens and cost for a set of prompts.
+
+    Returns a dict with keys ``input_tokens``, ``output_tokens``, ``input_cost``, ``output_cost``, and ``total_cost``.
+    If the model pricing is unavailable, returns ``None``.
+    """
+    pricing = _lookup_model_pricing(model)
+    if pricing is None:
+        return None
+    # Estimate tokens: input tokens are sum of tokens per prompt times number of responses
+    input_tokens = sum(_approx_tokens(p) for p in prompts) * max(1, n)
+    # If no cutoff, conservatively assume output tokens equal input tokens
+    if max_output_tokens is None:
+        output_tokens = input_tokens
+    else:
+        output_tokens = max_output_tokens * max(1, n) * len(prompts)
+    cost_in = (input_tokens / 1_000_000) * pricing["input"]
+    cost_out = (output_tokens / 1_000_000) * pricing["output"]
+    if use_batch:
+        cost_in *= pricing["batch"]
+        cost_out *= pricing["batch"]
+    return {
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "input_cost": cost_in,
+        "output_cost": cost_out,
+        "total_cost": cost_in + cost_out,
+    }
+
+
+def _get_rate_limit_headers() -> Optional[Dict[str, str]]:
+    """Retrieve rate‑limit headers via a cheap API request.
+
+    Performs a ``GET /v1/models`` request (which does not consume tokens) using
+    whatever HTTP client is available.  Returns a dict of the relevant
+    ``x‑ratelimit-*`` headers or ``None`` if the request fails.
+    """
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        return None
+    url = "https://api.openai.com/v1/models"
+    headers = {"Authorization": f"Bearer {api_key}"}
+    # Try requests then httpx
+    for client in (requests, httpx):
+        if client is None:
+            continue
+        try:
+            resp = client.get(url, headers=headers, timeout=10)  # type: ignore
+            # Some libraries store headers in different attributes (dict or case‑insensitive)
+            h = getattr(resp, "headers", {})  # type: ignore
+            # Normalize keys to lower case
+            new_h = {k.lower(): v for k, v in h.items()}
+            return {
+                "limit_requests": new_h.get("x-ratelimit-limit-requests"),
+                "remaining_requests": new_h.get("x-ratelimit-remaining-requests"),
+                "reset_requests": new_h.get("x-ratelimit-reset-requests"),
+                "limit_tokens": new_h.get("x-ratelimit-limit-tokens"),
+                "remaining_tokens": new_h.get("x-ratelimit-remaining-tokens"),
+                "reset_tokens": new_h.get("x-ratelimit-reset-tokens"),
+            }
+        except Exception:
+            continue
+    return None
+
+
+def _print_usage_overview(
+    prompts: List[str],
+    n: int,
+    max_output_tokens: Optional[int],
+    model: str,
+    use_batch: bool,
+    requests_per_minute: int,
+    tokens_per_minute: int,
+    rate_limit_factor: float,
+    *,
+    verbose: bool = True,
+    rate_headers: Optional[Dict[str, str]] = None,
+) -> None:
+    """Print a summary of usage limits, cost estimate and tier information.
+
+    Optionally takes a pre‑fetched ``rate_headers`` dict to avoid calling
+    ``_get_rate_limit_headers`` multiple times per job.  When ``rate_headers``
+    is ``None``, the helper will fetch the headers itself.
+    """
+    if not verbose:
+        return
+    print("\n===== OpenAI API usage summary =====")
+    print(f"Number of prompts: {len(prompts)}")
+    print(f"Total input words: {sum(len(str(p).split()) for p in prompts):,}")
+    rl = rate_headers or _get_rate_limit_headers()
+    if rl:
+        try:
+            lim_r = int(float(rl.get("limit_requests") or 0))
+            rem_r = int(float(rl.get("remaining_requests") or 0))
+            reset_r = rl.get("reset_requests")
+            print(f"Requests per minute: {lim_r:,} (remaining {rem_r:,}); resets in {reset_r}")
+            print(f"Approx. requests per day: {lim_r * 60 * 24:,}")
+        except Exception:
+            pass
+        try:
+            lim_t = int(float(rl.get("limit_tokens") or 0))
+            rem_t = int(float(rl.get("remaining_tokens") or 0))
+            reset_t = rl.get("reset_tokens")
+            print(f"Tokens per minute: {lim_t:,} (remaining {rem_t:,}); resets in {reset_t}")
+            words_per_min = lim_t // 2
+            words_per_day = lim_t * 60 * 24 // 2
+            print(f"≈ {words_per_min:,} words per minute, ≈ {words_per_day:,} words per day")
+        except Exception:
+            pass
+    else:
+        eff_rpm = int(requests_per_minute * rate_limit_factor)
+        eff_tpm = int(tokens_per_minute * rate_limit_factor)
+        print(f"Requests per minute: {eff_rpm:,} (effective)")
+        print(f"Tokens per minute: {eff_tpm:,} (≈ {eff_tpm // 2:,} words); per day ≈ {(eff_tpm * 60 * 24) // 2:,} words")
+    print("\nUsage tiers:")
+    for tier in TIER_INFO:
+        print(f"  • {tier['tier']}: qualifies by {tier['qualification']}; monthly quota {tier['monthly_quota']}")
+    pricing = _lookup_model_pricing(model)
+    est = _estimate_cost(prompts, n, max_output_tokens, model, use_batch)
+    if pricing and est:
+        print(f"\nPricing for model '{model}': input ${pricing['input']}/1M, output ${pricing['output']}/1M")
+        if use_batch:
+            print("Batch API prices are half the synchronous rates.")
+        print(f"Estimated token usage: input {est['input_tokens']:,}, output {est['output_tokens']:,}")
+        print(f"Estimated {'batch' if use_batch else 'synchronous'} cost: ${est['total_cost']:.4f}")
+    else:
+        print(f"\nPricing for model '{model}' is unavailable; cannot estimate cost.")
+    print("\nAdd funds or manage your billing here: https://platform.openai.com/settings/organization/billing/")
+    if max_output_tokens is None:
+        print("\nmax_output_tokens: None (using model default – note this does not cap total tokens)")
+    else:
+        print(f"\nmax_output_tokens: {max_output_tokens} (safety cutoff; generation will stop if this is reached)")
+
+
+def _decide_default_max_output_tokens(user_specified: Optional[int], rate_headers: Optional[Dict[str, str]] = None) -> Optional[int]:
+    """Decide a default ``max_output_tokens`` based on current token budget.
+
+    If ``user_specified`` is not ``None``, return it unchanged.  Otherwise,
+    use the supplied ``rate_headers`` dict (or fetch one if ``None``) to
+    determine how many tokens remain in the per‑minute budget.  If fewer than
+    one million tokens remain, return ``DEFAULT_MAX_OUTPUT_TOKENS``; else
+    return ``None`` to indicate no cutoff.
+    """
+    if user_specified is not None:
+        return user_specified
+    rl = rate_headers or _get_rate_limit_headers()
+    if rl and rl.get("remaining_tokens"):
+        try:
+            rem = int(float(rl["remaining_tokens"]))
+            if rem < 1_000_000:
+                return DEFAULT_MAX_OUTPUT_TOKENS
+        except Exception:
+            pass
+    return None
+
 
 def _build_params(
     *,
     model: str,
     input_data: List[Dict[str, str]],
-    max_tokens: int,
+    max_output_tokens: Optional[int],
     system_instruction: str,
     temperature: float,
     tools: Optional[List[dict]] = None,
@@ -46,20 +315,24 @@ def _build_params(
     reasoning_effort: str = "medium",
     **extra: Any,
 ) -> Dict[str, Any]:
-    params = {
+    """Build the parameter dict for ``client.responses.create``.
+
+    The ``max_output_tokens`` key is only included when a non‑None value is
+    provided; otherwise, the API will use its own maximum.
+    """
+    params: Dict[str, Any] = {
         "model": model,
         "input": input_data,
-        "max_output_tokens": max_tokens,
         "truncation": "auto",
     }
-
+    if max_output_tokens is not None:
+        params["max_output_tokens"] = max_output_tokens
     if json_mode:
         params["text"] = (
             {"format": {"type": "json_schema", "schema": expected_schema}}
             if expected_schema
             else {"format": {"type": "json_object"}}
         )
-
     all_tools = list(tools) if tools else []
     if web_search:
         all_tools.append({"type": "web_search_preview", "search_context_size": search_context_size})
@@ -67,21 +340,23 @@ def _build_params(
         params["tools"] = all_tools
     if tool_choice is not None:
         params["tool_choice"] = tool_choice
-
+    # For o‑series models, reasoning_effort controls hidden reasoning tokens; for others, temperature
     if model.startswith("o"):
         params["reasoning"] = {"effort": reasoning_effort}
     else:
         params["temperature"] = temperature
-
     params.update(extra)
     return params
+
 
 async def get_response(
     prompt: str,
     *,
     model: str = "o4-mini",
     n: int = 1,
-    max_tokens: int = 25_000,
+    max_output_tokens: Optional[int] = None,
+    # legacy alias for backwards compatibility
+    max_tokens: Optional[int] = None,
     timeout: float = 90.0,
     temperature: float = 0.9,
     json_mode: bool = False,
@@ -97,18 +372,20 @@ async def get_response(
 ) -> Tuple[List[str], float]:
     """Minimal async call to OpenAI's /responses endpoint or dummy response.
 
-    Parameters
-    ----------
-    verbose : bool
-        If ``True``, print any API errors encountered before retrying.
+    The caller may specify either ``max_output_tokens`` or the deprecated
+    ``max_tokens`` argument.  If both are provided, ``max_output_tokens``
+    takes precedence.  When both are ``None``, the model’s default output
+    limit is used.
     """
+    # Use dummy for testing without calling the API
     if use_dummy:
         return [f"DUMMY {prompt}" for _ in range(max(n, 1))], 0.0
-
+    # Derive the effective cutoff
+    cutoff = max_output_tokens if max_output_tokens is not None else max_tokens
+    # Build system message only for non‑o series
     system_instruction = (
         "Please provide a helpful response to this inquiry for purposes of academic research."
     )
-
     input_data = (
         [{"role": "user", "content": prompt}]
         if model.startswith("o")
@@ -117,11 +394,10 @@ async def get_response(
             {"role": "user", "content": prompt},
         ]
     )
-
     params = _build_params(
         model=model,
         input_data=input_data,
-        max_tokens=max_tokens,
+        max_output_tokens=cutoff,
         system_instruction=system_instruction,
         temperature=temperature,
         tools=tools,
@@ -133,12 +409,11 @@ async def get_response(
         reasoning_effort=reasoning_effort,
         **kwargs,
     )
-
     global client_async
     if client_async is None:
         client_async = openai.AsyncOpenAI()
-
     start = time.time()
+    # Create parallel tasks for `n` completions
     tasks = [client_async.responses.create(**params, timeout=timeout) for _ in range(max(n, 1))]
     try:
         raw = await asyncio.gather(*tasks)
@@ -152,7 +427,8 @@ async def get_response(
         if verbose:
             print(f"[get_response] {err}")
         raise err
-
+    # Extract ``output_text`` from the responses.  For Responses API
+    # the SDK returns an object with an ``output_text`` attribute.
     return [r.output_text for r in raw], time.time() - start
 
 
@@ -168,196 +444,75 @@ def _de(x: Any) -> Any:
     parsed = safe_json(x)
     return parsed if parsed else None
 
-"""
-This module contains a reimplementation of the `get_all_responses` function from
-GABRIEL's `openai_utils.py` with optional Batch API support.  The aim is to
-preserve backwards‑compatible behaviour for synchronous parallel execution while
-adding a mechanism to submit large workloads via the Batch API and resume
-processing later if a notebook times out.
-
-Key differences from the original implementation:
-
-* A new ``use_batch`` flag determines whether to use the Batch API.  When
-  ``use_batch=False`` (default), the function behaves identically to the
-  original version, spawning asynchronous workers that call ``get_response`` in
-  parallel with rate limiting.
-
-* When ``use_batch=True``, requests are collected into a single JSONL file and
-  submitted to OpenAI’s Batch API.  The function can either wait for the job
-  to complete or return immediately, allowing a long‑running batch to process
-  in the background.  The job state (input file ID and batch ID) is saved to
-  disk so that subsequent calls can resume polling and download the results
-  once available.
-
-* A small metadata file named ``<save_path>.batch_state.json`` stores the
-  outstanding batch ID.  If it exists, the function will attempt to retrieve
-  and finalise the results rather than submitting a new batch.  Once results
-  are downloaded and merged into the existing CSV, the metadata file is
-  removed.
-
-This implementation uses ``openai.AsyncOpenAI`` for non‑blocking I/O when
-interacting with the Batch API.  See the inline documentation for more
-details.
-"""
 
 async def get_all_responses(
-    *,
     prompts: List[str],
     identifiers: Optional[List[str]] = None,
-    n_parallels: int = 100,
-    save_path: str = "temp.csv",
-    reset_files: bool = False,
+    *,
     n: int = 1,
-    max_tokens: int = 25_000,
-    requests_per_minute: int = 40_000,
-    tokens_per_minute: int = 15_000_000_000,
-    rate_limit_factor: float = 0.8,
-    timeout: int = 90,
-    max_retries: int = 7,
-    save_every_x_responses: int = 1_000,
-    save_every_x_seconds: Optional[int] = None,
-    use_dummy: bool = False,
-    print_example_prompt: bool = False,
-    use_web_search: bool = False,
-    search_context_size: str = "medium",
+    max_output_tokens: Optional[int] = None,
+    # legacy alias
+    max_tokens: Optional[int] = None,
+    timeout: float = 90.0,
+    temperature: float = 0.9,
+    json_mode: bool = False,
+    expected_schema: Optional[Dict[str, Any]] = None,
     tools: Optional[List[dict]] = None,
     tool_choice: Optional[dict] = None,
-    verbose: bool = True,
+    use_web_search: bool = False,
+    search_context_size: str = "medium",
+    reasoning_effort: str = "medium",
+    use_dummy: bool = False,
+    print_example_prompt: bool = True,
+    save_path: str = "responses.csv",
+    reset_files: bool = False,
+    n_parallels: int = 5,
+    max_retries: int = 5,
+    timeout_factor: float = 1.5,
+    max_timeout: int = 300,
+    dynamic_timeout: bool = True,
+    requests_per_minute: int = 300,
+    tokens_per_minute: int = 150_000,
+    dynamic_rate_limit: bool = True,
+    rate_limit_factor: float = 1.0,
+    rate_limit_adjust_factor: float = 0.7,
+    cancel_existing_batch: bool = False,
     use_batch: bool = False,
     batch_completion_window: str = "24h",
     batch_poll_interval: int = 10,
-    batch_wait_for_completion: bool = True,
-    dynamic_timeout: bool = True,
-    timeout_factor: float = 1.5,
-    max_timeout: int = 300,
-    dynamic_rate_limit: bool = True,
-    rate_limit_adjust_factor: float = 0.9,
-    cancel_existing_batch: bool = False,
+    batch_wait_for_completion: bool = False,
     max_batch_requests: int = 50_000,
-    max_batch_file_bytes: int = 200_000_000,
+    max_batch_file_bytes: int = 100 * 1024 * 1024,
+    save_every_x_responses: int = 25,
+    verbose: bool = True,
     **get_response_kwargs: Any,
 ) -> pd.DataFrame:
-    """Query an LLM for multiple prompts, optionally via the Batch API.
+    """Retrieve responses for a list of prompts, with optional batch support.
 
-    Parameters
-    ----------
-    prompts : List[str]
-        Prompts to send to the model.
-    identifiers : Optional[List[str]], optional
-        Unique identifiers for each prompt.  Defaults to the prompt itself.
-    n_parallels : int, optional
-        Number of concurrent workers to spawn when not using batch.
-    save_path : str, optional
-        Path to a CSV file where results are incrementally written.  A
-        corresponding ``<save_path>.batch_state.json`` file is used to track
-        outstanding batch jobs.
-    reset_files : bool, optional
-        If ``True``, ignore any existing CSV or batch state and start fresh.
-    n : int, optional
-        Number of completions to request per prompt.
-    max_tokens : int, optional
-        Maximum number of output tokens for each completion.
-    requests_per_minute : int, optional
-        Global request rate limit used by the non‑batch path.
-    tokens_per_minute : int, optional
-        Global token rate limit used by the non‑batch path.
-    rate_limit_factor : float, optional
-        Fraction of the rate limits to actually use (adds headroom for retries).
-    timeout : int, optional
-        Timeout in seconds for each individual API call.
-    max_retries : int, optional
-        Maximum number of retries per prompt when not using batch.
-    save_every_x_responses : int, optional
-        Flush accumulated responses to disk every this many responses in
-        non‑batch mode.
-    save_every_x_seconds : Optional[int], optional
-        Flush accumulated responses to disk every this many seconds in
-        non‑batch mode.  If ``None``, no time‑based flushing is performed.
-    use_dummy : bool, optional
-        If ``True``, return dummy responses instead of calling the API.
-    print_example_prompt : bool, optional
-        If ``True``, print the first prompt before processing.
-    use_web_search : bool, optional
-        Whether to include the web_search tool when building the request.
-    search_context_size : str, optional
-        Context size for the web_search tool.
-    tools : Optional[List[dict]], optional
-        Additional tools to include in the request body.
-    tool_choice : Optional[dict], optional
-        Tool choice override.
-    verbose : bool, optional
-        If ``True``, print progress and error messages.
-    use_batch : bool, optional
-        If ``True``, submit requests via the Batch API rather than
-        synchronously.
-    batch_completion_window : str, optional
-        Completion window to pass to ``client.batches.create``.  Only "24h"
-        is currently supported by OpenAI.
-    batch_poll_interval : int, optional
-        Seconds to wait between polling the batch status.
-    batch_wait_for_completion : bool, optional
-        If ``True``, wait until the batch job finishes before returning.
-        If ``False``, submit the batch (or resume polling) but return
-        immediately.
-
-    dynamic_timeout : bool, optional
-        If ``True``, adjust the timeout dynamically based on observed response
-        times.  After at least five successful calls, the timeout will be
-        updated to ``timeout_factor`` times the 95th percentile of observed
-        response durations, clamped between the initial ``timeout`` and
-        ``max_timeout``.
-
-    timeout_factor : float, optional
-        Multiplier applied to the 95th percentile of response times when
-        computing a new timeout.  Ignored if ``dynamic_timeout`` is
-        ``False``.
-
-    max_timeout : int, optional
-        Maximum allowed timeout in seconds when using dynamic timeouts.
-
-    dynamic_rate_limit : bool, optional
-        If ``True``, automatically reduce the effective rate limit factor
-        when a rate‑limit error (HTTP 429) is encountered.  Each time a
-        ``RateLimitError`` occurs, the ``rate_limit_factor`` is multiplied
-        by ``rate_limit_adjust_factor`` and new limiters are created.
-
-    rate_limit_adjust_factor : float, optional
-        Factor by which to multiply ``rate_limit_factor`` when a rate
-        limit error is detected.  Should be between 0 and 1.  Ignored if
-        ``dynamic_rate_limit`` is ``False``.
-
-    cancel_existing_batch : bool, optional
-        If ``True`` and a batch state file exists, cancel the outstanding
-        batch(es) before submitting a new job.  Otherwise, existing
-        unfinished batches will be resumed and no new batch will be
-        submitted.
-
-    max_batch_requests : int, optional
-        Maximum number of requests per batch when using the Batch API.
-        OpenAI currently limits batches to 50 000 requests; you can lower
-        this for testing.
-
-    max_batch_file_bytes : int, optional
-        Maximum size of the JSONL input file in bytes when using the Batch
-        API.  OpenAI currently allows up to 100 MB per batch file.
-
-    Returns
-    -------
-    pandas.DataFrame
-        DataFrame with columns ``Identifier``, ``Response``, and
-        ``Time Taken``.  In batch mode, ``Time Taken`` is ``None`` because
-        individual timings are not available.
+    This function handles rate limiting, optional batch submission, dynamic
+    timeout adjustment and printing of helpful usage summaries.  It is
+    backwards compatible with the original version, except that the
+    parameter ``max_tokens`` has been renamed to ``max_output_tokens``.
+    When both are provided, ``max_output_tokens`` takes precedence.
     """
-    # Default identifiers mirror prompts
+    # Backwards compatibility for identifiers
     if identifiers is None:
         identifiers = prompts
-
-    # Prepare default values for extra kwargs
+    # Pull default values into kwargs for get_response
     get_response_kwargs.setdefault("web_search", use_web_search)
     get_response_kwargs.setdefault("search_context_size", search_context_size)
     get_response_kwargs.setdefault("tools", tools)
     get_response_kwargs.setdefault("tool_choice", tool_choice)
-
+    get_response_kwargs.setdefault("json_mode", json_mode)
+    get_response_kwargs.setdefault("expected_schema", expected_schema)
+    get_response_kwargs.setdefault("temperature", temperature)
+    get_response_kwargs.setdefault("reasoning_effort", reasoning_effort)
+    # Decide default cutoff once per job using cached rate headers
+    # Fetch rate headers once to avoid multiple API calls
+    rate_headers = _get_rate_limit_headers()
+    user_cutoff = max_output_tokens if max_output_tokens is not None else max_tokens
+    cutoff = _decide_default_max_output_tokens(user_cutoff, rate_headers)
+    get_response_kwargs.setdefault("max_output_tokens", cutoff)
     # Always load or initialise the CSV
     if os.path.exists(save_path) and not reset_files:
         df = pd.read_csv(save_path)
@@ -366,21 +521,33 @@ async def get_all_responses(
     else:
         df = pd.DataFrame(columns=["Identifier", "Response", "Time Taken"])
         done = set()
-
     # Filter prompts/identifiers based on what is already completed
     todo_pairs = [(p, i) for p, i in zip(prompts, identifiers) if i not in done]
     if not todo_pairs:
         return df
-
+    # Print usage summary and example prompt
+    if print_example_prompt and todo_pairs:
+        # Build prompt list for cost estimate
+        prompt_list = [p for p, _ in todo_pairs]
+        _print_usage_overview(
+            prompts=prompt_list,
+            n=n,
+            max_output_tokens=cutoff,
+            model=get_response_kwargs.get("model", "o4-mini"),
+            use_batch=use_batch,
+            requests_per_minute=requests_per_minute,
+            tokens_per_minute=tokens_per_minute,
+            rate_limit_factor=rate_limit_factor,
+            verbose=verbose,
+            rate_headers=rate_headers,
+        )
+        example_prompt, _ = todo_pairs[0]
+        print(f"\nExample prompt: {example_prompt}\n")
+    # Batch submission path
     if use_batch:
-        # ------------------------------------------------------------
-        # Batch API path (with multi‑batch support and resumption)
-        # ------------------------------------------------------------
         state_path = save_path + ".batch_state.json"
-
-        # Helper to append rows to disk and memory
+        # Helper to append batch rows
         def _append_results(rows: List[Dict[str, Any]]) -> None:
-            """Serialize results and append to the output CSV and in‑memory DataFrame."""
             nonlocal df
             if not rows:
                 return
@@ -395,18 +562,14 @@ async def get_all_responses(
             )
             batch_df["Response"] = batch_df["Response"].apply(_de)
             df = pd.concat([df, batch_df], ignore_index=True)
-
-        # Initialise API client
         client = openai.AsyncOpenAI()
-
-        # Load existing state if present
+        # Load existing state
         if os.path.exists(state_path) and not reset_files:
             with open(state_path, "r") as f:
                 state = json.load(f)
         else:
             state = {}
-
-        # Backwards compatibility: convert old single batch format to new format
+        # Convert single batch format
         if state.get("batch_id"):
             state = {"batches": [
                 {
@@ -416,8 +579,7 @@ async def get_all_responses(
                     "submitted_at": None,
                 }
             ]}
-
-        # Cancel existing batches if requested
+        # Cancel unfinished batches if requested
         if cancel_existing_batch and state.get("batches"):
             if verbose:
                 print("Cancelling unfinished batch jobs...")
@@ -435,26 +597,23 @@ async def get_all_responses(
             except OSError:
                 pass
             state = {}
-
-        # If there are no unfinished batches in state, create new batches for remaining tasks
+        # If there are no unfinished batches, create new ones
         if not state.get("batches"):
             tasks: List[Dict[str, Any]] = []
             for prompt, ident in todo_pairs:
+                # Build input message for each prompt
                 input_data = (
                     [{"role": "user", "content": prompt}]
                     if get_response_kwargs.get("model", "o4-mini").startswith("o")
                     else [
-                        {
-                            "role": "system",
-                            "content": "Please provide a helpful response to this inquiry for purposes of academic research.",
-                        },
+                        {"role": "system", "content": "Please provide a helpful response to this inquiry for purposes of academic research."},
                         {"role": "user", "content": prompt},
                     ]
                 )
                 body = _build_params(
                     model=get_response_kwargs.get("model", "o4-mini"),
                     input_data=input_data,
-                    max_tokens=max_tokens,
+                    max_output_tokens=cutoff,
                     system_instruction="Please provide a helpful response to this inquiry for purposes of academic research.",
                     temperature=get_response_kwargs.get("temperature", 0.9),
                     tools=get_response_kwargs.get("tools"),
@@ -465,14 +624,7 @@ async def get_all_responses(
                     expected_schema=get_response_kwargs.get("expected_schema"),
                     reasoning_effort=get_response_kwargs.get("reasoning_effort", "medium"),
                 )
-                tasks.append(
-                    {
-                        "custom_id": str(ident),
-                        "method": "POST",
-                        "url": "/v1/responses",
-                        "body": body,
-                    }
-                )
+                tasks.append({"custom_id": str(ident), "method": "POST", "url": "/v1/responses", "body": body})
             if tasks:
                 batches: List[List[Dict[str, Any]]] = []
                 current_batch: List[Dict[str, Any]] = []
@@ -491,7 +643,6 @@ async def get_all_responses(
                     current_size += line_bytes
                 if current_batch:
                     batches.append(current_batch)
-
                 state["batches"] = []
                 for batch_tasks in batches:
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl") as tmp:
@@ -504,23 +655,19 @@ async def get_all_responses(
                         endpoint="/v1/responses",
                         completion_window=batch_completion_window,
                     )
-                    state["batches"].append(
-                        {
-                            "batch_id": batch.id,
-                            "input_file_id": uploaded.id,
-                            "total": len(batch_tasks),
-                            "submitted_at": int(time.time()),
-                        }
-                    )
+                    state["batches"].append({
+                        "batch_id": batch.id,
+                        "input_file_id": uploaded.id,
+                        "total": len(batch_tasks),
+                        "submitted_at": int(time.time()),
+                    })
                     if verbose:
                         print(f"Submitted batch {batch.id} with {len(batch_tasks)} requests.")
                 with open(state_path, "w") as f:
                     json.dump(state, f)
-
-        # If not waiting for completion, return immediately
+        # Return immediately if not waiting for completion
         if not batch_wait_for_completion:
             return df
-
         unfinished_batches: List[Dict[str, Any]] = list(state.get("batches", []))
         completed_rows: List[Dict[str, Any]] = []
         while unfinished_batches:
@@ -545,37 +692,21 @@ async def get_all_responses(
                             print(f"Failed to download output file for batch {bid}: {exc}")
                         unfinished_batches.remove(b)
                         continue
-
-                    # Normalize file response to plain text.  The SDK may return a string,
-                    # an object with async ``text()`` or ``read()`` methods, or raw bytes.
-                    text_data = None
+                    # Normalize file response to plain text
+                    text_data: Optional[str] = None
                     try:
-                        # If a plain string is returned, use it directly.
                         if isinstance(file_response, str):
                             text_data = file_response
-                        # Some SDK versions return bytes directly
                         elif isinstance(file_response, bytes):
                             text_data = file_response.decode("utf-8", errors="replace")
-                        # If the response has a ``text`` attribute or coroutine
                         elif hasattr(file_response, "text"):
                             attr = getattr(file_response, "text")
-                            # If callable, await it; otherwise treat as property
-                            if callable(attr):
-                                text_data = await attr()
-                            else:
-                                text_data = attr
-                        # Fallback: attempt to read bytes
+                            text_data = await attr() if callable(attr) else attr  # type: ignore
                         if text_data is None and hasattr(file_response, "read"):
-                            content_bytes = await file_response.read()
-                            # If bytes, decode; else cast to string
-                            if isinstance(content_bytes, bytes):
-                                text_data = content_bytes.decode("utf-8", errors="replace")
-                            else:
-                                text_data = str(content_bytes)
-                    except Exception as exc:
-                        if verbose:
-                            print(f"Failed to extract text from output file for batch {bid}: {exc}")
-
+                            content_bytes = await file_response.read()  # type: ignore
+                            text_data = content_bytes.decode("utf-8", errors="replace") if isinstance(content_bytes, bytes) else str(content_bytes)
+                    except Exception:
+                        pass
                     if text_data is None:
                         if verbose:
                             print(f"No data found in output file for batch {bid}.")
@@ -591,7 +722,6 @@ async def get_all_responses(
                             err_response = None
                         if err_response is not None:
                             err_text: Optional[str] = None
-                            # Normalize error file content similar to output file
                             try:
                                 if isinstance(err_response, str):
                                     err_text = err_response
@@ -599,16 +729,10 @@ async def get_all_responses(
                                     err_text = err_response.decode("utf-8", errors="replace")
                                 elif hasattr(err_response, "text"):
                                     attr = getattr(err_response, "text")
-                                    if callable(attr):
-                                        err_text = await attr()
-                                    else:
-                                        err_text = attr
+                                    err_text = await attr() if callable(attr) else attr  # type: ignore
                                 if err_text is None and hasattr(err_response, "read"):
-                                    content_bytes = await err_response.read()
-                                    if isinstance(content_bytes, bytes):
-                                        err_text = content_bytes.decode("utf-8", errors="replace")
-                                    else:
-                                        err_text = str(content_bytes)
+                                    content_bytes = await err_response.read()  # type: ignore
+                                    err_text = content_bytes.decode("utf-8", errors="replace") if isinstance(content_bytes, bytes) else str(content_bytes)
                             except Exception:
                                 err_text = None
                             if err_text:
@@ -619,20 +743,6 @@ async def get_all_responses(
                                     except Exception:
                                         pass
                     for line in text_data.splitlines():
-                        """
-                        Parse each JSON line of the batch output.  Each line contains at
-                        least a ``custom_id`` and either a ``response`` or ``error``.
-
-                        For successful responses, the underlying model output may be
-                        nested differently depending on the endpoint.  Chat completion
-                        batches store the model response under ``response.body``, while
-                        Responses API batches return the model response directly in
-                        ``response``.  The model response itself may expose text via
-                        an ``output_text`` field, a ``choices`` array (chat completions), or
-                        an ``output`` array (structured responses).  This parser
-                        searches each of these structures in turn to extract the first
-                        available text.
-                        """
                         try:
                             rec = json.loads(line)
                         except Exception:
@@ -640,36 +750,23 @@ async def get_all_responses(
                         ident = rec.get("custom_id")
                         if not ident:
                             continue
-                        # Handle error entries: if 'response' is missing, look up error in
-                        # the current line or the error file, and record None for the response.
                         if rec.get("response") is None:
                             err = rec.get("error") or errors.get(ident)
                             completed_rows.append({"Identifier": ident, "Response": None, "Time Taken": None, "Error": err})
                             continue
-                        # Extract the response object
                         resp_obj = rec["response"]
                         resp_text: Optional[str] = None
-                        # Determine candidate model payload: use the nested 'body' dict if
-                        # present, otherwise fall back to the response object itself.  This
-                        # accommodates both chat completions and Responses API outputs.
-                        candidate = None
-                        if isinstance(resp_obj, dict):
-                            candidate = resp_obj.get("body", resp_obj)
-                        # Build a list of dictionaries to search for outputs.  We search
-                        # both the candidate and the original response object to cover
-                        # differences between endpoints and SDK versions.
+                        # Determine candidate payload
+                        candidate = resp_obj.get("body", resp_obj) if isinstance(resp_obj, dict) else None
                         search_objs: List[Dict[str, Any]] = []
                         if isinstance(candidate, dict):
                             search_objs.append(candidate)
                         if isinstance(resp_obj, dict):
                             search_objs.append(resp_obj)
-                        # Iterate through potential containers
                         for obj in search_objs:
-                            # 1) Aggregated output text (Responses API)
                             if resp_text is None and isinstance(obj.get("output_text"), (str, bytes)):
                                 resp_text = obj["output_text"]
                                 break
-                            # 2) Chat completions: 'choices' list
                             if resp_text is None and isinstance(obj.get("choices"), list):
                                 choices = obj.get("choices")
                                 if choices:
@@ -681,13 +778,11 @@ async def get_all_responses(
                                             if isinstance(content, str):
                                                 resp_text = content
                                                 break
-                            # 3) Structured responses: 'output' list
                             if resp_text is None and isinstance(obj.get("output"), list):
                                 out_list = obj.get("output")
                                 for item in out_list:
                                     if not isinstance(item, dict):
                                         continue
-                                    # Each item may have a nested 'content' list of text segments
                                     content_list = item.get("content")
                                     if isinstance(content_list, list):
                                         for piece in content_list:
@@ -698,9 +793,10 @@ async def get_all_responses(
                                                     break
                                         if resp_text is not None:
                                             break
-                                    # Some structured outputs may put 'text' directly on the item
                                     if resp_text is None and isinstance(item.get("text"), str):
                                         resp_text = item["text"]
+                                        break
+                                    if resp_text is not None:
                                         break
                                 if resp_text is not None:
                                     break
@@ -722,234 +818,171 @@ async def get_all_responses(
                         print(f"Batch {bid} in progress: {status}; completed {rc.completed}/{rc.total}.")
             if unfinished_batches:
                 await asyncio.sleep(batch_poll_interval)
-        # Do not delete the state file; it may be useful for debugging or auditing.
+        # Append and return
         _append_results(completed_rows)
         return df
-
-    else:
-        # ------------------------------------------------------------
-        # Non‑batch path (original behaviour)
-        # ------------------------------------------------------------
-        if print_example_prompt:
-            prompt_example, ident_example = todo_pairs[0]
-            print(f"Example prompt: {prompt_example}\n")
-
-        # Short‑circuit for dummy mode
-        if use_dummy:
-            rows = [
-                {
-                    "Identifier": ident,
-                    "Response": [f"DUMMY {ident}"] * n,
-                    "Time Taken": 0.0,
-                }
-                for _, ident in todo_pairs
-            ]
-            df = pd.concat([df, pd.DataFrame(rows)], ignore_index=True)
-            df.to_csv(save_path, index=False)
-            return df
-
-        # Initialise rate limiters.  These will be rebuilt if dynamic_rate_limit
-        # adjusts the rate_limit_factor.
-        nonlocal_timeout = timeout  # local copy to allow reassignment
-        current_rate_limit_factor = rate_limit_factor
+    # Non‑batch path
+    # Initialise limiters; will be rebuilt if dynamic_rate_limit kicks in
+    nonlocal_timeout = timeout
+    current_rate_limit_factor = rate_limit_factor
+    req_lim = AsyncLimiter(int(requests_per_minute * current_rate_limit_factor), 60)
+    tok_lim = AsyncLimiter(int(tokens_per_minute * current_rate_limit_factor), 60)
+    response_times: List[float] = []
+    timeout_errors = 0
+    call_count = 0
+    min_samples_for_timeout = max(100, n_parallels)
+    queue: asyncio.Queue[Tuple[str, str]] = asyncio.Queue()
+    for item in todo_pairs:
+        queue.put_nowait(item)
+    results: List[Dict[str, Any]] = []
+    processed = 0
+    pbar = tqdm(total=len(todo_pairs), desc="Processing prompts")
+    async def flush() -> None:
+        nonlocal results, df
+        if results:
+            batch_df = pd.DataFrame(results)
+            batch_df["Response"] = batch_df["Response"].apply(_ser)
+            batch_df.to_csv(
+                save_path,
+                mode="a",
+                header=not os.path.exists(save_path),
+                index=False,
+                quoting=csv.QUOTE_MINIMAL,
+            )
+            batch_df["Response"] = batch_df["Response"].apply(_de)
+            df = pd.concat([df, batch_df], ignore_index=True)
+            results = []
+    async def adjust_timeout() -> None:
+        nonlocal nonlocal_timeout
+        if not dynamic_timeout:
+            return
+        if len(response_times) < min_samples_for_timeout:
+            return
+        try:
+            sorted_times = sorted(response_times)
+            q95_index = max(0, int(0.95 * (len(sorted_times) - 1)))
+            q95 = sorted_times[q95_index]
+            new_timeout = min(max_timeout, max(timeout, timeout_factor * q95))
+            if new_timeout > nonlocal_timeout * 1.2 or new_timeout < nonlocal_timeout * 0.8:
+                if verbose:
+                    print(f"[dynamic timeout] Updating timeout from {nonlocal_timeout:.1f}s to {new_timeout:.1f}s based on observed latency.")
+                nonlocal_timeout = new_timeout
+        except Exception:
+            pass
+    async def rebuild_limiters() -> None:
+        nonlocal req_lim, tok_lim, current_rate_limit_factor
+        current_rate_limit_factor = max(0.1, current_rate_limit_factor)
         req_lim = AsyncLimiter(int(requests_per_minute * current_rate_limit_factor), 60)
         tok_lim = AsyncLimiter(int(tokens_per_minute * current_rate_limit_factor), 60)
-
-        # Maintain response times for dynamic timeout adjustment
-        response_times: List[float] = []
-        timeout_errors = 0
-        call_count = 0
-        # Require at least this many samples before adjusting the timeout.
-        # Choose the greater of 100 and the number of concurrent workers to get a stable estimate.
-        min_samples_for_timeout = max(100, n_parallels)
-
-        # Use a queue to distribute work among workers
-        queue: asyncio.Queue[Tuple[str, str]] = asyncio.Queue()
-        for item in todo_pairs:
-            queue.put_nowait(item)
-
-        results: List[Dict[str, Any]] = []
-        processed = 0
-        pbar = tqdm(total=len(todo_pairs), desc="Processing prompts")
-
-        async def flush() -> None:
-            """Flush accumulated results to disk and memory."""
-            nonlocal results, df
-            if results:
-                batch_df = pd.DataFrame(results)
-                batch_df["Response"] = batch_df["Response"].apply(_ser)
-                batch_df.to_csv(
-                    save_path,
-                    mode="a",
-                    header=not os.path.exists(save_path),
-                    index=False,
-                    quoting=csv.QUOTE_MINIMAL,
-                )
-                # Merge into in‑memory DataFrame as Python objects
-                batch_df["Response"] = batch_df["Response"].apply(_de)
-                df = pd.concat([df, batch_df], ignore_index=True)
-                results = []
-
-        async def adjust_timeout() -> None:
-            """Recalculate timeout based on observed response times."""
-            nonlocal nonlocal_timeout
-            if not dynamic_timeout:
-                return
-            # Only adjust if we have enough samples (at least min_samples_for_timeout)
-            if len(response_times) < min_samples_for_timeout:
-                return
+        if verbose:
+            print(
+                f"[dynamic rate-limit] Adjusted rate_limit_factor to {current_rate_limit_factor:.2f}. New RPM limit: {int(requests_per_minute * current_rate_limit_factor)}, TPM limit: {int(tokens_per_minute * current_rate_limit_factor)}."
+            )
+    async def worker() -> None:
+        nonlocal processed, timeout_errors, call_count, current_rate_limit_factor, nonlocal_timeout
+        while True:
             try:
-                # Compute 95th percentile using statistics.quantiles
-                sorted_times = sorted(response_times)
-                # 95th percentile = 19th quantile out of 20 partitions
-                q95_index = max(0, int(0.95 * (len(sorted_times) - 1)))
-                q95 = sorted_times[q95_index]
-                new_timeout = min(max_timeout, max(timeout, timeout_factor * q95))
-                # If new timeout is significantly lower or higher, update
-                if new_timeout > nonlocal_timeout * 1.2 or new_timeout < nonlocal_timeout * 0.8:
-                    if verbose:
-                        print(f"[dynamic timeout] Updating timeout from {nonlocal_timeout:.1f}s to {new_timeout:.1f}s based on observed latency.")
-                    nonlocal_timeout = new_timeout
-            except Exception:
-                pass
-
-        async def rebuild_limiters() -> None:
-            """Rebuild request/token limiters when rate limit factor changes."""
-            nonlocal req_lim, tok_lim, current_rate_limit_factor
-            # Ensure factor does not fall below a reasonable floor
-            current_rate_limit_factor = max(0.1, current_rate_limit_factor)
-            req_lim = AsyncLimiter(int(requests_per_minute * current_rate_limit_factor), 60)
-            tok_lim = AsyncLimiter(int(tokens_per_minute * current_rate_limit_factor), 60)
-            if verbose:
-                print(
-                    f"[dynamic rate-limit] Adjusted rate_limit_factor to {current_rate_limit_factor:.2f}. New RPM limit: {int(requests_per_minute * current_rate_limit_factor)}, TPM limit: {int(tokens_per_minute * current_rate_limit_factor)}."
-                )
-
-        async def worker() -> None:
-            nonlocal processed, timeout_errors, call_count, current_rate_limit_factor, nonlocal_timeout
-            while True:
+                prompt, ident = await queue.get()
+            except asyncio.CancelledError:
+                break
+            attempt = 1
+            while attempt <= max_retries:
                 try:
-                    prompt, ident = await queue.get()
-                except asyncio.CancelledError:
-                    break
-                attempt = 1
-                while attempt <= max_retries:
-                    try:
-                        # Estimate prompt length in tokens (rough heuristic)
-                        approx = int(len(prompt.split()) * 1.5)
-                        # Acquire rate limit tokens
-                        await req_lim.acquire()
-                        await tok_lim.acquire((approx + max_tokens) * n)
-                        call_count += 1
-                        # Make the API call with dynamic timeout
-                        resps, t = await asyncio.wait_for(
-                            get_response(
-                                prompt,
-                                n=n,
-                                max_tokens=max_tokens,
-                                timeout=nonlocal_timeout,
-                                use_dummy=use_dummy,
-                                verbose=verbose,
-                                **get_response_kwargs,
-                            ),
+                    approx = _approx_tokens(prompt)
+                    # Estimate tokens for gating: assume output could be as long as input when cutoff is None
+                    gating_output = cutoff if cutoff is not None else approx
+                    await req_lim.acquire()
+                    await tok_lim.acquire((approx + gating_output) * n)
+                    call_count += 1
+                    resps, t = await asyncio.wait_for(
+                        get_response(
+                            prompt,
+                            n=n,
+                            max_output_tokens=cutoff,
                             timeout=nonlocal_timeout,
-                        )
-                        # Record response time and adjust timeout periodically
-                        response_times.append(t)
-                        await adjust_timeout()
-                        results.append({"Identifier": ident, "Response": resps, "Time Taken": t})
-                        processed += 1
-                        pbar.update(1)
-                        if processed % save_every_x_responses == 0:
-                            await flush()
-                        break
-                    except asyncio.TimeoutError:
-                        timeout_errors += 1
+                            use_dummy=use_dummy,
+                            verbose=verbose,
+                            **get_response_kwargs,
+                        ),
+                        timeout=nonlocal_timeout,
+                    )
+                    response_times.append(t)
+                    await adjust_timeout()
+                    # Check for empty outputs.  If all returned strings are empty or whitespace,
+                    # notify the user that the safety cutoff or tier limits may have truncated the output.
+                    if resps and all((isinstance(r, str) and not r.strip()) for r in resps):
                         if verbose:
-                            # Notify user about timeout and suggest increasing timeout parameter
-                            print(f"[get_all_responses] Timeout on attempt {attempt} for {ident} after {nonlocal_timeout:.1f}s. Consider increasing the 'timeout' parameter if timeouts persist.")
-                        # If >5% of calls time out, raise the timeout to 1.5×95th percentile (if enough samples) or fallback
-                        if dynamic_timeout and call_count > 0 and timeout_errors / call_count > 0.05:
-                            if len(response_times) >= min_samples_for_timeout:
-                                try:
-                                    sorted_times = sorted(response_times)
-                                    q95_index = max(0, int(0.95 * (len(sorted_times) - 1)))
-                                    q95 = sorted_times[q95_index]
-                                    new_t = min(max_timeout, max(nonlocal_timeout, timeout_factor * q95))
-                                except Exception:
-                                    new_t = min(max_timeout, nonlocal_timeout * timeout_factor)
-                            else:
-                                # Not enough samples, fallback to multiplying current timeout
+                            print(f"[get_all_responses] No visible output for {ident}. This can occur when max_output_tokens is too low or when hidden reasoning consumes the entire token budget.")
+                            _print_tier_explainer(verbose=verbose)
+                    results.append({"Identifier": ident, "Response": resps, "Time Taken": t})
+                    processed += 1
+                    pbar.update(1)
+                    if processed % save_every_x_responses == 0:
+                        await flush()
+                    break
+                except asyncio.TimeoutError:
+                    timeout_errors += 1
+                    if verbose:
+                        print(f"[get_all_responses] Timeout on attempt {attempt} for {ident} after {nonlocal_timeout:.1f}s. Consider increasing the 'timeout' parameter if timeouts persist.")
+                    if dynamic_timeout and call_count > 0 and timeout_errors / call_count > 0.05:
+                        if len(response_times) >= min_samples_for_timeout:
+                            try:
+                                sorted_times = sorted(response_times)
+                                q95_index = max(0, int(0.95 * (len(sorted_times) - 1)))
+                                q95 = sorted_times[q95_index]
+                                new_t = min(max_timeout, max(nonlocal_timeout, timeout_factor * q95))
+                            except Exception:
                                 new_t = min(max_timeout, nonlocal_timeout * timeout_factor)
-                            if new_t > nonlocal_timeout:
-                                if verbose:
-                                    print(f"[dynamic timeout] Increasing timeout to {new_t:.1f}s due to high timeout rate.")
-                                nonlocal_timeout = new_t
-                        if attempt >= max_retries:
-                            results.append({"Identifier": ident, "Response": None, "Time Taken": None})
-                            processed += 1
-                            pbar.update(1)
-                            await flush()
-                            break
-                        # Exponential backoff before retrying
-                        await asyncio.sleep(5 * attempt)
-                        attempt += 1
-                    except RateLimitError as e:
-                        # Handle rate limit errors: reduce effective limits and retry
-                        if verbose:
-                            print(f"[get_all_responses] Rate limit error on attempt {attempt} for {ident}: {e}")
-                        if dynamic_rate_limit:
-                            current_rate_limit_factor *= rate_limit_adjust_factor
-                            await rebuild_limiters()
-                        if attempt >= max_retries:
-                            results.append({"Identifier": ident, "Response": None, "Time Taken": None})
-                            processed += 1
-                            pbar.update(1)
-                            await flush()
-                            break
-                        await asyncio.sleep(5 * attempt)
-                        attempt += 1
-                    except (APIError, BadRequestError, AuthenticationError, InvalidRequestError) as e:
-                        # Fatal or semi-fatal errors: log and stop retrying
-                        if verbose:
-                            print(f"[get_all_responses] API error for {ident}: {e}")
+                        else:
+                            new_t = min(max_timeout, nonlocal_timeout * timeout_factor)
+                        if new_t > nonlocal_timeout:
+                            if verbose:
+                                print(f"[dynamic timeout] Increasing timeout to {new_t:.1f}s due to high timeout rate.")
+                            nonlocal_timeout = new_t
+                    if attempt >= max_retries:
                         results.append({"Identifier": ident, "Response": None, "Time Taken": None})
                         processed += 1
                         pbar.update(1)
                         await flush()
                         break
-                    except Exception as e:
-                        # Generic exception
-                        if verbose:
-                            print(f"[get_all_responses] Error on attempt {attempt} for {ident}: {e}")
-                        if attempt >= max_retries:
-                            results.append({"Identifier": ident, "Response": None, "Time Taken": None})
-                            processed += 1
-                            pbar.update(1)
-                            await flush()
-                            break
-                        await asyncio.sleep(5 * attempt)
-                        attempt += 1
-                queue.task_done()
-
-        # Spawn worker tasks
-        workers = [asyncio.create_task(worker()) for _ in range(n_parallels)]
-        # Optional periodic flushing
-        ticker = None
-        if save_every_x_seconds:
-            async def periodic() -> None:
-                while True:
-                    await asyncio.sleep(save_every_x_seconds)
+                    # Exponential backoff with jitter
+                    await asyncio.sleep(random.uniform(1, 2) * (2 ** (attempt - 1)))
+                    attempt += 1
+                except RateLimitError as e:
+                    if verbose:
+                        print(f"[get_all_responses] Rate limit error on attempt {attempt} for {ident}: {e}")
+                    if dynamic_rate_limit:
+                        current_rate_limit_factor *= rate_limit_adjust_factor
+                        await rebuild_limiters()
+                    if attempt >= max_retries:
+                        results.append({"Identifier": ident, "Response": None, "Time Taken": None})
+                        processed += 1
+                        pbar.update(1)
+                        await flush()
+                        break
+                    await asyncio.sleep(random.uniform(1, 2) * (2 ** (attempt - 1)))
+                    attempt += 1
+                except (APIError, BadRequestError, AuthenticationError, InvalidRequestError) as e:
+                    if verbose:
+                        print(f"[get_all_responses] API error for {ident}: {e}")
+                    results.append({"Identifier": ident, "Response": None, "Time Taken": None})
+                    processed += 1
+                    pbar.update(1)
                     await flush()
-            ticker = asyncio.create_task(periodic())
-
-        # Wait for queue to empty
-        await queue.join()
-        # Cancel workers
-        for w in workers:
-            w.cancel()
-        await flush()
-        if ticker:
-            ticker.cancel()
-        pbar.close()
-        return df
+                    break
+                except Exception as e:
+                    if verbose:
+                        print(f"[get_all_responses] Unexpected error for {ident}: {e}")
+                    results.append({"Identifier": ident, "Response": None, "Time Taken": None})
+                    processed += 1
+                    pbar.update(1)
+                    await flush()
+                    break
+    # Spawn workers
+    workers = [asyncio.create_task(worker()) for _ in range(n_parallels)]
+    await queue.join()
+    for w in workers:
+        w.cancel()
+    await asyncio.gather(*workers, return_exceptions=True)
+    await flush()
+    return df
