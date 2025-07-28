@@ -1068,79 +1068,116 @@ async def get_all_responses(
                 prompt, ident = await queue.get()
             except asyncio.CancelledError:
                 break
-            attempt = 1
-            while attempt <= max_retries:
-                try:
-                    approx = _approx_tokens(prompt)
-                    # Estimate tokens for gating: assume output could be as long as input when cutoff is None
-                    gating_output = cutoff if cutoff is not None else approx
-                    await req_lim.acquire()
-                    await tok_lim.acquire((approx + gating_output) * n)
-                    call_count += 1
-                    resps, t = await asyncio.wait_for(
-                        get_response(
-                            prompt,
-                            n=n,
+            try:
+                attempt = 1
+                while attempt <= max_retries:
+                    try:
+                        approx = _approx_tokens(prompt)
+                        # Estimate tokens for gating: assume output could be as long as input when cutoff is None
+                        gating_output = cutoff if cutoff is not None else approx
+                        await req_lim.acquire()
+                        await tok_lim.acquire((approx + gating_output) * n)
+                        call_count += 1
+                        resps, t = await asyncio.wait_for(
+                            get_response(
+                                prompt,
+                                n=n,
+                                timeout=nonlocal_timeout,
+                                use_dummy=use_dummy,
+                                verbose=verbose,
+                                **get_response_kwargs,
+                            ),
                             timeout=nonlocal_timeout,
-                            use_dummy=use_dummy,
-                            verbose=verbose,
-                            **get_response_kwargs,
-                        ),
-                        timeout=nonlocal_timeout,
-                    )
-                    response_times.append(t)
-                    await adjust_timeout()
-                    # Check for empty outputs.  If all returned strings are empty or whitespace,
-                    # notify the user that the safety cutoff or tier limits may have truncated the output.
-                    if resps and all(
-                        (isinstance(r, str) and not r.strip()) for r in resps
-                    ):
-                        if verbose:
-                            print(
-                                f"[get_all_responses] No visible output for {ident}. This can occur when max_output_tokens is too low or when hidden reasoning consumes the entire token budget."
-                            )
-                            _print_tier_explainer(verbose=verbose)
-                    results.append(
-                        {"Identifier": ident, "Response": resps, "Time Taken": t}
-                    )
-                    processed += 1
-                    pbar.update(1)
-                    if processed % save_every_x_responses == 0:
-                        await flush()
-                    break
-                except asyncio.TimeoutError:
-                    timeout_errors += 1
-                    if verbose:
-                        print(
-                            f"[get_all_responses] Timeout on attempt {attempt} for {ident} after {nonlocal_timeout:.1f}s. Consider increasing the 'timeout' parameter if timeouts persist."
                         )
-                    if (
-                        dynamic_timeout
-                        and call_count > 0
-                        and timeout_errors / call_count > 0.05
-                    ):
-                        if len(response_times) >= min_samples_for_timeout:
-                            try:
-                                sorted_times = sorted(response_times)
-                                q95_index = max(0, int(0.95 * (len(sorted_times) - 1)))
-                                q95 = sorted_times[q95_index]
-                                new_t = min(
-                                    max_timeout,
-                                    max(nonlocal_timeout, timeout_factor * q95),
-                                )
-                            except Exception:
-                                new_t = min(
-                                    max_timeout, nonlocal_timeout * timeout_factor
-                                )
-                        else:
-                            new_t = min(max_timeout, nonlocal_timeout * timeout_factor)
-                        if new_t > nonlocal_timeout:
+                        response_times.append(t)
+                        await adjust_timeout()
+                        # Check for empty outputs.  If all returned strings are empty or whitespace,
+                        # notify the user that the safety cutoff or tier limits may have truncated the output.
+                        if resps and all(
+                            (isinstance(r, str) and not r.strip()) for r in resps
+                        ):
                             if verbose:
                                 print(
-                                    f"[dynamic timeout] Increasing timeout to {new_t:.1f}s due to high timeout rate."
+                                    f"[get_all_responses] No visible output for {ident}. This can occur when max_output_tokens is too low or when hidden reasoning consumes the entire token budget."
                                 )
-                            nonlocal_timeout = new_t
-                    if attempt >= max_retries:
+                                _print_tier_explainer(verbose=verbose)
+                        results.append(
+                            {"Identifier": ident, "Response": resps, "Time Taken": t}
+                        )
+                        processed += 1
+                        pbar.update(1)
+                        if processed % save_every_x_responses == 0:
+                            await flush()
+                        break
+                    except asyncio.TimeoutError:
+                        timeout_errors += 1
+                        if verbose:
+                            print(
+                                f"[get_all_responses] Timeout on attempt {attempt} for {ident} after {nonlocal_timeout:.1f}s. Consider increasing the 'timeout' parameter if timeouts persist."
+                            )
+                        if (
+                            dynamic_timeout
+                            and call_count > 0
+                            and timeout_errors / call_count > 0.05
+                        ):
+                            if len(response_times) >= min_samples_for_timeout:
+                                try:
+                                    sorted_times = sorted(response_times)
+                                    q95_index = max(0, int(0.95 * (len(sorted_times) - 1)))
+                                    q95 = sorted_times[q95_index]
+                                    new_t = min(
+                                        max_timeout,
+                                        max(nonlocal_timeout, timeout_factor * q95),
+                                    )
+                                except Exception:
+                                    new_t = min(
+                                        max_timeout, nonlocal_timeout * timeout_factor
+                                    )
+                            else:
+                                new_t = min(max_timeout, nonlocal_timeout * timeout_factor)
+                            if new_t > nonlocal_timeout:
+                                if verbose:
+                                    print(
+                                        f"[dynamic timeout] Increasing timeout to {new_t:.1f}s due to high timeout rate."
+                                    )
+                                nonlocal_timeout = new_t
+                        if attempt >= max_retries:
+                            results.append(
+                                {"Identifier": ident, "Response": None, "Time Taken": None}
+                            )
+                            processed += 1
+                            pbar.update(1)
+                            await flush()
+                            break
+                        # Exponential backoff with jitter
+                        await asyncio.sleep(random.uniform(1, 2) * (2 ** (attempt - 1)))
+                        attempt += 1
+                    except RateLimitError as e:
+                        if verbose:
+                            print(
+                                f"[get_all_responses] Rate limit error on attempt {attempt} for {ident}: {e}"
+                            )
+                        if dynamic_rate_limit:
+                            current_rate_limit_factor *= rate_limit_adjust_factor
+                            await rebuild_limiters()
+                        if attempt >= max_retries:
+                            results.append(
+                                {"Identifier": ident, "Response": None, "Time Taken": None}
+                            )
+                            processed += 1
+                            pbar.update(1)
+                            await flush()
+                            break
+                        await asyncio.sleep(random.uniform(1, 2) * (2 ** (attempt - 1)))
+                        attempt += 1
+                    except (
+                        APIError,
+                        BadRequestError,
+                        AuthenticationError,
+                        InvalidRequestError,
+                    ) as e:
+                        if verbose:
+                            print(f"[get_all_responses] API error for {ident}: {e}")
                         results.append(
                             {"Identifier": ident, "Response": None, "Time Taken": None}
                         )
@@ -1148,18 +1185,9 @@ async def get_all_responses(
                         pbar.update(1)
                         await flush()
                         break
-                    # Exponential backoff with jitter
-                    await asyncio.sleep(random.uniform(1, 2) * (2 ** (attempt - 1)))
-                    attempt += 1
-                except RateLimitError as e:
-                    if verbose:
-                        print(
-                            f"[get_all_responses] Rate limit error on attempt {attempt} for {ident}: {e}"
-                        )
-                    if dynamic_rate_limit:
-                        current_rate_limit_factor *= rate_limit_adjust_factor
-                        await rebuild_limiters()
-                    if attempt >= max_retries:
+                    except Exception as e:
+                        if verbose:
+                            print(f"[get_all_responses] Unexpected error for {ident}: {e}")
                         results.append(
                             {"Identifier": ident, "Response": None, "Time Taken": None}
                         )
@@ -1167,33 +1195,8 @@ async def get_all_responses(
                         pbar.update(1)
                         await flush()
                         break
-                    await asyncio.sleep(random.uniform(1, 2) * (2 ** (attempt - 1)))
-                    attempt += 1
-                except (
-                    APIError,
-                    BadRequestError,
-                    AuthenticationError,
-                    InvalidRequestError,
-                ) as e:
-                    if verbose:
-                        print(f"[get_all_responses] API error for {ident}: {e}")
-                    results.append(
-                        {"Identifier": ident, "Response": None, "Time Taken": None}
-                    )
-                    processed += 1
-                    pbar.update(1)
-                    await flush()
-                    break
-                except Exception as e:
-                    if verbose:
-                        print(f"[get_all_responses] Unexpected error for {ident}: {e}")
-                    results.append(
-                        {"Identifier": ident, "Response": None, "Time Taken": None}
-                    )
-                    processed += 1
-                    pbar.update(1)
-                    await flush()
-                    break
+            finally:
+                queue.task_done()
 
     # Spawn workers
     workers = [asyncio.create_task(worker()) for _ in range(n_parallels)]
