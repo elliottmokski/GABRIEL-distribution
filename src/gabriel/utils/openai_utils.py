@@ -1155,6 +1155,13 @@ async def get_all_responses(
                                             f"[dynamic timeout] Increasing timeout to {new_t:.1f}s due to high timeout rate."
                                         )
                                     nonlocal_timeout = new_t
+                        else:
+                            results.append({"Identifier": ident, "Response": resps, "Time Taken": t})
+                            processed += 1
+                            pbar.update(1)
+                            if processed % save_every_x_responses == 0:
+                                await flush()
+                            break
                         if attempt >= max_retries:
                             results.append(
                                 {"Identifier": ident, "Response": None, "Time Taken": None}
