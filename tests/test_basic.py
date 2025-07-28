@@ -29,6 +29,13 @@ def test_get_response_dummy():
     assert responses and responses[0].startswith("DUMMY")
 
 
+def test_get_response_images_dummy():
+    responses, _ = asyncio.run(
+        openai_utils.get_response("hi", images=["abcd"], use_dummy=True)
+    )
+    assert responses and responses[0].startswith("DUMMY")
+
+
 def test_get_all_responses_dummy(tmp_path):
     df = asyncio.run(openai_utils.get_all_responses(
         prompts=["a", "b"],
@@ -37,6 +44,19 @@ def test_get_all_responses_dummy(tmp_path):
         use_dummy=True,
     ))
     assert len(df) == 2
+
+
+def test_get_all_responses_images_dummy(tmp_path):
+    df = asyncio.run(
+        openai_utils.get_all_responses(
+            prompts=["a"],
+            identifiers=["1"],
+            prompt_images={"1": ["abcd"]},
+            save_path=str(tmp_path / "img.csv"),
+            use_dummy=True,
+        )
+    )
+    assert len(df) == 1
 
 
 def test_ratings_dummy(tmp_path):

@@ -22,6 +22,20 @@ print(ratings)
 
 Each task returns a `pandas.DataFrame` and saves raw responses to disk.  Set `use_dummy=False` and provide your OpenAI credentials via the `OPENAI_API_KEY` environment variable to perform real API calls.
 
+### Image inputs
+
+`get_response` and `get_all_responses` can optionally include images with your prompts. Pass the `images` parameter to `get_response` or a mapping `prompt_images` to `get_all_responses`, where each key is a prompt identifier and the value is a list of base64 strings. A helper `encode_image` is provided:
+
+```python
+from gabriel.utils import encode_image
+
+img_b64 = encode_image("picture.jpg")
+responses = asyncio.run(
+    get_response("Describe this", images=[img_b64], use_dummy=True)
+)
+```
+
+
 ## Tasks
 
 ### `Ratings`

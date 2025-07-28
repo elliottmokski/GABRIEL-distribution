@@ -302,7 +302,7 @@ def _decide_default_max_output_tokens(user_specified: Optional[int], rate_header
 def _build_params(
     *,
     model: str,
-    input_data: List[Dict[str, str]],
+    input_data: List[Dict[str, Any]],
     max_output_tokens: Optional[int],
     system_instruction: str,
     temperature: float,
@@ -368,6 +368,7 @@ async def get_response(
     reasoning_effort: str = "medium",
     use_dummy: bool = False,
     verbose: bool = True,
+    images: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> Tuple[List[str], float]:
     """Minimal async call to OpenAI's /responses endpoint or dummy response.
@@ -386,14 +387,28 @@ async def get_response(
     system_instruction = (
         "Please provide a helpful response to this inquiry for purposes of academic research."
     )
-    input_data = (
-        [{"role": "user", "content": prompt}]
-        if model.startswith("o")
-        else [
-            {"role": "system", "content": system_instruction},
-            {"role": "user", "content": prompt},
-        ]
-    )
+    if images:
+        contents: List[Dict[str, Any]] = [{"type": "input_text", "text": prompt}]
+        for img in images:
+            img_url = img if str(img).startswith("data:") else f"data:image/jpeg;base64,{img}"
+            contents.append({"type": "input_image", "image_url": img_url})
+        input_data = (
+            [{"role": "user", "content": contents}]
+            if model.startswith("o")
+            else [
+                {"role": "system", "content": system_instruction},
+                {"role": "user", "content": contents},
+            ]
+        )
+    else:
+        input_data = (
+            [{"role": "user", "content": prompt}]
+            if model.startswith("o")
+            else [
+                {"role": "system", "content": system_instruction},
+                {"role": "user", "content": prompt},
+            ]
+        )
     params = _build_params(
         model=model,
         input_data=input_data,
@@ -448,6 +463,7 @@ def _de(x: Any) -> Any:
 async def get_all_responses(
     prompts: List[str],
     identifiers: Optional[List[str]] = None,
+    prompt_images: Optional[Dict[str, List[str]]] = None,
     *,
     n: int = 1,
     max_output_tokens: Optional[int] = None,
@@ -601,15 +617,29 @@ async def get_all_responses(
         if not state.get("batches"):
             tasks: List[Dict[str, Any]] = []
             for prompt, ident in todo_pairs:
-                # Build input message for each prompt
-                input_data = (
-                    [{"role": "user", "content": prompt}]
-                    if get_response_kwargs.get("model", "o4-mini").startswith("o")
-                    else [
-                        {"role": "system", "content": "Please provide a helpful response to this inquiry for purposes of academic research."},
-                        {"role": "user", "content": prompt},
-                    ]
-                )
+                imgs = prompt_images.get(str(ident)) if prompt_images else None
+                if imgs:
+                    contents: List[Dict[str, Any]] = [{"type": "input_text", "text": prompt}]
+                    for img in imgs:
+                        img_url = img if str(img).startswith("data:") else f"data:image/jpeg;base64,{img}"
+                        contents.append({"type": "input_image", "image_url": img_url})
+                    input_data = (
+                        [{"role": "user", "content": contents}]
+                        if get_response_kwargs.get("model", "o4-mini").startswith("o")
+                        else [
+                            {"role": "system", "content": "Please provide a helpful response to this inquiry for purposes of academic research."},
+                            {"role": "user", "content": contents},
+                        ]
+                    )
+                else:
+                    input_data = (
+                        [{"role": "user", "content": prompt}]
+                        if get_response_kwargs.get("model", "o4-mini").startswith("o")
+                        else [
+                            {"role": "system", "content": "Please provide a helpful response to this inquiry for purposes of academic research."},
+                            {"role": "user", "content": prompt},
+                        ]
+                    )
                 body = _build_params(
                     model=get_response_kwargs.get("model", "o4-mini"),
                     input_data=input_data,
@@ -902,6 +932,7 @@ async def get_all_responses(
                             timeout=nonlocal_timeout,
                             use_dummy=use_dummy,
                             verbose=verbose,
+                            images=prompt_images.get(str(ident)) if prompt_images else None,
                             **get_response_kwargs,
                         ),
                         timeout=nonlocal_timeout,
