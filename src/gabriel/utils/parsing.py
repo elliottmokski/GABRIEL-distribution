@@ -73,7 +73,7 @@ async def safest_json(txt: Any, *, model: str | None = None) -> dict | list:
         if model is None:
             model = JSON_LLM_MODEL
         from gabriel.utils.openai_utils import get_response
-
+        use_dummy = model == "dummy"
         fixed, _ = await get_response(
             prompt=(
                 "Please parse the following text **without changing any content** "
@@ -81,6 +81,7 @@ async def safest_json(txt: Any, *, model: str | None = None) -> dict | list:
             ),
             model=model,
             json_mode=True,
+            use_dummy=use_dummy,
         )
         if fixed:
             try:

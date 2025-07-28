@@ -10,7 +10,7 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union, Any
 
 import pandas as pd
 
-from .elo_rater import EloRater, EloConfig  # adjust import path as needed
+from .elo import EloRater, EloConfig
 
 
 # ---------------------------------------------------------------------
