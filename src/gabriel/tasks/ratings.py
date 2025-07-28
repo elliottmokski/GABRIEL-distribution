@@ -15,7 +15,7 @@ import pandas as pd
 
 from ..core.prompt_template import PromptTemplate
 from ..utils.openai_utils import get_all_responses
-from ..utils import safe_json
+from ..utils import safest_json
 
 
 # ────────────────────────────
@@ -50,8 +50,8 @@ class Ratings:
     # -----------------------------------------------------------------
     # Parse raw LLM output into {attribute: float}
     # -----------------------------------------------------------------
-    def _parse(self, raw: Any) -> Dict[str, Optional[float]]:
-        obj = safe_json(raw)
+    async def _parse(self, raw: Any) -> Dict[str, Optional[float]]:
+        obj = await safest_json(raw)
         out: Dict[str, Optional[float]] = {}
 
         # shape A: {"data":[{"attribute":"clarity","rating":88}, …]}
@@ -153,7 +153,7 @@ class Ratings:
         id_to_ratings: Dict[str, Dict[str, Optional[float]]] = {}
         for ident, raw in zip(df_resp.Identifier, df_resp.Response):
             main = raw[0] if isinstance(raw, list) and raw else raw
-            id_to_ratings[ident] = self._parse(main)
+            id_to_ratings[ident] = await self._parse(main)
 
         ratings_list: List[Dict[str, Optional[float]]] = []
         for passage in texts:

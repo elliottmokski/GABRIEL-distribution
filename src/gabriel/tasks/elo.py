@@ -11,7 +11,7 @@ import pandas as pd
 
 from ..utils.teleprompter import Teleprompter
 from ..utils.openai_utils import get_all_responses
-from ..utils import safe_json
+from ..utils import safest_json
 
 
 @dataclass
@@ -388,21 +388,21 @@ class EloRater:
                     continue
 
                 # robust dict coercion
-                def _coerce_dict(raw: Any) -> Dict[str, Any]:
-                    obj = safe_json(raw)
+                async def _coerce_dict(raw: Any) -> Dict[str, Any]:
+                    obj = await safest_json(raw)
                     if isinstance(obj, dict):
                         return obj
                     if isinstance(obj, str):
-                        obj2 = safe_json(obj)
+                        obj2 = await safest_json(obj)
                         if isinstance(obj2, dict):
                             return obj2
                     if isinstance(obj, list) and obj:
-                        inner = safe_json(obj[0])
+                        inner = await safest_json(obj[0])
                         if isinstance(inner, dict):
                             return inner
                     return {}
 
-                safe_obj = _coerce_dict(resp)
+                safe_obj = await _coerce_dict(resp)
                 if not safe_obj:
                     continue
 
