@@ -5,7 +5,7 @@ from .logging import get_logger
 from .teleprompter import Teleprompter
 from .maps import create_county_choropleth
 from .prompt_paraphraser import PromptParaphraser, PromptParaphraserConfig
-from .parsing import safe_json
+from .parsing import safe_json, safest_json
 
 __all__ = [
     "get_response",
@@ -16,4 +16,5 @@ __all__ = [
     "PromptParaphraser",
     "PromptParaphraserConfig",
     "safe_json",
+    "safest_json",
 ]

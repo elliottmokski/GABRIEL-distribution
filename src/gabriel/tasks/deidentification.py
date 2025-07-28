@@ -10,7 +10,7 @@ import pandas as pd
 
 from ..core.prompt_template import PromptTemplate
 from ..utils.openai_utils import get_all_responses
-from ..utils import safe_json
+from ..utils import safest_json
 
 
 @dataclass
@@ -108,7 +108,7 @@ class Deidentifier:
             for ident, resp in zip(batch_df["Identifier"], batch_df["Response"]):
                 gid = ident.split("_seg_")[0]
                 main = resp[0] if isinstance(resp, list) and resp else ""
-                parsed = safe_json(main)
+                parsed = await safest_json(main)
                 if parsed:
                     group_to_map[gid] = parsed
 
