@@ -64,8 +64,10 @@ class Deidentifier:
         group_ids = df_proc["group_id"].unique().tolist()
         group_segments: Dict[str, List[str]] = {}
 
-        csv_path = os.path.join(self.cfg.save_dir, self.cfg.file_name)
-        base_root, ext = os.path.splitext(csv_path)
+        base_name = os.path.splitext(self.cfg.file_name)[0]
+        csv_path = os.path.join(self.cfg.save_dir, f"{base_name}_cleaned.csv")
+        raw_root = os.path.join(self.cfg.save_dir, f"{base_name}_raw_responses")
+        base_root, ext = os.path.splitext(raw_root + ".csv")
         for gid in group_ids:
             segs: List[str] = []
             texts = (
