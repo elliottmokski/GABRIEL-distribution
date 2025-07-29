@@ -48,7 +48,7 @@ Key options (see `RatingsConfig`):
 - `save_path` – CSV file for intermediate results.
 - `rating_scale` – optional custom rating scale text. If omitted, the default 0–100 scale from the template is used.
 
-### `BasicClassifier`
+### `Classification`
 Classify passages into boolean labels.  Uses a prompt in `basic_classifier_prompt.jinja2` and expects JSON `{label: true/false}` responses.
 
 Options include the label dictionary, output directory, model and timeout.  Results are joined back onto the input DataFrame with one column per label.

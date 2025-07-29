@@ -6,7 +6,7 @@ from gabriel.utils.teleprompter import Teleprompter
 from gabriel.utils import openai_utils
 from gabriel.tasks.ratings import Ratings, RatingsConfig
 from gabriel.tasks.deidentification import Deidentifier, DeidentifyConfig
-from gabriel.tasks.basic_classifier import BasicClassifier, BasicClassifierConfig
+from gabriel.tasks.basic_classifier import Classification, ClassificationConfig
 from gabriel.tasks.regional import Regional, RegionalConfig
 from gabriel.tasks.county_counter import CountyCounter
 from gabriel.utils import PromptParaphraser, PromptParaphraserConfig
@@ -93,24 +93,24 @@ def test_ratings_multirun(tmp_path):
 
 
 def test_deidentifier_dummy(tmp_path):
-    cfg = DeidentifyConfig(save_path=str(tmp_path/"deid.csv"), use_dummy=True)
+    cfg = DeidentifyConfig(save_dir=str(tmp_path), file_name="deid.csv", use_dummy=True)
     task = Deidentifier(cfg)
     data = pd.DataFrame({"text": ["John went to Paris."]})
     df = asyncio.run(task.run(data, text_column="text"))
     assert "deidentified_text" in df.columns
 
 
-def test_basic_classifier_dummy(tmp_path):
-    cfg = BasicClassifierConfig(labels={"yes": ""}, save_dir=str(tmp_path), use_dummy=True)
-    task = BasicClassifier(cfg)
+def test_classification_dummy(tmp_path):
+    cfg = ClassificationConfig(labels={"yes": ""}, save_dir=str(tmp_path), use_dummy=True)
+    task = Classification(cfg)
     df = pd.DataFrame({"txt": ["a", "b"]})
     res = asyncio.run(task.run(df, text_column="txt"))
     assert "yes" in res.columns
 
 
-def test_basic_classifier_multirun(tmp_path):
-    cfg = BasicClassifierConfig(labels={"yes": ""}, save_dir=str(tmp_path), use_dummy=True, n_runs=2)
-    task = BasicClassifier(cfg)
+def test_classification_multirun(tmp_path):
+    cfg = ClassificationConfig(labels={"yes": ""}, save_dir=str(tmp_path), use_dummy=True, n_runs=2)
+    task = Classification(cfg)
     df = pd.DataFrame({"txt": ["a"]})
     res = asyncio.run(task.run(df, text_column="txt"))
     assert "yes" in res.columns
@@ -178,4 +178,14 @@ def test_api_wrappers(tmp_path):
         )
     )
     assert "yes" in classified.columns
+
+    deidentified = asyncio.run(
+        gabriel.deidentify(
+            df,
+            "txt",
+            save_dir=str(tmp_path / "deid"),
+            use_dummy=True,
+        )
+    )
+    assert "deidentified_text" in deidentified.columns
 

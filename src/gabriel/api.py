@@ -5,8 +5,10 @@ import pandas as pd
 from .tasks import (
     Ratings,
     RatingsConfig,
-    BasicClassifier,
-    BasicClassifierConfig,
+    Classification,
+    ClassificationConfig,
+    Deidentifier,
+    DeidentifyConfig,
 )
 
 async def rate(
@@ -54,9 +56,9 @@ async def classify(
     file_name: str = "basic_classifier_responses.csv",
     **cfg_kwargs,
 ) -> pd.DataFrame:
-    """Convenience wrapper for :class:`gabriel.tasks.BasicClassifier`."""
+    """Convenience wrapper for :class:`gabriel.tasks.Classification`."""
     os.makedirs(save_dir, exist_ok=True)
-    cfg = BasicClassifierConfig(
+    cfg = ClassificationConfig(
         labels=labels,
         save_dir=save_dir,
         file_name=file_name,
@@ -67,4 +69,35 @@ async def classify(
         use_dummy=use_dummy,
         **cfg_kwargs,
     )
-    return await BasicClassifier(cfg).run(df, column_name, reset_files=reset_files)
+    return await Classification(cfg).run(df, column_name, reset_files=reset_files)
+
+
+async def deidentify(
+    df: pd.DataFrame,
+    column_name: str,
+    *,
+    save_dir: str,
+    grouping_column: str | None = None,
+    model: str = "o4-mini",
+    n_parallels: int = 50,
+    use_dummy: bool = False,
+    file_name: str = "deidentified.csv",
+    max_words_per_call: int = 7500,
+    guidelines: str = "",
+    additional_guidelines: str = "",
+    **cfg_kwargs,
+) -> pd.DataFrame:
+    """Convenience wrapper for :class:`gabriel.tasks.Deidentifier`."""
+    os.makedirs(save_dir, exist_ok=True)
+    cfg = DeidentifyConfig(
+        save_dir=save_dir,
+        file_name=file_name,
+        model=model,
+        n_parallels=n_parallels,
+        use_dummy=use_dummy,
+        max_words_per_call=max_words_per_call,
+        guidelines=guidelines,
+        additional_guidelines=additional_guidelines,
+        **cfg_kwargs,
+    )
+    return await Deidentifier(cfg).run(df, column_name, grouping_column=grouping_column)
