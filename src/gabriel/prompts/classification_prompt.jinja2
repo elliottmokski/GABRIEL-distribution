@@ -1,0 +1,55 @@
+Consider the following text:
+
+BEGIN TEXT
+{{ text }}
+END TEXT
+
+Pay close attention to the entire text.
+This requires a thorough reading of the whole text.
+Do not skip any part of the text.
+In particular, do not fixate on the beginning or end of the text.
+Ensure the entire text, beginning, middle, and end, are all considered and given your full attention.
+
+Your task is, for each of the following labels, classify whether they apply to the text or not. The labels under consideration are:
+
+BEGIN LABELS
+{{ attributes | shuffled_dict }}
+END LABELS
+
+Each label is a key in the dictionary provided above.
+If a definition is provided for a label, you must base your classification decision on the label as it has been defined above.
+If no definition is provided, use your own best and most consistent definition of the label.
+
+Again, the labels your are classifying the text on are: {{ attributes.keys() | shuffled }}
+In your output, you must use these label names verbatim, with absolutely no modification.
+Same case, same spelling, same punctuation, same formatting exactly as they appear above.
+
+Your output must be a JSON object with the following format:
+
+{
+	"<insert label name here>": <insert True or False here>,
+	"<insert label name here>": <insert False or True here>,
+	...
+}
+
+For each label, output True if the label applies to the text, and False if it does not.
+Multiple, perhaps even all, of the labels may apply to the text.
+Conversely, one or zero of the labels may be the correct classification for the text.
+Each label must be evaluated thoroughly and independently of the others.
+
+Once more: the labels your are classifying the text on are: {{ attributes.keys() | shuffled }}
+Ensure every label listed above is present in your output; do not omit any or add any.
+Your task is entirely focused on taking each label separately, deeply comprehending the text, and then classifying whether the label applies to the text or not.
+
+{% if additional_instructions %}
+The user has provided the following additional instructions or clarifications.
+Consider them carefully along with the rest of the instructions.
+If they are in conflict with the rest of the instructions, these user instructions take precedence.
+In particular, if the user has asked for only the best label, you must output True for only the label that best applies to the text, and False for all other labels.
+
+BEGIN ADDITIONAL INSTRUCTIONS/CLARIFICATIONS
+{{ additional_instructions }}
+END ADDITIONAL INSTRUCTIONS/CLARIFICATIONS
+{% endif %}
+
+Output the JSON with all the labels and their classifications (True or False).
