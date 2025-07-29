@@ -152,7 +152,7 @@ class Ratings:
 
         full_df = pd.DataFrame(full_records).set_index(["text", "run"])
         disagg_path = f"{base_root}_full_disaggregated.csv"
-        full_df.to_csv(disagg_path)
+        full_df.to_csv(disagg_path, index_label=["text", "run"])
 
         # aggregate across runs
         agg_df = full_df.groupby("text")[list(self.cfg.attributes)].mean()

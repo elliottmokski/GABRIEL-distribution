@@ -201,7 +201,7 @@ class BasicClassifier:
 
         full_df = pd.DataFrame(full_records).set_index(["text", "run"])
         disagg_path = f"{base_root}_full_disaggregated.csv"
-        full_df.to_csv(disagg_path)
+        full_df.to_csv(disagg_path, index_label=["text", "run"])
 
         # aggregate across runs using mode
         def _mode(s: pd.Series) -> Optional[bool]:
@@ -225,5 +225,16 @@ class BasicClassifier:
         out_path = os.path.splitext(csv_path)[0] + "_final.csv"
         result = df_proc.merge(agg_df, left_on=text_column, right_index=True, how="left")
         result.to_csv(out_path, index=False)
+
+        # remove intermediate run files once everything is saved
+        if self.cfg.n_runs > 1:
+            for idx in range(1, self.cfg.n_runs + 1):
+                path = f"{base_root}_run{idx}{ext}"
+                if os.path.exists(path):
+                    try:
+                        os.remove(path)
+                    except Exception:
+                        pass
+
         return result
 
