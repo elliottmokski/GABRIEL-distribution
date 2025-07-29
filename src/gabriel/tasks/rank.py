@@ -54,7 +54,7 @@ import pandas as pd
 # expected to be available in the runtime environment.  Should you wish
 # to run this module outside of the GABRIEL distribution, you may need
 # to adjust these imports accordingly.
-from gabriel.utils.teleprompter import Teleprompter
+from gabriel.core.prompt_template import PromptTemplate
 from gabriel.utils.openai_utils import get_all_responses
 from gabriel.utils import safest_json
 
@@ -129,19 +129,20 @@ class Rank:
     after the final round.
     """
 
-    def __init__(self, teleprompter: Teleprompter, cfg: RankConfig) -> None:
+    def __init__(self, cfg: RankConfig, template: PromptTemplate | None = None) -> None:
         """Instantiate a ranking engine.
 
         Parameters
         ----------
-        teleprompter:
-            An instance of :class:`gabriel.utils.teleprompter.Teleprompter`
-            responsible for rendering prompt templates.
         cfg:
             User‑provided configuration.
+        template:
+            Optional :class:`gabriel.core.prompt_template.PromptTemplate` to
+            render the comparison prompts.  If not supplied, the built‑in
+            ``rankings_prompt.jinja2`` template is used.
         """
-        self.tele = teleprompter
         self.cfg = cfg
+        self.template = template or PromptTemplate.from_package("rankings_prompt.jinja2")
         # random state; a seed is intentionally omitted from the public
         # configuration to discourage brittle behaviour.  If
         # reproducibility is required, modify this line to pass a
@@ -612,9 +613,8 @@ class Rank:
                     # argument and "square" to the second.  The
                     # template uses the key ``additional_instructions``
                     # which we pull from the configuration.
-                    template = self.tele.env.get_template("rankings_prompt.jinja2")
                     prompts.append(
-                        template.render(
+                        self.template.render(
                             passage_circle=t_a,
                             passage_square=t_b,
                             attributes=attr_def_map,

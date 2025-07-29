@@ -69,13 +69,13 @@ class RecursiveEloConfig:
 # ---------------------------------------------------------------------
 class RecursiveEloRater:
     """
-    Orchestrates recursive Elo/BT rating by repeatedly calling EloRater on progressively
-    filtered subsets of items, carrying forward cumulative scores, and (optionally) rewriting
-    texts between stages.
+    Orchestrates recursive Elo/BT rating by repeatedly calling :class:`EloRater` on
+    progressively filtered subsets of items, carrying forward cumulative scores, and
+    (optionally) rewriting texts between stages.
 
     Typical workflow
     ----------------
-    rer = RecursiveEloRater(teleprompter, rec_cfg)
+    rer = RecursiveEloRater(rec_cfg)
     final_df = await rer.run(df, text_col="text", id_col="identifier")
 
     Returns
@@ -90,8 +90,7 @@ class RecursiveEloRater:
           - stage_<k>_<attr> columns (if keep_stage_columns=True)
     """
 
-    def __init__(self, teleprompter, cfg: RecursiveEloConfig) -> None:
-        self.tele = teleprompter
+    def __init__(self, cfg: RecursiveEloConfig) -> None:
         self.cfg = cfg
 
         # Validate cut_side
@@ -255,7 +254,7 @@ class RecursiveEloRater:
             stage_df_in = work_df[work_df["identifier"].isin(current_ids)].copy()
 
             # Run EloRater
-            elo = EloRater(self.tele, stage_cfg)
+            elo = EloRater(stage_cfg)
             stage_df_out = await elo.run(
                 stage_df_in,
                 text_col="text",

@@ -8,7 +8,7 @@ import pandas as pd
 
 from elo_rater import EloConfig, EloRater
 from regional import Regional
-from utility_functions import Teleprompter, create_county_choropleth
+from utility_functions import create_county_choropleth
 
 
 class CountyCounter:
@@ -71,7 +71,6 @@ class CountyCounter:
             search_context_size=self.search_context_size,
             print_example_prompt=True,
         )
-        self.tele = Teleprompter(os.path.join(os.path.dirname(__file__), "prompts"))
 
     async def run(self, *, reset_files: bool = False) -> pd.DataFrame:
         reports_df = await self.regional.run(reset_files=reset_files)
@@ -98,7 +97,7 @@ class CountyCounter:
                 print_example_prompt=False,
                 timeout=self.elo_timeout,
             )
-            rater = EloRater(self.tele, cfg)
+            rater = EloRater(cfg)
             elo_df = await rater.run(df_topic, text_col="text", id_col="identifier")
             elo_df["identifier"] = elo_df["identifier"].astype(str)
             results["region"] = results["region"].astype(str)
