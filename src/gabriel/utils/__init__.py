@@ -7,6 +7,7 @@ from .teleprompter import Teleprompter
 from .maps import create_county_choropleth
 from .prompt_paraphraser import PromptParaphraser, PromptParaphraserConfig
 from .parsing import safe_json, safest_json
+from .jinja import shuffled, shuffled_dict, get_env
 
 __all__ = [
     "get_response",
@@ -19,4 +20,7 @@ __all__ = [
     "safe_json",
     "safest_json",
     "encode_image",
+    "shuffled",
+    "shuffled_dict",
+    "get_env",
 ]

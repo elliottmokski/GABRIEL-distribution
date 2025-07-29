@@ -10,6 +10,7 @@ from gabriel.tasks.basic_classifier import BasicClassifier, BasicClassifierConfi
 from gabriel.tasks.regional import Regional, RegionalConfig
 from gabriel.tasks.county_counter import CountyCounter
 from gabriel.utils import PromptParaphraser, PromptParaphraserConfig
+import gabriel
 
 
 def test_prompt_template():
@@ -119,4 +120,25 @@ def test_prompt_paraphraser_ratings(tmp_path):
     data = pd.DataFrame({"txt": ["hello"]})
     df = asyncio.run(paraphraser.run(Ratings, cfg, data, text_column="txt"))
     assert set(df.prompt_variant) == {"baseline", "variant_1", "variant_2"}
+
+
+def test_api_wrappers(tmp_path):
+    df = pd.DataFrame({"txt": ["hello"]})
+    rated = gabriel.rate(
+        df,
+        "txt",
+        attributes={"clarity": ""},
+        save_dir=str(tmp_path / "rate"),
+        use_dummy=True,
+    )
+    assert "clarity" in rated.columns
+
+    classified = gabriel.classify(
+        df,
+        "txt",
+        labels={"yes": ""},
+        save_dir=str(tmp_path / "cls"),
+        use_dummy=True,
+    )
+    assert "yes" in classified.columns
 

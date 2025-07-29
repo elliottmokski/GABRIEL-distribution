@@ -2,29 +2,9 @@
 from dataclasses import dataclass
 from importlib import resources
 from jinja2 import Environment, Template
-import random
 from typing import Dict
 
-
-def _shuffled_dict(value) -> Dict[str, str]:
-    """Return a new dict with items in random order."""
-    if isinstance(value, dict):
-        items = list(value.items())
-        random.shuffle(items)
-        return dict(items)
-    else:
-        items = list(value)
-        random.shuffle(items)
-        return {k: k for k in items}
-
-
-def _shuffled(value):
-    if isinstance(value, dict):
-        items = list(value.keys())
-    else:
-        items = list(value)
-    random.shuffle(items)
-    return items
+from ..utils.jinja import shuffled, shuffled_dict
 
 @dataclass
 class PromptTemplate:
@@ -42,8 +22,8 @@ class PromptTemplate:
             else:
                 params["attributes"] = {a: a for a in attrs}
         env = Environment()
-        env.filters["shuffled_dict"] = _shuffled_dict
-        env.filters["shuffled"] = _shuffled
+        env.filters["shuffled_dict"] = shuffled_dict
+        env.filters["shuffled"] = shuffled
         template = env.from_string(self.text)
         return template.render(**params)
 
