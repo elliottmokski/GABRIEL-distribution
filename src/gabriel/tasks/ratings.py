@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 import hashlib
-import re
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, DefaultDict, Dict, List, Optional
@@ -23,15 +22,15 @@ from ..utils import safest_json
 # ────────────────────────────
 @dataclass
 class RatingsConfig:
-    attributes: Dict[str, str]          # {"clarity": "description", ...}
-    model: str = "o4-mini"
-    n_parallels: int = 50
+    attributes: Dict[str, str]
     save_dir: str = "ratings"
     file_name: str = "ratings.csv"
+    model: str = "o4-mini"
+    n_parallels: int = 100
     use_dummy: bool = False
     timeout: float = 60.0
     rating_scale: str = "0-100"
-    additional_guidelines: str = ""
+    additional_instructions: str | None = None
 
 
 # ────────────────────────────
@@ -53,38 +52,15 @@ class Ratings:
     async def _parse(self, raw: Any) -> Dict[str, Optional[float]]:
         obj = await safest_json(raw)
         out: Dict[str, Optional[float]] = {}
-
-        # shape A: {"data":[{"attribute":"clarity","rating":88}, …]}
-        if isinstance(obj, dict) and isinstance(obj.get("data"), list):
-            obj = obj["data"]
-
-        # shape B: list of dicts
-        if isinstance(obj, list):
-            for item in obj:
-                if not isinstance(item, dict):
-                    continue
-                attr = str(item.get("attribute", "")).strip()
-                try:
-                    out[attr] = float(item.get("rating"))
-                except Exception:
-                    out[attr] = None
-            return out
-
-        # shape C: flat dict {"clarity": 88, "humor": 12}
         if isinstance(obj, dict):
-            for attr, val in obj.items():
+            for attr in self.cfg.attributes:
                 try:
-                    out[attr] = float(val)
+                    out[attr] = float(obj.get(attr)) if obj.get(attr) is not None else None
                 except Exception:
                     out[attr] = None
             return out
 
-        # shape D: regex fallback "clarity: 88"
-        text = str(raw)
-        for attr in self.cfg.attributes:
-            m = re.search(rf"{re.escape(attr)}\s*[:=]\s*([0-9]+(?:\.[0-9]+)?)", text, re.I)
-            out[attr] = float(m.group(1)) if m else None
-        return out
+        return {attr: None for attr in self.cfg.attributes}
 
     # -----------------------------------------------------------------
     # Main entry point
@@ -118,7 +94,7 @@ class Ratings:
                     text=passage,
                     attributes=self.cfg.attributes,
                     scale=self.cfg.rating_scale,
-                    additional_instructions=self.cfg.additional_guidelines,
+                    additional_instructions=self.cfg.additional_instructions,
                 )
             )
             ids.append(sha8)

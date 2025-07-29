@@ -4,27 +4,8 @@ import os
 from typing import Dict, List, Union
 
 from jinja2 import Environment, FileSystemLoader
-import random
 
-
-def _shuffled_dict(value) -> Dict[str, str]:
-    if isinstance(value, dict):
-        items = list(value.items())
-        random.shuffle(items)
-        return dict(items)
-    else:
-        items = list(value)
-        random.shuffle(items)
-        return {k: k for k in items}
-
-
-def _shuffled(value):
-    if isinstance(value, dict):
-        items = list(value.keys())
-    else:
-        items = list(value)
-    random.shuffle(items)
-    return items
+from .jinja import shuffled, shuffled_dict
 
 
 class Teleprompter:
@@ -34,8 +15,8 @@ class Teleprompter:
         if prompt_path is None:
             prompt_path = os.path.join(os.path.dirname(__file__), "..", "prompts")
         self.env = Environment(loader=FileSystemLoader(os.path.abspath(prompt_path)))
-        self.env.filters["shuffled_dict"] = _shuffled_dict
-        self.env.filters["shuffled"] = _shuffled
+        self.env.filters["shuffled_dict"] = shuffled_dict
+        self.env.filters["shuffled"] = shuffled
 
     def generic_elo_prompt(
         self,
