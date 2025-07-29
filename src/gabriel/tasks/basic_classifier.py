@@ -19,8 +19,8 @@ from ..utils import safest_json
 # Configuration dataclass
 # ────────────────────────────
 @dataclass
-class ClassificationConfig:
-    """Configuration for :class:`Classification`."""
+class ClassifyConfig:
+    """Configuration for :class:`Classify`."""
 
     labels: Dict[str, str]  # {"label_name": "description", ...}
     save_dir: str = "classifier"
@@ -37,18 +37,18 @@ class ClassificationConfig:
 # ────────────────────────────
 # Main Basic classifier task
 # ────────────────────────────
-class Classification:
+class Classify:
     """Robust passage classifier using an LLM.
 
-    * Accepts a list of *texts* (not a DataFrame) just like :class:`Ratings`.
+    * Accepts a list of *texts* (not a DataFrame) just like :class:`Rate`.
     * Persists/reads cached responses via the **save_path** attribute (same pattern as
-      :class:`Ratings`).
+      :class:`Rate`).
     """
 
     _FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.S)
 
     # -----------------------------------------------------------------
-    def __init__(self, cfg: ClassificationConfig, template: PromptTemplate | None = None) -> None:  # noqa: D401,E501
+    def __init__(self, cfg: ClassifyConfig, template: PromptTemplate | None = None) -> None:  # noqa: D401,E501
         self.cfg = cfg
         self.template = template or PromptTemplate.from_package(
             "basic_classifier_prompt.jinja2"
@@ -85,7 +85,7 @@ class Classification:
 
         dup_ct = len(texts) - len(prompts)
         if dup_ct:
-            print(f"[Classification] Skipped {dup_ct} duplicate prompt(s).")
+            print(f"[Classify] Skipped {dup_ct} duplicate prompt(s).")
         return prompts, ids, id_to_rows, id_to_text
 
     # -----------------------------------------------------------------
@@ -197,7 +197,7 @@ class Classification:
 
         if total_orphans:
             print(
-                f"[Classification] WARNING: {total_orphans} response(s) had no matching passage this run."
+                f"[Classify] WARNING: {total_orphans} response(s) had no matching passage this run."
             )
 
         full_df = pd.DataFrame(full_records).set_index(["text", "run"])
@@ -214,7 +214,7 @@ class Classification:
         agg_df = pd.DataFrame({lab: full_df[lab].groupby("text").apply(_mode) for lab in self.cfg.labels})
 
         filled = agg_df.dropna(how="all").shape[0]
-        print(f"[Classification] Filled {filled}/{len(agg_df)} unique texts.")
+        print(f"[Classify] Filled {filled}/{len(agg_df)} unique texts.")
 
         total = len(agg_df)
         print("\n=== Label coverage (non-null) ===")

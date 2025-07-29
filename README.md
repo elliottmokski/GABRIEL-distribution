@@ -7,16 +7,16 @@ The current `src` directory contains a cleaned up and asynchronous implementatio
 ## Quick Start
 
 ```python
-from gabriel.tasks import Ratings, RatingsConfig
+from gabriel.tasks import Rate, RateConfig
 
-cfg = RatingsConfig(
+cfg = RateConfig(
     attributes={"clarity": "How understandable is the text?"},
     save_path="ratings.csv",
     use_dummy=True  # set to False to call the OpenAI API
 )
 
 texts = ["This is an example passage"]
-ratings = asyncio.run(Ratings(cfg).run(texts))
+ratings = asyncio.run(Rate(cfg).run(texts))
 print(ratings)
 ```
 
@@ -38,17 +38,17 @@ responses = asyncio.run(
 
 ## Tasks
 
-### `Ratings`
+### `Rate`
 Rate passages on a set of numeric attributes.  The task builds prompts using `gabriel.prompts.ratings_prompt.jinja2` and parses the JSON style output into a `dict` for each passage.
 
-Key options (see `RatingsConfig`):
+Key options (see `RateConfig`):
 - `attributes` – mapping of attribute name to description.
 - `model` – model name (default `o4-mini`).
 - `n_parallels` – number of concurrent API calls.
 - `save_path` – CSV file for intermediate results.
 - `rating_scale` – optional custom rating scale text. If omitted, the default 0–100 scale from the template is used.
 
-### `Classification`
+### `Classify`
 Classify passages into boolean labels.  Uses a prompt in `basic_classifier_prompt.jinja2` and expects JSON `{label: true/false}` responses.
 
 Options include the label dictionary, output directory, model and timeout.  Results are joined back onto the input DataFrame with one column per label.
