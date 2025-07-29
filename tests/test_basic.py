@@ -19,6 +19,12 @@ def test_prompt_template():
     assert "desc" in text
 
 
+def test_ratings_default_scale_prompt():
+    tmpl = PromptTemplate.from_package("ratings_prompt.jinja2")
+    rendered = tmpl.render(text="x", attributes=["clarity"], scale=None)
+    assert "All ratings are on a scale" in rendered
+
+
 def test_teleprompter():
     tele = Teleprompter()
     out = tele.generic_elo_prompt(text_circle="a", text_square="b", attributes=["one"], instructions="test")
@@ -144,21 +150,25 @@ def test_prompt_paraphraser_ratings(tmp_path):
 
 def test_api_wrappers(tmp_path):
     df = pd.DataFrame({"txt": ["hello"]})
-    rated = gabriel.rate(
-        df,
-        "txt",
-        attributes={"clarity": ""},
-        save_dir=str(tmp_path / "rate"),
-        use_dummy=True,
+    rated = asyncio.run(
+        gabriel.rate(
+            df,
+            "txt",
+            attributes={"clarity": ""},
+            save_dir=str(tmp_path / "rate"),
+            use_dummy=True,
+        )
     )
     assert "clarity" in rated.columns
 
-    classified = gabriel.classify(
-        df,
-        "txt",
-        labels={"yes": ""},
-        save_dir=str(tmp_path / "cls"),
-        use_dummy=True,
+    classified = asyncio.run(
+        gabriel.classify(
+            df,
+            "txt",
+            labels={"yes": ""},
+            save_dir=str(tmp_path / "cls"),
+            use_dummy=True,
+        )
     )
     assert "yes" in classified.columns
 

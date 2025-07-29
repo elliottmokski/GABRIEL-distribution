@@ -31,7 +31,7 @@ class RatingsConfig:
     n_runs: int = 1
     use_dummy: bool = False
     timeout: float = 60.0
-    rating_scale: str = None,
+    rating_scale: str | None = None
     additional_instructions: str | None = None
 
 
