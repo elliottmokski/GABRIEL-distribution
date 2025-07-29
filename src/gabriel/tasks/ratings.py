@@ -160,4 +160,15 @@ class Ratings:
         out_path = os.path.splitext(csv_path)[0] + "_final.csv"
         result = df_proc.merge(agg_df, left_on=text_column, right_index=True, how="left")
         result.to_csv(out_path, index=False)
+
+        # remove intermediate run files once everything is saved
+        if self.cfg.n_runs > 1:
+            for idx in range(1, self.cfg.n_runs + 1):
+                path = f"{base_root}_run{idx}{ext}"
+                if os.path.exists(path):
+                    try:
+                        os.remove(path)
+                    except Exception:
+                        pass
+
         return result
