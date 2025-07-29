@@ -25,6 +25,13 @@ def test_ratings_default_scale_prompt():
     assert "All ratings are on a scale" in rendered
 
 
+def test_shuffled_dict_rendering():
+    tmpl = PromptTemplate.from_package("classification_prompt.jinja2")
+    rendered = tmpl.render(text="x", attributes={"clarity": "Is the text clear?"})
+    assert "OrderedDict" not in rendered
+    assert "{" in rendered and "}" in rendered
+
+
 def test_teleprompter():
     tele = Teleprompter()
     out = tele.generic_elo_prompt(text_circle="a", text_square="b", attributes=["one"], instructions="test")

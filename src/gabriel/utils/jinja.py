@@ -1,6 +1,7 @@
 import os
 import random
 from collections import OrderedDict
+import json
 from jinja2 import Environment, FileSystemLoader
 
 
@@ -13,11 +14,12 @@ def shuffled(it, seed=None):
 
 
 def shuffled_dict(d, seed=None):
-    """Return an ordered dict with items shuffled."""
+    """Return a JSON-formatted dict string with items shuffled."""
     items = list(d.items())
     rnd = random.Random(seed) if seed is not None else random
     rnd.shuffle(items)
-    return OrderedDict(items)
+    ordered = OrderedDict(items)
+    return json.dumps(ordered, ensure_ascii=False, indent=2)
 
 
 def get_env():
