@@ -3,10 +3,12 @@ import os
 import pandas as pd
 
 from .tasks import (
-    Ratings,
-    RatingsConfig,
-    Classification,
-    ClassificationConfig,
+    Rate,
+    RateConfig,
+    Classify,
+    ClassifyConfig,
+    Rank,
+    RankConfig,
     Deidentifier,
     DeidentifyConfig,
 )
@@ -26,9 +28,9 @@ async def rate(
     file_name: str = "ratings.csv",
     **cfg_kwargs,
 ) -> pd.DataFrame:
-    """Convenience wrapper for :class:`gabriel.tasks.Ratings`."""
+    """Convenience wrapper for :class:`gabriel.tasks.Rate`."""
     os.makedirs(save_dir, exist_ok=True)
-    cfg = RatingsConfig(
+    cfg = RateConfig(
         attributes=attributes,
         save_dir=save_dir,
         file_name=file_name,
@@ -39,7 +41,7 @@ async def rate(
         additional_instructions=additional_instructions,
         **cfg_kwargs,
     )
-    return await Ratings(cfg).run(df, column_name, reset_files=reset_files)
+    return await Rate(cfg).run(df, column_name, reset_files=reset_files)
 
 async def classify(
     df: pd.DataFrame,
@@ -56,9 +58,9 @@ async def classify(
     file_name: str = "basic_classifier_responses.csv",
     **cfg_kwargs,
 ) -> pd.DataFrame:
-    """Convenience wrapper for :class:`gabriel.tasks.Classification`."""
+    """Convenience wrapper for :class:`gabriel.tasks.Classify`."""
     os.makedirs(save_dir, exist_ok=True)
-    cfg = ClassificationConfig(
+    cfg = ClassifyConfig(
         labels=labels,
         save_dir=save_dir,
         file_name=file_name,
@@ -69,7 +71,7 @@ async def classify(
         use_dummy=use_dummy,
         **cfg_kwargs,
     )
-    return await Classification(cfg).run(df, column_name, reset_files=reset_files)
+    return await Classify(cfg).run(df, column_name, reset_files=reset_files)
 
 
 async def deidentify(
@@ -101,3 +103,44 @@ async def deidentify(
         **cfg_kwargs,
     )
     return await Deidentifier(cfg).run(df, column_name, grouping_column=grouping_column)
+
+
+async def rank(
+    df: pd.DataFrame,
+    column_name: str,
+    *,
+    attributes: dict[str, str] | list[str],
+    save_dir: str,
+    additional_instructions: str | None = None,
+    model: str = "o4-mini",
+    n_rounds: int = 15,
+    matches_per_round: int = 3,
+    power_matching: bool = True,
+    add_zscore: bool = True,
+    compute_se: bool = True,
+    learning_rate: float = 0.1,
+    n_parallels: int = 100,
+    use_dummy: bool = False,
+    file_name: str = "rankings",
+    reset_files: bool = False,
+    **cfg_kwargs,
+) -> pd.DataFrame:
+    """Convenience wrapper for :class:`gabriel.tasks.Rank`."""
+    os.makedirs(save_dir, exist_ok=True)
+    cfg = RankConfig(
+        attributes=attributes,
+        n_rounds=n_rounds,
+        matches_per_round=matches_per_round,
+        power_matching=power_matching,
+        add_zscore=add_zscore,
+        compute_se=compute_se,
+        learning_rate=learning_rate,
+        model=model,
+        n_parallels=n_parallels,
+        use_dummy=use_dummy,
+        save_dir=save_dir,
+        file_name=file_name,
+        additional_instructions=additional_instructions or "",
+        **cfg_kwargs,
+    )
+    return await Rank(cfg).run(df, column_name, reset_files=reset_files)

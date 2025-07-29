@@ -4,9 +4,9 @@ import pandas as pd
 from gabriel.core.prompt_template import PromptTemplate
 from gabriel.utils.teleprompter import Teleprompter
 from gabriel.utils import openai_utils
-from gabriel.tasks.ratings import Ratings, RatingsConfig
+from gabriel.tasks.ratings import Rate, RateConfig
 from gabriel.tasks.deidentification import Deidentifier, DeidentifyConfig
-from gabriel.tasks.basic_classifier import Classification, ClassificationConfig
+from gabriel.tasks.basic_classifier import Classify, ClassifyConfig
 from gabriel.tasks.regional import Regional, RegionalConfig
 from gabriel.tasks.county_counter import CountyCounter
 from gabriel.utils import PromptParaphraser, PromptParaphraserConfig
@@ -74,8 +74,8 @@ def test_get_all_responses_images_dummy(tmp_path):
 
 
 def test_ratings_dummy(tmp_path):
-    cfg = RatingsConfig(attributes={"helpfulness": ""}, save_dir=str(tmp_path), file_name="ratings.csv", use_dummy=True)
-    task = Ratings(cfg)
+    cfg = RateConfig(attributes={"helpfulness": ""}, save_dir=str(tmp_path), file_name="ratings.csv", use_dummy=True)
+    task = Rate(cfg)
     data = pd.DataFrame({"text": ["hello"]})
     df = asyncio.run(task.run(data, text_column="text"))
     assert not df.empty
@@ -83,8 +83,8 @@ def test_ratings_dummy(tmp_path):
 
 
 def test_ratings_multirun(tmp_path):
-    cfg = RatingsConfig(attributes={"helpfulness": ""}, save_dir=str(tmp_path), file_name="ratings.csv", use_dummy=True, n_runs=2)
-    task = Ratings(cfg)
+    cfg = RateConfig(attributes={"helpfulness": ""}, save_dir=str(tmp_path), file_name="ratings.csv", use_dummy=True, n_runs=2)
+    task = Rate(cfg)
     data = pd.DataFrame({"text": ["hello"]})
     df = asyncio.run(task.run(data, text_column="text"))
     assert "helpfulness" in df.columns
@@ -101,16 +101,16 @@ def test_deidentifier_dummy(tmp_path):
 
 
 def test_classification_dummy(tmp_path):
-    cfg = ClassificationConfig(labels={"yes": ""}, save_dir=str(tmp_path), use_dummy=True)
-    task = Classification(cfg)
+    cfg = ClassifyConfig(labels={"yes": ""}, save_dir=str(tmp_path), use_dummy=True)
+    task = Classify(cfg)
     df = pd.DataFrame({"txt": ["a", "b"]})
     res = asyncio.run(task.run(df, text_column="txt"))
     assert "yes" in res.columns
 
 
 def test_classification_multirun(tmp_path):
-    cfg = ClassificationConfig(labels={"yes": ""}, save_dir=str(tmp_path), use_dummy=True, n_runs=2)
-    task = Classification(cfg)
+    cfg = ClassifyConfig(labels={"yes": ""}, save_dir=str(tmp_path), use_dummy=True, n_runs=2)
+    task = Classify(cfg)
     df = pd.DataFrame({"txt": ["a"]})
     res = asyncio.run(task.run(df, text_column="txt"))
     assert "yes" in res.columns
@@ -142,7 +142,7 @@ def test_county_counter_dummy(tmp_path):
 
 
 def test_prompt_paraphraser_ratings(tmp_path):
-    cfg = RatingsConfig(
+    cfg = RateConfig(
         attributes={"quality": ""},
         save_dir=str(tmp_path),
         file_name="rat.csv",
@@ -151,7 +151,7 @@ def test_prompt_paraphraser_ratings(tmp_path):
     parap_cfg = PromptParaphraserConfig(n_variants=2, save_dir=str(tmp_path / "para"), use_dummy=True)
     paraphraser = PromptParaphraser(parap_cfg)
     data = pd.DataFrame({"txt": ["hello"]})
-    df = asyncio.run(paraphraser.run(Ratings, cfg, data, text_column="txt"))
+    df = asyncio.run(paraphraser.run(Rate, cfg, data, text_column="txt"))
     assert set(df.prompt_variant) == {"baseline", "variant_1", "variant_2"}
 
 

@@ -3,14 +3,16 @@
 from importlib import import_module
 
 _lazy_imports = {
-    "Ratings": ".ratings",
-    "RatingsConfig": ".ratings",
+    "Rate": ".ratings",
+    "RateConfig": ".ratings",
     "Deidentifier": ".deidentification",
     "DeidentifyConfig": ".deidentification",
     "EloRater": ".elo",
     "EloConfig": ".elo",
-    "Classification": ".basic_classifier",
-    "ClassificationConfig": ".basic_classifier",
+    "Classify": ".basic_classifier",
+    "ClassifyConfig": ".basic_classifier",
+    "Rank": ".rank",
+    "RankConfig": ".rank",
     "Regional": ".regional",
     "RegionalConfig": ".regional",
     "RecursiveEloRater": ".recursive_elo",

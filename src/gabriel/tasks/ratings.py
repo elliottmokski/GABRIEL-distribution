@@ -22,7 +22,7 @@ from ..utils import safest_json
 # Configuration dataclass
 # ────────────────────────────
 @dataclass
-class RatingsConfig:
+class RateConfig:
     attributes: Dict[str, str]
     save_dir: str = "ratings"
     file_name: str = "ratings.csv"
@@ -36,14 +36,14 @@ class RatingsConfig:
 
 
 # ────────────────────────────
-# Main Ratings task
+# Main rating task
 # ────────────────────────────
-class Ratings:
+class Rate:
     """Rate passages on specified attributes (0–100)."""
 
 
     # -----------------------------------------------------------------
-    def __init__(self, cfg: RatingsConfig, template: PromptTemplate | None = None) -> None:
+    def __init__(self, cfg: RateConfig, template: PromptTemplate | None = None) -> None:
         self.cfg = cfg
         self.template = template or PromptTemplate.from_package("ratings_prompt.jinja2")
         os.makedirs(self.cfg.save_dir, exist_ok=True)
