@@ -69,6 +69,16 @@ def test_ratings_dummy(tmp_path):
     assert "helpfulness" in df.columns
 
 
+def test_ratings_multirun(tmp_path):
+    cfg = RatingsConfig(attributes={"helpfulness": ""}, save_dir=str(tmp_path), file_name="ratings.csv", use_dummy=True, n_runs=2)
+    task = Ratings(cfg)
+    data = pd.DataFrame({"text": ["hello"]})
+    df = asyncio.run(task.run(data, text_column="text"))
+    assert "helpfulness" in df.columns
+    disagg = pd.read_csv(tmp_path / "ratings_full_disaggregated.csv", index_col=[0, 1])
+    assert set(disagg.index.names) == {"text", "run"}
+
+
 def test_deidentifier_dummy(tmp_path):
     cfg = DeidentifyConfig(save_path=str(tmp_path/"deid.csv"), use_dummy=True)
     task = Deidentifier(cfg)
@@ -83,6 +93,16 @@ def test_basic_classifier_dummy(tmp_path):
     df = pd.DataFrame({"txt": ["a", "b"]})
     res = asyncio.run(task.run(df, text_column="txt"))
     assert "yes" in res.columns
+
+
+def test_basic_classifier_multirun(tmp_path):
+    cfg = BasicClassifierConfig(labels={"yes": ""}, save_dir=str(tmp_path), use_dummy=True, n_runs=2)
+    task = BasicClassifier(cfg)
+    df = pd.DataFrame({"txt": ["a"]})
+    res = asyncio.run(task.run(df, text_column="txt"))
+    assert "yes" in res.columns
+    disagg = pd.read_csv(tmp_path / "basic_classifier_responses_full_disaggregated.csv", index_col=[0, 1])
+    assert set(disagg.index.names) == {"text", "run"}
 
 
 def test_regional_dummy(tmp_path):
