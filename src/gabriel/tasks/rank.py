@@ -61,128 +61,64 @@ from gabriel.utils import safest_json
 
 @dataclass
 class RankConfig:
-    """Configuration parameters for :class:`Ranker`.
+    """User‑visible configuration for :class:`Rank`.
 
-    Attributes
+    Only a minimal set of parameters are exposed to keep the API
+    straightforward.  Additional hyperparameters for the underlying
+    Bradley–Terry model and pairing heuristics are fixed at sensible
+    values and should not generally need to be changed.  See the
+    surrounding documentation for more details.
+    
+    Parameters
     ----------
     attributes:
-        A mapping from attribute names to definitions.  Definitions may
-        be empty strings; when no definition is supplied the language
-        model is expected to use its own interpretation of the
-        attribute.  A list of strings is also accepted and will be
-        internally converted into a dict with the attribute names as
-        both keys and values.
+        Mapping from attribute names to definitions.  A list of
+        attribute names is also accepted; definitions will be set to
+        empty strings.
     n_rounds:
-        Number of rounds of pairwise comparisons to perform.  More
-        rounds generally lead to more stable rankings at the cost of
-        additional API calls.
+        Number of rounds of pairwise comparisons to perform.
     matches_per_round:
-        Number of matches (comparisons) to schedule for each item in
-        each round.  Higher values provide more information but increase
-        cost.
+        Number of matches per item per round.
     power_matching:
-        Whether to use an information‑theoretic pairing heuristic to
-        select which items should be compared.  If ``False``, pairs are
-        selected uniformly at random.
-    power_match_mode:
-        Strategy used to score candidate pairs when ``power_matching``
-        is enabled.  Currently only ``"info_gain"`` is supported and
-        matches the behaviour of ``elo.py``.
-    power_match_explore_frac:
-        Fraction of total matches per round to allocate to purely
-        random comparisons in order to avoid getting stuck in local
-        minima.
-    power_match_candidate_neighbors:
-        Number of neighbouring items to consider when building the
-        candidate set for information gain based pairing.
-    power_match_high_se_frac:
-        Fraction of items with the highest estimated standard errors
-        that should be forced into the candidate set in order to reduce
-        their uncertainty.  Only relevant when ``compute_se`` is
-        ``True``.
-    bt_pseudo_count:
-        Pseudo‑count added to the win/loss counts when fitting the BT
-        model.  Acts as an implicit prior and prevents pathological
-        cases when an item has no comparisons.
-    bt_max_iter:
-        Maximum number of iterations to run the BT fixed‑point
-        optimisation.
-    bt_tol:
-        Convergence tolerance for the BT optimisation.  Iterations halt
-        when the maximum absolute change in skill parameters falls
-        below this value.
-    compute_se:
-        Whether to compute standard error estimates for the skill
-        parameters.  If ``True``, standard errors are estimated via
-        the observed Fisher information matrix; otherwise they are
-        omitted.
-    se_ridge:
-        Ridge term applied to the Fisher information matrix when
-        computing standard errors.  Helps stabilise the inversion.
-    accept_multiway:
-        Whether to allow multiway rankings (Plackett–Luce style) as
-        inputs via the :meth:`add_multiway_ranking` API.  When
-        ``False`` only pairwise comparisons are considered.
+        Whether to use an information‑theoretic pairing heuristic.
     add_zscore:
-        If ``True`` (the default), z‑scores (normalised scores with
-        zero mean and unit variance) will be appended to the output
-        DataFrame for each attribute.
+        If ``True`` append z‑scores (normalised scores) to the output.
+    compute_se:
+        If ``True`` compute standard errors for each score.
+    learning_rate:
+        Pseudo‑count used by the BT model to regularise the win/loss
+        matrix.  A larger value makes updates more conservative.
     model:
-        Name of the language model to use when calling
-        :func:`get_all_responses`.
+        Name of the language model to call via ``get_all_responses``.
     n_parallels:
-        Number of parallel API calls to issue.  Keeping this value
-        modest (e.g. 100) helps avoid rate limiting.
+        Number of parallel API calls to issue.
     use_dummy:
-        Whether to use a dummy language model (for debugging).  If
-        enabled, prompts will be echoed back as responses.
-    timeout:
-        Maximum time in seconds to wait for a batch of responses.
-    instructions:
-        Additional instructions to append to the prompt.  Included for
-        completeness but unused by the current rankings prompt.
-    additional_instructions:
-        Extra, user‑supplied instructions that will be inserted into
-        the prompt template.  May be ``None`` or an empty string.
+        Whether to use a dummy model for testing purposes.
     save_dir:
-        Directory into which results should be written.  The directory
-        will be created if it does not already exist.
+        Directory into which result files should be saved.
     file_name:
-        Stem for the output CSV files.  If an extension (e.g.
-        ``.csv``) is provided it will be stripped off.  The final
-        results file will be ``<file_name>_final.csv``.
-    seed:
-        Seed for the random number generator used in the pairing
-        strategies.  Setting a seed makes results reproducible.
+        Stem for the output CSV files.  If an extension is present it
+        will be removed.
+    additional_instructions:
+        Extra, user‑supplied instructions passed to the prompt.
     """
 
     attributes: Union[Dict[str, str], List[str]]
     n_rounds: int = 15
     matches_per_round: int = 3
     power_matching: bool = True
-    power_match_mode: str = "info_gain"
-    power_match_explore_frac: float = 0.2
-    power_match_candidate_neighbors: int = 20
-    power_match_high_se_frac: float = 0.25
-    bt_pseudo_count: float = 0.1
-    bt_max_iter: int = 1000
-    bt_tol: float = 1e-6
-    compute_se: bool = True
-    se_ridge: float = 1e-9
-    accept_multiway: bool = False
     add_zscore: bool = True
+    compute_se: bool = True
+    learning_rate: float = 0.1
     model: str = "o4-mini"
     n_parallels: int = 100
     use_dummy: bool = False
-    timeout: float = 45.0
-    instructions: str = ""
-    additional_instructions: str = ""
     save_dir: str = os.path.expanduser("~/Documents/runs")
     file_name: str = "rankings"
-    seed: Optional[int] = None
+    additional_instructions: str = ""
 
 
-class Ranker:
+class Rank:
     """Rank items by comparing passages pairwise on multiple attributes.
 
     An instance of :class:`Ranker` orchestrates the iterative process
@@ -194,15 +130,46 @@ class Ranker:
     """
 
     def __init__(self, teleprompter: Teleprompter, cfg: RankConfig) -> None:
+        """Instantiate a ranking engine.
+
+        Parameters
+        ----------
+        teleprompter:
+            An instance of :class:`gabriel.utils.teleprompter.Teleprompter`
+            responsible for rendering prompt templates.
+        cfg:
+            User‑provided configuration.
+        """
         self.tele = teleprompter
         self.cfg = cfg
-        self.rng = random.Random(cfg.seed)
-        # create save directory eagerly
+        # random state; a seed is intentionally omitted from the public
+        # configuration to discourage brittle behaviour.  If
+        # reproducibility is required, modify this line to pass a
+        # specific seed.
+        self.rng = random.Random()
+        # ensure the save directory exists
         os.makedirs(self.cfg.save_dir, exist_ok=True)
-        # state for multiway rankings (currently unused unless accept_multiway is True)
+        # place holders for multiway rankings and aggregated standard errors
         self.history_multi: Dict[str, List[List[str]]] = {}
-        # aggregated standard error estimates from previous round
         self._last_se_agg: Optional[Dict[str, float]] = None
+
+        # internal constants for the pairing and BT algorithms.  These
+        # values are deliberately not exposed through the public API as
+        # they seldom need tuning and adjusting them can complicate
+        # reproducibility.  Should you need to experiment with these
+        # hyperparameters, modify the values below.
+        self._EXPLORE_FRAC = 0.2  # fraction of random pairings per round
+        self._CANDIDATE_NEIGHBORS = 20  # neighbourhood size for info gain pairing
+        self._HIGH_SE_FRAC = 0.25  # fraction of high‑uncertainty items
+        self._MAX_ITER = 1000  # maximum iterations for BT optimisation
+        self._TOL = 1e-6  # convergence tolerance for BT
+        self._SE_RIDGE = 1e-9  # ridge for standard error computation
+
+        # timeout in seconds for a batch of language model responses.  Not
+        # exposed publicly because changing it rarely benefits typical
+        # workloads; if a different timeout is required this can be
+        # modified here.
+        self._TIMEOUT = 45.0
 
     # ------------------------------------------------------------------
     # Public API for adding multiway rankings
@@ -210,12 +177,10 @@ class Ranker:
     def add_multiway_ranking(self, attr: str, ranking: List[str]) -> None:
         """Record a multiway ranking for a given attribute.
 
-        If ``accept_multiway`` is enabled in the configuration, these
-        rankings will be incorporated into the Plackett–Luce update of
-        the BT model.  Otherwise they are ignored.
+        Multiway rankings are stored but not used by the current BT
+        implementation.  They are retained for potential future
+        extensions where a Plackett–Luce model could be incorporated.
         """
-        if not self.cfg.accept_multiway:
-            return
         if attr not in self.history_multi:
             self.history_multi[attr] = []
         self.history_multi[attr].append(ranking)
@@ -421,7 +386,7 @@ class Ranker:
                     continue
                 pairs_set.add(tuple(sorted((a, b))))
         # small amount of random exploration to avoid pathological pairings
-        n_random_targets = int(self.cfg.power_match_explore_frac * n * mpr)
+        n_random_targets = int(self._EXPLORE_FRAC * n * mpr)
         for _ in range(n_random_targets):
             if n < 2:
                 break
@@ -452,9 +417,9 @@ class Ranker:
         ids_sorted = sorted(item_ids, key=lambda i: current_ratings[i])
         idx_of = {i_id: k for k, i_id in enumerate(ids_sorted)}
         # identify high‑uncertainty items
-        num_high_se = max(1, int(self.cfg.power_match_high_se_frac * n))
+        num_high_se = max(1, int(self._HIGH_SE_FRAC * n))
         high_se_ids = sorted(item_ids, key=lambda i: se_agg.get(i, 1.0), reverse=True)[:num_high_se]
-        candidate_neighbors = max(1, self.cfg.power_match_candidate_neighbors)
+        candidate_neighbors = max(1, self._CANDIDATE_NEIGHBORS)
         candidate_pairs_set: set[Tuple[str, str]] = set()
         # local neighbourhood pairs
         for i_id in item_ids:
@@ -473,7 +438,7 @@ class Ranker:
             for j in samp:
                 candidate_pairs_set.add(tuple(sorted((hs, j))))
         # additional purely random candidate pairs
-        n_random_targets = int(self.cfg.power_match_explore_frac * n * mpr)
+        n_random_targets = int(self._EXPLORE_FRAC * n * mpr)
         for _ in range(n_random_targets):
             a, b = self.rng.sample(item_ids, 2)
             candidate_pairs_set.add(tuple(sorted((a, b))))
@@ -540,16 +505,13 @@ class Ranker:
     ) -> List[Tuple[Tuple[str, str], Tuple[str, str]]]:
         """Dispatch to the appropriate pairing strategy."""
         mpr = max(1, self.cfg.matches_per_round)
+        # if power matching is disabled or no previous ratings are available
         if not self.cfg.power_matching or current_ratings is None:
             return self._pairs_random(item_ids, texts_by_id, mpr)
-        # if information gain is requested and we have standard error estimates
-        if (
-            self.cfg.power_match_mode == "info_gain"
-            and se_agg is not None
-            and len(se_agg) == len(item_ids)
-        ):
+        # use information gain if we have standard error estimates for all items
+        if se_agg is not None and len(se_agg) == len(item_ids):
             return self._pairs_info_gain(item_ids, texts_by_id, current_ratings, se_agg, mpr)
-        # fall back to adjacent pairing
+        # otherwise pair adjacent items based on current ratings
         return self._pairs_adjacent(item_ids, texts_by_id, current_ratings, mpr)
 
     # ------------------------------------------------------------------
@@ -615,9 +577,7 @@ class Ranker:
         # store per‑attribute standard errors across items
         se_store: Dict[str, Dict[str, float]] = {a: {i: np.nan for i in item_ids} for a in attr_keys}
 
-        # convenience function for computing expected win probability
-        def expected(r_a: float, r_b: float) -> float:
-            return 1.0 / (1.0 + 10 ** ((r_b - r_a) / 400))
+        # no Elo expected value function is needed here; rankings rely solely on the BT model
 
         # iterate through rounds
         for rnd in range(self.cfg.n_rounds):
@@ -672,7 +632,7 @@ class Ranker:
                 save_path=os.path.join(self.cfg.save_dir, f"{base_name}_round{rnd}.csv"),
                 reset_files=reset_files,
                 use_dummy=self.cfg.use_dummy,
-                timeout=self.cfg.timeout,
+                timeout=self._TIMEOUT,
                 **kwargs,
             )
             # parse each response
@@ -733,53 +693,36 @@ class Ranker:
                     else:
                         # ignore unrecognised outcomes
                         continue
-            # update ratings using the BT (or PL if multiway) model
+            # update ratings using the BT model
             se_agg_next: Dict[str, float] = {i: 0.0 for i in item_ids}
             se_agg_counts: Dict[str, int] = {i: 0 for i in item_ids}
             for attr in attr_keys:
                 outcomes = history_pairs[attr]
-                rankings: List[List[str]] = []
-                # if PL is accepted and multiway rankings have been added
-                if self.cfg.accept_multiway:
-                    rankings = self.history_multi.get(attr, [])
-                if self.cfg.accept_multiway and rankings:
-                    # fit PL scores and ignore standard errors (unsupported)
-                    pl_scores = self._fit_pl(
-                        item_ids=item_ids,
-                        rankings=rankings,
-                        pseudo=self.cfg.bt_pseudo_count,
-                        max_iter=self.cfg.bt_max_iter,
-                        tol=self.cfg.bt_tol,
+                if len(outcomes) == 0:
+                    continue
+                # fit BT scores and gather diagnostics
+                bt_scores, n_ij, p_ij = self._fit_bt(
+                    item_ids=item_ids,
+                    outcomes=outcomes,
+                    pseudo=self.cfg.learning_rate,
+                    max_iter=self._MAX_ITER,
+                    tol=self._TOL,
+                    return_info=True,
+                )
+                for i in item_ids:
+                    ratings[i][attr] = bt_scores[i]
+                if self.cfg.compute_se:
+                    s_vec = np.array([bt_scores[i] for i in item_ids])
+                    se_vec = self._bt_standard_errors(
+                        s=s_vec,
+                        n_ij=n_ij,
+                        p_ij=p_ij,
+                        ridge=self._SE_RIDGE,
                     )
-                    for i in item_ids:
-                        ratings[i][attr] = pl_scores[i]
-                    for i in item_ids:
-                        se_store[attr][i] = np.nan
-                else:
-                    if len(outcomes) == 0:
-                        continue
-                    bt_scores, n_ij, p_ij = self._fit_bt(
-                        item_ids=item_ids,
-                        outcomes=outcomes,
-                        pseudo=self.cfg.bt_pseudo_count,
-                        max_iter=self.cfg.bt_max_iter,
-                        tol=self.cfg.bt_tol,
-                        return_info=True,
-                    )
-                    for i in item_ids:
-                        ratings[i][attr] = bt_scores[i]
-                    if self.cfg.compute_se:
-                        s_vec = np.array([bt_scores[i] for i in item_ids])
-                        se_vec = self._bt_standard_errors(
-                            s=s_vec,
-                            n_ij=n_ij,
-                            p_ij=p_ij,
-                            ridge=self.cfg.se_ridge,
-                        )
-                        for i, se_val in zip(item_ids, se_vec):
-                            se_store[attr][i] = float(se_val)
-                            se_agg_next[i] += float(se_val)
-                            se_agg_counts[i] += 1
+                    for i, se_val in zip(item_ids, se_vec):
+                        se_store[attr][i] = float(se_val)
+                        se_agg_next[i] += float(se_val)
+                        se_agg_counts[i] += 1
             # aggregate standard errors across attributes
             if self.cfg.compute_se:
                 for i in item_ids:
