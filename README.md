@@ -46,6 +46,7 @@ Key options (see `RatingsConfig`):
 - `model` – model name (default `o4-mini`).
 - `n_parallels` – number of concurrent API calls.
 - `save_path` – CSV file for intermediate results.
+- `rating_scale` – optional custom rating scale text. If omitted, the default 0–100 scale from the template is used.
 
 ### `BasicClassifier`
 Classify passages into boolean labels.  Uses a prompt in `basic_classifier_prompt.jinja2` and expects JSON `{label: true/false}` responses.
