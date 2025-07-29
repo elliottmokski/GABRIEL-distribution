@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import os
 import re
@@ -26,6 +27,7 @@ class BasicClassifierConfig:
     file_name: str = "basic_classifier_responses.csv"
     model: str = "o4-mini"
     n_parallels: int = 400
+    n_runs: int = 1
     additional_instructions: str = ""
     additional_guidelines: str = ""
     use_dummy: bool = False
@@ -61,6 +63,7 @@ class BasicClassifier:
         prompts: List[str] = []
         ids: List[str] = []
         id_to_rows: DefaultDict[str, List[int]] = defaultdict(list)
+        id_to_text: Dict[str, str] = {}
 
         for row, passage in enumerate(texts):
             clean = " ".join(str(passage).split())
@@ -68,6 +71,7 @@ class BasicClassifier:
             id_to_rows[sha8].append(row)
             if len(id_to_rows[sha8]) > 1:
                 continue  # duplicate passage – no need to prompt again
+            id_to_text[sha8] = passage
 
             prompts.append(
                 self.template.render(
@@ -82,7 +86,7 @@ class BasicClassifier:
         dup_ct = len(texts) - len(prompts)
         if dup_ct:
             print(f"[BasicClassifier] Skipped {dup_ct} duplicate prompt(s).")
-        return prompts, ids, id_to_rows
+        return prompts, ids, id_to_rows, id_to_text
 
     # -----------------------------------------------------------------
     # Helpers for parsing raw model output
@@ -140,56 +144,86 @@ class BasicClassifier:
         df_proc = df.reset_index(drop=True).copy()
         texts = df_proc[text_column].astype(str).tolist()
 
-        prompts, ids, id_to_rows = self._build(texts)
+        prompts, ids, id_to_rows, id_to_text = self._build(texts)
 
         csv_path = os.path.join(self.cfg.save_dir, self.cfg.file_name)
+        base_root, ext = os.path.splitext(csv_path)
 
-        df_resp = await get_all_responses(
-            prompts=prompts,
-            identifiers=ids,
-            n_parallels=self.cfg.n_parallels,
-            save_path=csv_path,
-            reset_files=reset_files,
-            json_mode=True,
-            model=self.cfg.model,
-            use_dummy=self.cfg.use_dummy,
-            timeout=self.cfg.timeout,
-            print_example_prompt=True,
-            **kwargs,
-        )
-        if not isinstance(df_resp, pd.DataFrame):
-            raise RuntimeError("get_all_responses returned no DataFrame")
+        if not isinstance(self.cfg.n_runs, int) or self.cfg.n_runs < 1:
+            raise ValueError("n_runs must be an integer >= 1")
 
-        # map parsed responses back to every original passage index
-        parsed_master = {idx: {lab: None for lab in self.cfg.labels} for idx in range(len(texts))}
-        orphans = 0
-        for ident, raw in zip(df_resp.Identifier, df_resp.Response):
-            if ident not in id_to_rows:
-                orphans += 1
-                continue
-            parsed = await self._parse(raw)
-            for row in id_to_rows[ident]:
-                parsed_master[row] = parsed
-
-        filled = sum(any(v is not None for v in d.values()) for d in parsed_master.values())
-        if orphans:
-            print(
-                f"[BasicClassifier] WARNING: {orphans} response(s) had no matching passage this run."
+        async def _run_once(idx: int):
+            path = csv_path if self.cfg.n_runs == 1 else f"{base_root}_run{idx}{ext}"
+            df_resp = await get_all_responses(
+                prompts=prompts,
+                identifiers=ids,
+                n_parallels=self.cfg.n_parallels,
+                save_path=path,
+                reset_files=reset_files,
+                json_mode=True,
+                model=self.cfg.model,
+                use_dummy=self.cfg.use_dummy,
+                timeout=self.cfg.timeout,
+                print_example_prompt=True,
+                **kwargs,
             )
-        print(f"[BasicClassifier] Filled {filled}/{len(parsed_master)} rows.")
+            if not isinstance(df_resp, pd.DataFrame):
+                raise RuntimeError("get_all_responses returned no DataFrame")
+            return df_resp
+        if self.cfg.n_runs == 1:
+            df_resps = [await _run_once(1)]
+        else:
+            df_resps = await asyncio.gather(*[_run_once(i) for i in range(1, self.cfg.n_runs + 1)])
 
-        parsed_df = pd.DataFrame.from_dict(parsed_master, orient="index")
+        # parse each run and construct disaggregated records
+        full_records: List[Dict[str, Any]] = []
+        total_orphans = 0
+        for run_idx, df_resp in enumerate(df_resps, start=1):
+            id_to_labels: Dict[str, Dict[str, Optional[bool]]] = {}
+            orphans = 0
+            for ident, raw in zip(df_resp.Identifier, df_resp.Response):
+                if ident not in id_to_rows:
+                    orphans += 1
+                    continue
+                parsed = await self._parse(raw)
+                id_to_labels[ident] = parsed
+            total_orphans += orphans
+            for ident in ids:
+                parsed = id_to_labels.get(ident, {lab: None for lab in self.cfg.labels})
+                rec = {"text": id_to_text[ident], "run": run_idx}
+                rec.update({lab: parsed.get(lab) for lab in self.cfg.labels})
+                full_records.append(rec)
 
-        # quick coverage report (mirrors `Ratings`)
-        total = len(parsed_df)
+        if total_orphans:
+            print(
+                f"[BasicClassifier] WARNING: {total_orphans} response(s) had no matching passage this run."
+            )
+
+        full_df = pd.DataFrame(full_records).set_index(["text", "run"])
+        disagg_path = f"{base_root}_full_disaggregated.csv"
+        full_df.to_csv(disagg_path)
+
+        # aggregate across runs using mode
+        def _mode(s: pd.Series) -> Optional[bool]:
+            ser = s.dropna()
+            if ser.empty:
+                return None
+            return ser.mode().iloc[0]
+
+        agg_df = pd.DataFrame({lab: full_df[lab].groupby("text").apply(_mode) for lab in self.cfg.labels})
+
+        filled = agg_df.dropna(how="all").shape[0]
+        print(f"[BasicClassifier] Filled {filled}/{len(agg_df)} unique texts.")
+
+        total = len(agg_df)
         print("\n=== Label coverage (non-null) ===")
         for lab in self.cfg.labels:
-            n = parsed_df[lab].notna().sum()
+            n = agg_df[lab].notna().sum()
             print(f"{lab:<55s}: {n / total:6.2%} ({n}/{total})")
         print("=================================\n")
 
         out_path = os.path.splitext(csv_path)[0] + "_final.csv"
-        result = df_proc.join(parsed_df, how="left")
+        result = df_proc.merge(agg_df, left_on=text_column, right_index=True, how="left")
         result.to_csv(out_path, index=False)
         return result
 
