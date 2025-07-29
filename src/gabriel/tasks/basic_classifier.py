@@ -19,8 +19,8 @@ from ..utils import safest_json
 # Configuration dataclass
 # ────────────────────────────
 @dataclass
-class BasicClassifierConfig:
-    """Configuration for :class:`BasicClassifier`."""
+class ClassificationConfig:
+    """Configuration for :class:`Classification`."""
 
     labels: Dict[str, str]  # {"label_name": "description", ...}
     save_dir: str = "classifier"
@@ -37,7 +37,7 @@ class BasicClassifierConfig:
 # ────────────────────────────
 # Main Basic classifier task
 # ────────────────────────────
-class BasicClassifier:
+class Classification:
     """Robust passage classifier using an LLM.
 
     * Accepts a list of *texts* (not a DataFrame) just like :class:`Ratings`.
@@ -48,7 +48,7 @@ class BasicClassifier:
     _FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.S)
 
     # -----------------------------------------------------------------
-    def __init__(self, cfg: BasicClassifierConfig, template: PromptTemplate | None = None) -> None:  # noqa: D401,E501
+    def __init__(self, cfg: ClassificationConfig, template: PromptTemplate | None = None) -> None:  # noqa: D401,E501
         self.cfg = cfg
         self.template = template or PromptTemplate.from_package(
             "basic_classifier_prompt.jinja2"
@@ -85,7 +85,7 @@ class BasicClassifier:
 
         dup_ct = len(texts) - len(prompts)
         if dup_ct:
-            print(f"[BasicClassifier] Skipped {dup_ct} duplicate prompt(s).")
+            print(f"[Classification] Skipped {dup_ct} duplicate prompt(s).")
         return prompts, ids, id_to_rows, id_to_text
 
     # -----------------------------------------------------------------
@@ -196,7 +196,7 @@ class BasicClassifier:
 
         if total_orphans:
             print(
-                f"[BasicClassifier] WARNING: {total_orphans} response(s) had no matching passage this run."
+                f"[Classification] WARNING: {total_orphans} response(s) had no matching passage this run."
             )
 
         full_df = pd.DataFrame(full_records).set_index(["text", "run"])
@@ -213,7 +213,7 @@ class BasicClassifier:
         agg_df = pd.DataFrame({lab: full_df[lab].groupby("text").apply(_mode) for lab in self.cfg.labels})
 
         filled = agg_df.dropna(how="all").shape[0]
-        print(f"[BasicClassifier] Filled {filled}/{len(agg_df)} unique texts.")
+        print(f"[Classification] Filled {filled}/{len(agg_df)} unique texts.")
 
         total = len(agg_df)
         print("\n=== Label coverage (non-null) ===")

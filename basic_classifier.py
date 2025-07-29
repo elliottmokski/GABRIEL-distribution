@@ -10,7 +10,7 @@ import pandas as pd
 from utility_functions import Teleprompter, get_all_responses
 
 
-class BasicClassifier:
+class Classification:
     """
     Robust passage-classifier that turns LLM JSON (or JSON-ish text)
     into boolean columns for every label.
@@ -69,7 +69,7 @@ class BasicClassifier:
 
         dup_ct = len(self.df) - len(prompts)
         if dup_ct:
-            print(f"[BasicClassifier] Skipped {dup_ct} duplicate prompt(s).")
+            print(f"[Classification] Skipped {dup_ct} duplicate prompt(s).")
 
         return prompts, ids, id_to_rows
 
@@ -186,10 +186,10 @@ class BasicClassifier:
         filled = sum(any(v is not None for v in d.values()) for d in parsed_master.values())
         if orphans:
             print(
-                f"[BasicClassifier] WARNING: {orphans} response(s) "
+                f"[Classification] WARNING: {orphans} response(s) "
                 f"had no matching passage this run."
             )
-        print(f"[BasicClassifier] Filled {filled}/{len(parsed_master)} rows.")
+        print(f"[Classification] Filled {filled}/{len(parsed_master)} rows.")
 
         parsed_df = pd.DataFrame.from_dict(parsed_master, orient="index")
 

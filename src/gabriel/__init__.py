@@ -3,14 +3,14 @@
 from importlib.metadata import PackageNotFoundError, version as _v
 
 from . import tasks as _tasks
-from .api import rate, classify
+from .api import rate, classify, deidentify
 
 try:
     __version__ = _v("gabriel")
 except PackageNotFoundError:  # pragma: no cover - package not installed
     from ._version import __version__
 
-__all__ = list(_tasks.__all__) + ["rate", "classify"]
+__all__ = list(_tasks.__all__) + ["rate", "classify", "deidentify"]
 
 
 def __getattr__(name: str):
