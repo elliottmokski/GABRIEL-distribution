@@ -9,7 +9,7 @@ from .tasks import (
     BasicClassifierConfig,
 )
 
-def rate(
+async def rate(
     df: pd.DataFrame,
     column_name: str,
     *,
@@ -37,9 +37,9 @@ def rate(
         additional_instructions=additional_instructions,
         **cfg_kwargs,
     )
-    return asyncio.run(Ratings(cfg).run(df, column_name, reset_files=reset_files))
+    return await run(Ratings(cfg).run(df, column_name, reset_files=reset_files)
 
-def classify(
+async def classify(
     df: pd.DataFrame,
     column_name: str,
     *,
@@ -67,4 +67,4 @@ def classify(
         use_dummy=use_dummy,
         **cfg_kwargs,
     )
-    return asyncio.run(BasicClassifier(cfg).run(df, column_name, reset_files=reset_files))
+    return await run(BasicClassifier(cfg).run(df, column_name, reset_files=reset_files)
