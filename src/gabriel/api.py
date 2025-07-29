@@ -63,4 +63,4 @@ async def classify(
         use_dummy=use_dummy,
         **cfg_kwargs,
     )
-    return await BasicClassifier(cfg).run(df, column_name, reset_files=reset_files))
+    return await BasicClassifier(cfg).run(df, column_name, reset_files=reset_files)
