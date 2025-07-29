@@ -103,7 +103,8 @@ class Ratings:
             )
             ids.append(sha8)
 
-        csv_path = os.path.join(self.cfg.save_dir, self.cfg.file_name)
+        base_name = os.path.splitext(self.cfg.file_name)[0]
+        csv_path = os.path.join(self.cfg.save_dir, f"{base_name}_raw_responses.csv")
         base_root, ext = os.path.splitext(csv_path)
 
         if not isinstance(self.cfg.n_runs, int) or self.cfg.n_runs < 1:
@@ -151,24 +152,16 @@ class Ratings:
                 full_records.append(rec)
 
         full_df = pd.DataFrame(full_records).set_index(["text", "run"])
-        disagg_path = f"{base_root}_full_disaggregated.csv"
+        disagg_path = os.path.join(self.cfg.save_dir, f"{base_name}_full_disaggregated.csv")
         full_df.to_csv(disagg_path, index_label=["text", "run"])
 
         # aggregate across runs
         agg_df = full_df.groupby("text")[list(self.cfg.attributes)].mean()
 
-        out_path = os.path.splitext(csv_path)[0] + "_final.csv"
+        out_path = os.path.join(self.cfg.save_dir, f"{base_name}_cleaned.csv")
         result = df_proc.merge(agg_df, left_on=text_column, right_index=True, how="left")
         result.to_csv(out_path, index=False)
 
-        # remove intermediate run files once everything is saved
-        if self.cfg.n_runs > 1:
-            for idx in range(1, self.cfg.n_runs + 1):
-                path = f"{base_root}_run{idx}{ext}"
-                if os.path.exists(path):
-                    try:
-                        os.remove(path)
-                    except Exception:
-                        pass
+        # keep raw response files for reference
 
         return result
