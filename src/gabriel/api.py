@@ -9,7 +9,7 @@ from .tasks import (
     BasicClassifierConfig,
 )
 
-def rate(
+async def rate(
     df: pd.DataFrame,
     column_name: str,
     *,
@@ -37,7 +37,7 @@ def rate(
     )
     return await Ratings(cfg).run(df, column_name, reset_files=reset_files)
 
-def classify(
+async def classify(
     df: pd.DataFrame,
     column_name: str,
     *,
