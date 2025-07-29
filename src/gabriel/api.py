@@ -37,7 +37,7 @@ async def rate(
         additional_instructions=additional_instructions,
         **cfg_kwargs,
     )
-    return await run(Ratings(cfg).run(df, column_name, reset_files=reset_files)
+    return await Ratings(cfg).run(df, column_name, reset_files=reset_files)
 
 async def classify(
     df: pd.DataFrame,
@@ -67,4 +67,4 @@ async def classify(
         use_dummy=use_dummy,
         **cfg_kwargs,
     )
-    return await run(BasicClassifier(cfg).run(df, column_name, reset_files=reset_files)
+    return await BasicClassifier(cfg).run(df, column_name, reset_files=reset_files)
