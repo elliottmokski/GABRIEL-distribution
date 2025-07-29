@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from ..utils.teleprompter import Teleprompter
+from ..core.prompt_template import PromptTemplate
 from ..utils.openai_utils import get_all_responses
 from ..utils import safest_json
 
@@ -48,9 +48,9 @@ class EloConfig:
 
 
 class EloRater:
-    def __init__(self, teleprompter: Teleprompter, cfg: EloConfig) -> None:
-        self.tele = teleprompter
+    def __init__(self, cfg: EloConfig, template: PromptTemplate | None = None) -> None:
         self.cfg = cfg
+        self.template = template or PromptTemplate.from_package("rankings_prompt.jinja2")
         self.save_path = os.path.join(cfg.save_dir, cfg.run_name)
         os.makedirs(self.save_path, exist_ok=True)
         self.rng = random.Random(cfg.seed)
@@ -343,13 +343,15 @@ class EloRater:
                 attr_def_map = ({a: self.cfg.attributes[a] for a in batch}
                                 if isinstance(self.cfg.attributes, dict) else {a: "" for a in batch})
                 for pair_idx, ((id_a, t_a), (id_b, t_b)) in enumerate(pairs):
+                    add_instructions = self.cfg.instructions
+                    if self.cfg.additional_guidelines:
+                        add_instructions = (add_instructions + "\n" + self.cfg.additional_guidelines).strip()
                     prompts.append(
-                        self.tele.generic_elo_prompt(
-                            text_circle=t_a,
-                            text_square=t_b,
+                        self.template.render(
+                            passage_circle=t_a,
+                            passage_square=t_b,
                             attributes=attr_def_map,
-                            instructions=self.cfg.instructions,
-                            additional_guidelines=self.cfg.additional_guidelines,
+                            additional_instructions=add_instructions,
                         )
                     )
                     ids.append(f"{rnd}|{batch_idx}|{pair_idx}|{id_a}|{id_b}")
@@ -413,10 +415,14 @@ class EloRater:
                     if isinstance(val, dict) and "winner" in val:
                         val = val["winner"]
                     v = str(val).strip().lower()
-                    if v.startswith(("cir", "a", "left", "text a")):
+                    if v.startswith(("cir", "c", "a", "left", "text a")):
                         return "circle"
                     if v.startswith(("squ", "b", "right", "text b")):
                         return "square"
+                    if v.startswith("draw"):
+                        return "draw"
+                    if v.startswith("insufficient"):
+                        return "insufficient"
                     return ""
 
                 for attr_raw, winner_raw in safe_obj.items():
@@ -425,18 +431,22 @@ class EloRater:
                         continue
                     real_attr = batch_attr_map[attr_key_l]
                     w = _winner(winner_raw)
+
                     if w == "circle":
-                        winner, loser = a_id, b_id
+                        history_pairs[real_attr].append((a_id, b_id))
+                        score_a, score_b = 1.0, 0.0
                     elif w == "square":
-                        winner, loser = b_id, a_id
+                        history_pairs[real_attr].append((b_id, a_id))
+                        score_a, score_b = 0.0, 1.0
+                    elif w in ("draw", "insufficient"):
+                        history_pairs[real_attr].append((a_id, b_id))
+                        history_pairs[real_attr].append((b_id, a_id))
+                        score_a = score_b = 0.5
                     else:
                         continue
 
-                    history_pairs[real_attr].append((winner, loser))
-
                     if self.cfg.rating_method.lower() == "elo":
                         exp_a = expected(ratings[a_id][real_attr], ratings[b_id][real_attr])
-                        score_a, score_b = (1, 0) if winner == a_id else (0, 1)
                         ratings[a_id][real_attr] += self.cfg.k_factor * (score_a - exp_a)
                         ratings[b_id][real_attr] += self.cfg.k_factor * (score_b - (1 - exp_a))
 
