@@ -9,7 +9,7 @@ import numpy as np
 import os
 from typing import Any, Dict, Optional, List, Tuple
 from aiolimiter import AsyncLimiter
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import tiktoken
 
@@ -394,7 +394,7 @@ class OpenAIClient:
         if save_every_x_seconds is not None:
             periodic_save_task = asyncio.create_task(periodic_save())
 
-        pbar = tqdm(total=total_tasks, desc="Processing prompts")
+        pbar = tqdm(total=total_tasks, desc="Processing prompts", leave=True)
         try:
             while True:
                 await asyncio.sleep(1)

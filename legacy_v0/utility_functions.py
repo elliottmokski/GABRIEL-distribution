@@ -62,7 +62,7 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import davies_bouldin_score, silhouette_score
 from sklearn.metrics.pairwise import cosine_similarity
 from timeout_decorator import TimeoutError, timeout
-from tqdm import tqdm  #  progress bars
+from tqdm.auto import tqdm  # progress bars that work in notebooks and terminals
 
 
 class APIError(Exception):
@@ -1071,7 +1071,7 @@ async def get_all_responses(
         queue.put_nowait(item)
 
     results, processed = [], 0
-    pbar = tqdm(total=total, desc="Processing prompts")
+    pbar = tqdm(total=total, desc="Processing prompts", leave=True)
 
     async def flush():
         nonlocal results
@@ -1221,7 +1221,7 @@ async def get_all_embeddings(
             queue.task_done()
 
     tasks = [asyncio.create_task(worker()) for _ in range(n_parallels)]
-    pbar = tqdm(total=total_items, desc="Getting embeddings")
+    pbar = tqdm(total=total_items, desc="Getting embeddings", leave=True)
 
     # Periodically update progress bar until workers are done
     while any(not t.done() for t in tasks):
