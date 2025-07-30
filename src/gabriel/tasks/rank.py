@@ -111,7 +111,7 @@ class RankConfig:
     compute_se: bool = True
     learning_rate: float = 0.1
     model: str = "o4-mini"
-    n_parallels: int = 100
+    n_parallels: int = 400
     use_dummy: bool = False
     save_dir: str = os.path.expanduser("~/Documents/runs")
     file_name: str = "rankings"
