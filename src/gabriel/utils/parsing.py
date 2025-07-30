@@ -64,6 +64,33 @@ def _parse_json(txt: Any) -> Union[dict, list]:
         except Exception:
             pass
 
+    bracket = re.search(r"\[[\s\S]*\]", cleaned)
+    if bracket:
+        candidate = bracket.group(0).strip()
+        try:
+            out = json.loads(candidate)
+            if isinstance(out, (dict, list)):
+                return out
+        except Exception:
+            pass
+
+        m = re.fullmatch(r"\[\s*(['\"])(.*)\1\s*\]", candidate, re.S)
+        if m:
+            inner = m.group(2).strip()
+            try:
+                out = json.loads(inner)
+                if isinstance(out, (dict, list)):
+                    return out
+            except Exception:
+                inner_bracket = re.search(r"\[[\s\S]*\]", inner)
+                if inner_bracket:
+                    try:
+                        out = json.loads(inner_bracket.group(0))
+                        if isinstance(out, (dict, list)):
+                            return out
+                    except Exception:
+                        pass
+
     raise ValueError(f"Failed to parse JSON: {cleaned[:200]}")
 
 
