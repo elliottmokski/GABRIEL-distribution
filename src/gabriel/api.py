@@ -114,7 +114,7 @@ async def rank(
     save_dir: str,
     additional_instructions: Optional[str] = None,
     model: str = "o4-mini",
-    n_rounds: int = 15,
+    n_rounds: int = 5,
     matches_per_round: int = 3,
     power_matching: bool = True,
     add_zscore: bool = True,
