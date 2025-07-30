@@ -247,38 +247,105 @@ def _require_api_key() -> str:
     return api_key
 
 
-def _get_rate_limit_headers() -> Optional[Dict[str, str]]:
+def _get_rate_limit_headers(model: str = "o4-mini") -> Optional[Dict[str, str]]:
     """Retrieve rate‑limit headers via a cheap API request.
 
-    Performs a ``GET /v1/models`` request (which does not consume tokens) using
-    whatever HTTP client is available.  Returns a dict of the relevant
-    ``x‑ratelimit-*`` headers or ``None`` if the request fails.
+    The OpenAI platform does not yet expose a dedicated endpoint for
+    checking how many requests or tokens remain in your minute quota.  In
+    practice, these values are only communicated via ``x‑ratelimit-*``
+    headers on API responses.  The newer *Responses* API does not
+    consistently include these headers as of mid‑2025【360365694688557†L209-L243】, but it
+    may in the future.  To accommodate current and future behaviour, this
+    helper first tries a minimal call against the Responses endpoint and
+    falls back to a tiny call against the Chat completions endpoint when
+    the headers are absent.  Both calls cap generation at one token to
+    minimise usage.
+
+    :param model: The model to use for the dummy request.  Matching the
+      model you intend to use yields the most accurate limits.
+    :returns: A dictionary containing limit and remaining values for
+      requests and tokens if successful, otherwise ``None``.
     """
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         return None
-    url = "https://api.openai.com/v1/models"
-    headers = {"Authorization": f"Bearer {api_key}"}
-    # Try requests then httpx
-    for client in (requests, httpx):
-        if client is None:
-            continue
-        try:
-            resp = client.get(url, headers=headers, timeout=10)  # type: ignore
-            # Some libraries store headers in different attributes (dict or case‑insensitive)
-            h = getattr(resp, "headers", {})  # type: ignore
-            # Normalize keys to lower case
-            new_h = {k.lower(): v for k, v in h.items()}
-            return {
-                "limit_requests": new_h.get("x-ratelimit-limit-requests"),
-                "remaining_requests": new_h.get("x-ratelimit-remaining-requests"),
-                "reset_requests": new_h.get("x-ratelimit-reset-requests"),
-                "limit_tokens": new_h.get("x-ratelimit-limit-tokens"),
-                "remaining_tokens": new_h.get("x-ratelimit-remaining-tokens"),
-                "reset_tokens": new_h.get("x-ratelimit-reset-tokens"),
-            }
-        except Exception:
-            continue
+    # Define two candidate endpoints: the Responses API and the Chat
+    # completions API.  The responses API takes an ``input`` field and
+    # ``max_output_tokens``, while the chat API uses ``messages`` and
+    # ``max_tokens``.  We'll attempt them in order and return the first
+    # set of rate‑limit headers we encounter.
+    candidates: List[Tuple[str, Dict[str, Any]]] = []
+    # Responses API payload
+    candidates.append(
+        (
+            "https://api.openai.com/v1/responses",
+            {
+                "model": model,
+                "input": [
+                    {"role": "user", "content": "Hello"},
+                ],
+                # Use truncation just like our normal calls
+                "truncation": "auto",
+                "max_output_tokens": 1,
+            },
+        )
+    )
+    # Chat completions API payload
+    candidates.append(
+        (
+            "https://api.openai.com/v1/chat/completions",
+            {
+                "model": model,
+                "messages": [
+                    {"role": "user", "content": "Hello"},
+                ],
+                "max_tokens": 1,
+            },
+        )
+    )
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    for url, payload in candidates:
+        for client in (requests, httpx):
+            if client is None:
+                continue
+            try:
+                resp = client.post(url, headers=headers, json=payload, timeout=10)  # type: ignore
+                h = getattr(resp, "headers", {})  # type: ignore
+                new_h = {k.lower(): v for k, v in h.items()}
+                # Collect both standard and usage‑based headers.  If the
+                # responses API is missing them, continue to the next
+                # candidate.
+                limit_requests = new_h.get("x-ratelimit-limit-requests")
+                remaining_requests = new_h.get("x-ratelimit-remaining-requests")
+                reset_requests = new_h.get("x-ratelimit-reset-requests")
+                limit_tokens = new_h.get("x-ratelimit-limit-tokens") or new_h.get(
+                    "x-ratelimit-limit-tokens_usage_based"
+                )
+                remaining_tokens = new_h.get("x-ratelimit-remaining-tokens") or new_h.get(
+                    "x-ratelimit-remaining-tokens_usage_based"
+                )
+                reset_tokens = new_h.get("x-ratelimit-reset-tokens") or new_h.get(
+                    "x-ratelimit-reset-tokens_usage_based"
+                )
+                # If any of the primary values are present, return them.  Some
+                # providers may omit remaining values until you are close to
+                # the limit, so we treat the presence of a limit value as
+                # success.
+                if limit_requests or limit_tokens:
+                    return {
+                        "limit_requests": limit_requests,
+                        "remaining_requests": remaining_requests,
+                        "reset_requests": reset_requests,
+                        "limit_tokens": limit_tokens,
+                        "remaining_tokens": remaining_tokens,
+                        "reset_tokens": reset_tokens,
+                    }
+            except Exception:
+                # Ignore any errors and try the next client or candidate
+                continue
     return None
 
 
@@ -307,7 +374,9 @@ def _print_usage_overview(
     print("\n===== OpenAI API usage summary =====")
     print(f"Number of prompts: {len(prompts)}")
     print(f"Total input words: {sum(len(str(p).split()) for p in prompts):,}")
-    rl = rate_headers or _get_rate_limit_headers()
+    # Fetch fresh headers if not supplied.  Pass the model so the helper
+    # knows which endpoint to probe when performing the dummy call.
+    rl = rate_headers or _get_rate_limit_headers(model)
     if rl:
         try:
             lim_r = int(float(rl.get("limit_requests") or 0))
@@ -429,6 +498,9 @@ def _decide_default_max_output_tokens(
     """
     if user_specified is not None:
         return user_specified
+    # When rate headers are not supplied, fall back to fetching them using
+    # the default model.  Passing a model ensures the helper uses the
+    # minimal chat call rather than the unsupported ``/v1/models`` endpoint.
     rl = rate_headers or _get_rate_limit_headers()
     if rl and rl.get("remaining_tokens"):
         try:
@@ -678,7 +750,10 @@ async def get_all_responses(
     get_response_kwargs.setdefault("model", model)
     # Decide default cutoff once per job using cached rate headers
     # Fetch rate headers once to avoid multiple API calls
-    rate_headers = _get_rate_limit_headers()
+    # Retrieve rate‑limit headers for the chosen model.  Passing the model
+    # ensures the helper performs a dummy call with the correct model
+    # rather than probing the unsupported ``/v1/models`` endpoint.
+    rate_headers = _get_rate_limit_headers(model)
     user_cutoff = max_output_tokens if max_output_tokens is not None else max_tokens
     cutoff = _decide_default_max_output_tokens(user_cutoff, rate_headers)
     get_response_kwargs.setdefault("max_output_tokens", cutoff)
