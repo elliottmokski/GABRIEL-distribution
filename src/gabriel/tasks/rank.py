@@ -43,6 +43,7 @@ be incorporated.
 from __future__ import annotations
 
 import os
+from pathlib import Path
 import random
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -141,6 +142,9 @@ class Rank:
             render the comparison prompts.  If not supplied, the built‑in
             ``rankings_prompt.jinja2`` template is used.
         """
+        expanded = Path(os.path.expandvars(os.path.expanduser(cfg.save_dir)))
+        expanded.mkdir(parents=True, exist_ok=True)
+        cfg.save_dir = str(expanded)
         self.cfg = cfg
         self.template = template or PromptTemplate.from_package("rankings_prompt.jinja2")
         # random state; a seed is intentionally omitted from the public
