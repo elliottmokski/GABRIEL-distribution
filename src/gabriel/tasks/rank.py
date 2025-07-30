@@ -168,6 +168,16 @@ class Rank:
         self._TOL = 1e-6  # convergence tolerance for BT
         self._SE_RIDGE = 1e-9  # ridge for standard error computation
 
+        # The maximum number of candidate pairs to consider per pairing round.
+        # When the number of items becomes very large (e.g. tens of thousands),
+        # evaluating all possible pairs is intractable.  We therefore cap the
+        # total number of candidate pairs by limiting the neighbourhood size
+        # used when constructing candidate pairs.  The default of 200k ensures
+        # that information gain pairing remains tractable even with very
+        # large data sets: for example, with 10 000 items and a cap of
+        # 200 000, each item will only consider approximately 20 neighbours.
+        self._MAX_CANDIDATE_PAIRS_PER_ROUND = 200_000
+
         # timeout in seconds for a batch of language model responses.  Not
         # exposed publicly because changing it rarely benefits typical
         # workloads; if a different timeout is required this can be
@@ -405,46 +415,35 @@ class Rank:
         se_agg: Dict[str, float],
         mpr: int,
     ) -> List[Tuple[Tuple[str, str], Tuple[str, str]]]:
-        """Select pairs by maximising expected information gain.
+        """Select pairs by maximising expected information gain while ensuring
+        that every item participates in the prescribed number of matches.
 
-        This strategy approximates the expected reduction in uncertainty
-        that would result from observing the outcome of a match between
-        two items.  Pairs with high combined uncertainty and high
-        outcome variance are prioritised.  The implementation closely
-        follows the original ``elo.py`` heuristics.
+        This implementation differs from the original heuristics by
+        considering *all* possible pairs between items.  Each pair is
+        assigned a score based on the expected reduction in uncertainty
+        (estimated from the current ratings and aggregated standard
+        errors).  Pairs with larger scores are chosen first, subject
+        to the constraint that each item is matched exactly ``mpr``
+        times.  If some items remain unmatched after exhausting the
+        scored pairs, additional pairs are filled in randomly to
+        satisfy the per‑item quota.
         """
         n = len(item_ids)
         if n < 2:
             return []
-        # sort item identifiers by their current aggregate rating
-        ids_sorted = sorted(item_ids, key=lambda i: current_ratings[i])
-        idx_of = {i_id: k for k, i_id in enumerate(ids_sorted)}
-        # identify high‑uncertainty items
-        num_high_se = max(1, int(self._HIGH_SE_FRAC * n))
-        high_se_ids = sorted(item_ids, key=lambda i: se_agg.get(i, 1.0), reverse=True)[:num_high_se]
-        candidate_neighbors = max(1, self._CANDIDATE_NEIGHBORS)
-        candidate_pairs_set: set[Tuple[str, str]] = set()
-        # local neighbourhood pairs
-        for i_id in item_ids:
-            pos = idx_of[i_id]
-            lower = max(0, pos - candidate_neighbors)
-            upper = min(n, pos + candidate_neighbors + 1)
-            for j in ids_sorted[lower:upper]:
-                if i_id == j:
-                    continue
-                candidate_pairs_set.add(tuple(sorted((i_id, j))))
-        # encourage exploration for high‑uncertainty items
-        for hs in high_se_ids:
-            others = [x for x in item_ids if x != hs]
-            k = min(candidate_neighbors, len(others))
-            samp = self.rng.sample(others, k)
-            for j in samp:
-                candidate_pairs_set.add(tuple(sorted((hs, j))))
-        # additional purely random candidate pairs
-        n_random_targets = int(self._EXPLORE_FRAC * n * mpr)
-        for _ in range(n_random_targets):
-            a, b = self.rng.sample(item_ids, 2)
-            candidate_pairs_set.add(tuple(sorted((a, b))))
+        # Dynamically determine the neighbourhood size for candidate opponents.
+        # When the number of items is very large, the number of candidate
+        # pairs grows quadratically with the neighbourhood size.  To keep
+        # computation tractable, we bound the total number of candidate
+        # pairs per round using ``self._MAX_CANDIDATE_PAIRS_PER_ROUND``.
+        # For example, with 10k items and a cap of 200k, each item will
+        # consider roughly 20 neighbours.  We also ensure that every item
+        # has at least ``mpr`` candidate opponents so that it can be
+        # assigned the required number of matches.
+        max_pairs = max(1, self._MAX_CANDIDATE_PAIRS_PER_ROUND)
+        # The desired neighbourhood size based on the cap
+        desired_neighbors = max_pairs // max(1, n)
+        candidate_neighbors = max(mpr, min(self._CANDIDATE_NEIGHBORS, desired_neighbors))
         # logistic utility function for mapping rating differences to
         # predicted outcome variances.  Clip extreme differences to
         # prevent numerical overflow.
@@ -454,7 +453,70 @@ class Rank:
             if x < -50:
                 return 0.0
             return 1.0 / (1.0 + np.exp(-x))
-        # score candidate pairs
+        # Sort item identifiers by their current aggregate rating
+        ids_sorted = sorted(item_ids, key=lambda i: current_ratings[i])
+        idx_of = {i_id: k for k, i_id in enumerate(ids_sorted)}
+        # Identify a set of high‑uncertainty items (largest standard errors)
+        num_high_se = max(1, int(self._HIGH_SE_FRAC * n))
+        high_se_ids = sorted(item_ids, key=lambda i: se_agg.get(i, 1.0), reverse=True)[:num_high_se]
+        candidate_pairs_set: set[Tuple[str, str]] = set()
+        # Local neighbourhood pairs: for each item, include its nearby
+        # neighbours in rating space.  The window spans ``candidate_neighbors``
+        # items on either side.
+        for i_id in item_ids:
+            pos = idx_of[i_id]
+            lower = max(0, pos - candidate_neighbors)
+            upper = min(n, pos + candidate_neighbors + 1)
+            for j in ids_sorted[lower:upper]:
+                if i_id == j:
+                    continue
+                candidate_pairs_set.add(tuple(sorted((i_id, j))))
+        # Encourage exploration for high‑uncertainty items: sample random
+        # opponents for the most uncertain items.
+        for hs in high_se_ids:
+            others = [x for x in item_ids if x != hs]
+            k = min(candidate_neighbors, len(others))
+            samp = self.rng.sample(others, k)
+            for j in samp:
+                candidate_pairs_set.add(tuple(sorted((hs, j))))
+        # Additional purely random candidate pairs to diversify the pool.  We bound
+        # the number of random pairs so that the total candidate set does not
+        # exceed ``max_pairs``.  This prevents runaway memory usage when
+        # processing very large datasets.
+        remaining_capacity = max_pairs - len(candidate_pairs_set)
+        n_random_targets = int(self._EXPLORE_FRAC * n * mpr)
+        if remaining_capacity > 0:
+            n_random_targets = min(n_random_targets, remaining_capacity)
+            for _ in range(n_random_targets):
+                if n < 2:
+                    break
+                a, b = self.rng.sample(item_ids, 2)
+                candidate_pairs_set.add(tuple(sorted((a, b))))
+        # Ensure that each item has at least ``mpr`` candidate pairs.  If
+        # some items are underrepresented in the candidate set, add random
+        # opponents until the quota is met.
+        # Build a mapping from item to candidate partner count
+        partners_count = {i: 0 for i in item_ids}
+        for a, b in candidate_pairs_set:
+            partners_count[a] += 1
+            partners_count[b] += 1
+        for i_id in item_ids:
+            while partners_count[i_id] < mpr:
+                # choose a random opponent not equal to i_id
+                potential = [x for x in item_ids if x != i_id]
+                if not potential:
+                    break
+                j = self.rng.choice(potential)
+                pair = tuple(sorted((i_id, j)))
+                if pair not in candidate_pairs_set:
+                    candidate_pairs_set.add(pair)
+                    partners_count[i_id] += 1
+                    partners_count[j] += 1
+                else:
+                    # if the pair already exists, partners_count will reflect that
+                    partners_count[i_id] += 1
+                    partners_count[j] += 1
+        # Score candidate pairs based on expected information gain
         scored_pairs: List[Tuple[float, str, str]] = []
         for a, b in candidate_pairs_set:
             diff = current_ratings[a] - current_ratings[b]
@@ -465,11 +527,14 @@ class Rank:
             param_unc = var_a + var_b
             score = outcome_var * param_unc
             scored_pairs.append((score, a, b))
-        # greedily select pairs, ensuring each item has mpr assignments
-        needed = {i: mpr for i in item_ids}
+        # Sort pairs by decreasing information gain
+        scored_pairs.sort(key=lambda x: x[0], reverse=True)
+        # Each item needs ``mpr`` matches
+        needed: Dict[str, int] = {i: mpr for i in item_ids}
         pairs_selected: List[Tuple[str, str]] = []
         pairs_selected_set: set[Tuple[str, str]] = set()
-        for score, a, b in sorted(scored_pairs, key=lambda x: x[0], reverse=True):
+        # Greedily select high‑scoring pairs respecting per‑item quota
+        for score, a, b in scored_pairs:
             if needed[a] > 0 and needed[b] > 0:
                 tup = (a, b) if a < b else (b, a)
                 if tup in pairs_selected_set:
@@ -478,14 +543,16 @@ class Rank:
                 pairs_selected_set.add(tup)
                 needed[a] -= 1
                 needed[b] -= 1
-        # fill in remaining pairings randomly if necessary
+        # Fill remaining pairings randomly if necessary
         ids_needing = [i for i, cnt in needed.items() if cnt > 0]
         attempts = 0
         while ids_needing and attempts < 10000:
             attempts += 1
             a = self.rng.choice(ids_needing)
-            others = [x for x in item_ids if x != a]
+            # choose an opponent that still needs matches
+            others = [x for x in item_ids if x != a and needed[x] > 0]
             if not others:
+                # No valid opponent; mark as satisfied
                 needed[a] = 0
                 ids_needing = [i for i, cnt in needed.items() if cnt > 0]
                 continue
@@ -498,7 +565,6 @@ class Rank:
                 needed[b] -= 1
             ids_needing = [i for i, cnt in needed.items() if cnt > 0]
         return [((a, texts_by_id[a]), (b, texts_by_id[b])) for a, b in pairs_selected_set]
-
     def _generate_pairs(
         self,
         item_ids: List[str],
@@ -739,8 +805,7 @@ class Rank:
                 mean_val = float(np.mean(vals))
                 for i in item_ids:
                     ratings[i][attr] -= mean_val
-        # build final output DataFrame
-        rows: List[Dict[str, Any]] = []
+        # Compute z‑scores for each attribute if required
         zscores: Dict[str, Dict[str, float]] = {}
         if self.cfg.add_zscore:
             for attr in attr_keys:
@@ -748,20 +813,41 @@ class Rank:
                 mean = vals.mean()
                 std = vals.std(ddof=0)
                 if std == 0:
-                    z = {i: 0.0 for i in item_ids}
+                    # If all ratings are identical, z‑scores default to zero
+                    zscores[attr] = {i: 0.0 for i in item_ids}
                 else:
-                    z = {i: float((ratings[i][attr] - mean) / std) for i in item_ids}
-                zscores[attr] = z
-        for i in item_ids:
-            row = {"identifier": i, column_name: texts_by_id[i]}
-            for attr in attr_keys:
-                row[attr] = ratings[i][attr]
-                if self.cfg.add_zscore:
-                    row[f"{attr}_z"] = zscores[attr][i]
-                if self.cfg.compute_se:
-                    row[f"{attr}_se"] = se_store[attr].get(i, np.nan)
-            rows.append(row)
-        df_out = pd.DataFrame(rows)
-        # write the final results to disk
+                    zscores[attr] = {
+                        i: float((ratings[i][attr] - mean) / std) for i in item_ids
+                    }
+        # Merge computed results back into the original DataFrame copy.
+        # We use the unique ``_id`` column to map per‑item results.
+        # Assign rating, standard error and z‑score columns via mapping for efficiency.
+        for attr in attr_keys:
+            # ratings
+            val_map = {i: ratings[i][attr] for i in item_ids}
+            df_proc[attr] = df_proc["_id"].map(val_map)
+            # standard errors
+            if self.cfg.compute_se:
+                se_map = {i: se_store[attr].get(i, np.nan) for i in item_ids}
+                df_proc[f"{attr}_se"] = df_proc["_id"].map(se_map)
+            # z‑scores
+            if self.cfg.add_zscore:
+                z_map = zscores.get(attr, {i: np.nan for i in item_ids})
+                df_proc[f"{attr}_z"] = df_proc["_id"].map(z_map)
+        # Reorder columns: original user columns first (excluding the internal ``_id``),
+        # then for each attribute the score column, followed by the standard error and z‑score.
+        original_cols = [c for c in df.columns]  # preserve the order provided by the user
+        new_cols: List[str] = []
+        for attr in attr_keys:
+            new_cols.append(attr)
+            if self.cfg.compute_se:
+                new_cols.append(f"{attr}_se")
+            if self.cfg.add_zscore:
+                new_cols.append(f"{attr}_z")
+        final_cols = original_cols + new_cols
+        # Select columns that actually exist (protect against missing optional columns)
+        final_cols = [c for c in final_cols if c in df_proc.columns]
+        df_out = df_proc[final_cols].copy()
+        # Write the final results to disk
         df_out.to_csv(final_path, index=False)
         return df_out
