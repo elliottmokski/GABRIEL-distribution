@@ -79,6 +79,12 @@ client_async: Optional[openai.AsyncOpenAI] = None
 # Default safety cutoff when token capacity is low
 DEFAULT_MAX_OUTPUT_TOKENS = 2500
 
+# Estimated output tokens per prompt used for cost estimation when no cutoff is specified.
+# When a user does not explicitly set ``max_output_tokens``, we assume that each response
+# will contain roughly this many tokens.  This value is used solely for estimating cost
+# and determining how many parallel requests can safely run under the token budget.
+ESTIMATED_OUTPUT_TOKENS_PER_PROMPT = 1000
+
 # Usage tiers with qualifications and monthly limits for printing
 TIER_INFO = [
     {
@@ -181,10 +187,14 @@ def _approx_tokens(text: str) -> int:
 def _lookup_model_pricing(model: str) -> Optional[Dict[str, float]]:
     """Find a pricing entry for ``model`` by prefix match (case‑insensitive)."""
     key = model.lower()
+    # Find the most specific prefix match by selecting the longest matching prefix.
+    best_match: Optional[Dict[str, float]] = None
+    best_len = -1
     for prefix, pricing in MODEL_PRICING.items():
-        if key.startswith(prefix):
-            return pricing
-    return None
+        if key.startswith(prefix) and len(prefix) > best_len:
+            best_match = pricing
+            best_len = len(prefix)
+    return best_match
 
 
 def _estimate_cost(
@@ -204,9 +214,13 @@ def _estimate_cost(
         return None
     # Estimate tokens: input tokens are sum of tokens per prompt times number of responses
     input_tokens = sum(_approx_tokens(p) for p in prompts) * max(1, n)
-    # If no cutoff, conservatively assume output tokens equal input tokens
+    # Estimate output tokens: when no cutoff is provided we assume a reasonable default
+    # number of output tokens per prompt.  This prevents the cost estimate from
+    # ballooning for long inputs, which previously assumed the output could be as long
+    # as the input.
     if max_output_tokens is None:
-        output_tokens = input_tokens
+        # Use the per‑prompt estimate for each response
+        output_tokens = ESTIMATED_OUTPUT_TOKENS_PER_PROMPT * max(1, n) * len(prompts)
     else:
         output_tokens = max_output_tokens * max(1, n) * len(prompts)
     cost_in = (input_tokens / 1_000_000) * pricing["input"]
@@ -277,6 +291,7 @@ def _print_usage_overview(
     requests_per_minute: int,
     tokens_per_minute: int,
     rate_limit_factor: float,
+    n_parallels: int,
     *,
     verbose: bool = True,
     rate_headers: Optional[Dict[str, str]] = None,
@@ -346,12 +361,54 @@ def _print_usage_overview(
         )
     else:
         print(f"\nPricing for model '{model}' is unavailable; cannot estimate cost.")
+    # Compute concurrency based on rate limits and token/request budgets.
+    try:
+        avg_input_tokens = sum(_approx_tokens(p) for p in prompts) / max(1, len(prompts))
+        gating_output = max_output_tokens if max_output_tokens is not None else ESTIMATED_OUTPUT_TOKENS_PER_PROMPT
+        tokens_per_call = (avg_input_tokens + gating_output) * max(1, n)
+        if rl:
+            try:
+                lim_r = int(float(rl.get("limit_requests") or 0))
+            except Exception:
+                lim_r = 0
+            try:
+                rem_r = int(float(rl.get("remaining_requests") or 0))
+            except Exception:
+                rem_r = 0
+            allowed_req = rem_r if rem_r > 0 else lim_r
+            try:
+                lim_t = int(float(rl.get("limit_tokens") or 0))
+            except Exception:
+                lim_t = 0
+            try:
+                rem_t = int(float(rl.get("remaining_tokens") or 0))
+            except Exception:
+                rem_t = 0
+            allowed_tok = rem_t if rem_t > 0 else lim_t
+        else:
+            allowed_req = int(requests_per_minute * rate_limit_factor)
+            allowed_tok = int(tokens_per_minute * rate_limit_factor)
+        if allowed_req <= 0:
+            allowed_req = int(requests_per_minute * rate_limit_factor)
+        if allowed_tok <= 0:
+            allowed_tok = int(tokens_per_minute * rate_limit_factor)
+        concurrency_cap = max(1, min(n_parallels, allowed_req, int(allowed_tok // tokens_per_call)))
+    except Exception:
+        concurrency_cap = n_parallels
+    if concurrency_cap < n_parallels:
+        print(
+            f"\nNote: based on your current plan and rate limits, we'll run up to {concurrency_cap} requests at the same time instead of {n_parallels}. Upgrading your tier would allow more parallel requests and speed up processing."
+        )
+    else:
+        print(
+            f"\nWe can run up to {concurrency_cap} requests at the same time with your current settings."
+        )
     print(
         "\nAdd funds or manage your billing here: https://platform.openai.com/settings/organization/billing/"
     )
     if max_output_tokens is None:
         print(
-            "\nmax_output_tokens: None (using model default – note this does not cap total tokens)"
+            f"\nNo explicit output token limit specified; cost estimate assumes about {ESTIMATED_OUTPUT_TOKENS_PER_PROMPT} tokens per prompt for the response."
         )
     else:
         print(
@@ -556,6 +613,7 @@ async def get_all_responses(
     identifiers: Optional[List[str]] = None,
     prompt_images: Optional[Dict[str, List[str]]] = None,
     *,
+    model: str = "o4-mini",
     n: int = 1,
     max_output_tokens: Optional[int] = None,
     # legacy alias
@@ -573,7 +631,7 @@ async def get_all_responses(
     print_example_prompt: bool = True,
     save_path: str = "responses.csv",
     reset_files: bool = False,
-    n_parallels: int = 5,
+    n_parallels: int = 150,
     max_retries: int = 5,
     timeout_factor: float = 1.5,
     max_timeout: int = 300,
@@ -616,6 +674,8 @@ async def get_all_responses(
     get_response_kwargs.setdefault("expected_schema", expected_schema)
     get_response_kwargs.setdefault("temperature", temperature)
     get_response_kwargs.setdefault("reasoning_effort", reasoning_effort)
+    # Pass the chosen model through to get_response by default
+    get_response_kwargs.setdefault("model", model)
     # Decide default cutoff once per job using cached rate headers
     # Fetch rate headers once to avoid multiple API calls
     rate_headers = _get_rate_limit_headers()
@@ -642,16 +702,57 @@ async def get_all_responses(
             prompts=prompt_list,
             n=n,
             max_output_tokens=cutoff,
-            model=get_response_kwargs.get("model", "o4-mini"),
+            model=model,
             use_batch=use_batch,
             requests_per_minute=requests_per_minute,
             tokens_per_minute=tokens_per_minute,
             rate_limit_factor=rate_limit_factor,
+            n_parallels=n_parallels,
             verbose=verbose,
             rate_headers=rate_headers,
         )
         example_prompt, _ = todo_pairs[0]
         print(f"\nExample prompt: {example_prompt}\n")
+    # Dynamically adjust n_parallels based on available rate limits.  This check runs once
+    # before any API calls are made and only applies when not using the batch API.
+    if not use_batch:
+        try:
+            avg_input_tokens = sum(_approx_tokens(p) for p, _ in todo_pairs) / max(1, len(todo_pairs))
+            gating_output = cutoff if cutoff is not None else ESTIMATED_OUTPUT_TOKENS_PER_PROMPT
+            tokens_per_call = (avg_input_tokens + gating_output) * max(1, n)
+            if rate_headers:
+                try:
+                    lim_r = int(float(rate_headers.get("limit_requests") or 0))
+                except Exception:
+                    lim_r = 0
+                try:
+                    rem_r = int(float(rate_headers.get("remaining_requests") or 0))
+                except Exception:
+                    rem_r = 0
+                allowed_req = rem_r if rem_r > 0 else lim_r
+                try:
+                    lim_t = int(float(rate_headers.get("limit_tokens") or 0))
+                except Exception:
+                    lim_t = 0
+                try:
+                    rem_t = int(float(rate_headers.get("remaining_tokens") or 0))
+                except Exception:
+                    rem_t = 0
+                allowed_tok = rem_t if rem_t > 0 else lim_t
+            else:
+                allowed_req = int(requests_per_minute * rate_limit_factor)
+                allowed_tok = int(tokens_per_minute * rate_limit_factor)
+            if allowed_req <= 0:
+                allowed_req = int(requests_per_minute * rate_limit_factor)
+            if allowed_tok <= 0:
+                allowed_tok = int(tokens_per_minute * rate_limit_factor)
+            concurrency_cap = max(1, min(n_parallels, int(allowed_req), int(allowed_tok // tokens_per_call)))
+        except Exception:
+            concurrency_cap = n_parallels
+        if concurrency_cap < n_parallels and verbose:
+            print(f"[parallel reduction] Limiting parallel workers from {n_parallels} to {concurrency_cap} based on your current rate limits. Consider upgrading your plan for faster processing.")
+        n_parallels = concurrency_cap
+
     # Batch submission path
     if use_batch:
         state_path = save_path + ".batch_state.json"
