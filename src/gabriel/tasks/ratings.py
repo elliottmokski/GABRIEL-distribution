@@ -27,7 +27,7 @@ class RateConfig:
     save_dir: str = "ratings"
     file_name: str = "ratings.csv"
     model: str = "o4-mini"
-    n_parallels: int = 100
+    n_parallels: int = 400
     n_runs: int = 1
     use_dummy: bool = False
     timeout: float = 60.0
