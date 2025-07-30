@@ -31,8 +31,8 @@ class RateConfig:
     n_runs: int = 1
     use_dummy: bool = False
     timeout: float = 60.0
-    rating_scale: str | None = None
-    additional_instructions: str | None = None
+    rating_scale: Optional[str] = None
+    additional_instructions: Optional[str] = None
 
 
 # ────────────────────────────
@@ -43,7 +43,7 @@ class Rate:
 
 
     # -----------------------------------------------------------------
-    def __init__(self, cfg: RateConfig, template: PromptTemplate | None = None) -> None:
+    def __init__(self, cfg: RateConfig, template: Optional[PromptTemplate] = None) -> None:
         self.cfg = cfg
         self.template = template or PromptTemplate.from_package("ratings_prompt.jinja2")
         os.makedirs(self.cfg.save_dir, exist_ok=True)

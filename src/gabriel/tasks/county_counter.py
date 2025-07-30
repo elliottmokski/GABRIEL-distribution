@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 import pandas as pd
 
@@ -36,7 +36,7 @@ class CountyCounter:
         additional_guidelines: str = "",
         elo_guidelines: str = "",
         z_score_choropleth: bool = True,
-        elo_attributes: dict | None = None,
+        elo_attributes: Optional[Dict] = None,
     ) -> None:
         self.df = df.copy()
         self.county_col = county_col

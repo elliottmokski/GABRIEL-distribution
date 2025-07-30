@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -23,7 +23,7 @@ class RatingConfig:
 class SimpleRating:
     """LLM-based attribute rating for single passages."""
 
-    def __init__(self, cfg: RatingConfig, template: PromptTemplate | None = None) -> None:
+    def __init__(self, cfg: RatingConfig, template: Optional[PromptTemplate] = None) -> None:
         self.cfg = cfg
         self.template = template or PromptTemplate.from_package("ratings_prompt.jinja2")
 

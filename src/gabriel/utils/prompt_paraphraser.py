@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 import os
 from dataclasses import dataclass
-from typing import Any, List, Type
+from typing import Any, List, Type, Optional
 
 import pandas as pd
 
@@ -26,7 +26,7 @@ class PromptParaphraserConfig:
 class PromptParaphraser:
     """Generate paraphrased versions of a task prompt and rerun the task."""
 
-    def __init__(self, cfg: PromptParaphraserConfig, template: PromptTemplate | None = None) -> None:
+    def __init__(self, cfg: PromptParaphraserConfig, template: Optional[PromptTemplate] = None) -> None:
         self.cfg = cfg
         self.template = template or PromptTemplate.from_package("prompt_paraphraser_prompt.jinja2")
         os.makedirs(self.cfg.save_dir, exist_ok=True)
@@ -52,7 +52,7 @@ class PromptParaphraser:
         task_cls: Type[Any],
         task_cfg: Any,
         *run_args: Any,
-        template: PromptTemplate | None = None,
+        template: Optional[PromptTemplate] = None,
         **run_kwargs: Any,
     ) -> pd.DataFrame:
         base_template = template or getattr(task_cls(task_cfg), "template")

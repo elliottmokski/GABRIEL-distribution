@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -24,7 +24,7 @@ class Identification:
     """Classify entities into user-specified categories using an LLM."""
 
     def __init__(
-        self, cfg: IdentificationConfig, template: PromptTemplate | None = None
+        self, cfg: IdentificationConfig, template: Optional[PromptTemplate] = None
     ) -> None:
         self.cfg = cfg
         self.template = template or PromptTemplate.from_package(

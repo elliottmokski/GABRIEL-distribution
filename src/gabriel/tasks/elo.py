@@ -48,7 +48,7 @@ class EloConfig:
 
 
 class EloRater:
-    def __init__(self, cfg: EloConfig, template: PromptTemplate | None = None) -> None:
+    def __init__(self, cfg: EloConfig, template: Optional[PromptTemplate] = None) -> None:
         self.cfg = cfg
         self.template = template or PromptTemplate.from_package("rankings_prompt.jinja2")
         self.save_path = os.path.join(cfg.save_dir, cfg.run_name)

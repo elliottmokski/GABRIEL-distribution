@@ -48,7 +48,7 @@ class Classify:
     _FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.S)
 
     # -----------------------------------------------------------------
-    def __init__(self, cfg: ClassifyConfig, template: PromptTemplate | None = None) -> None:  # noqa: D401,E501
+    def __init__(self, cfg: ClassifyConfig, template: Optional[PromptTemplate] = None) -> None:  # noqa: D401,E501
         self.cfg = cfg
         self.template = template or PromptTemplate.from_package(
             "basic_classifier_prompt.jinja2"
