@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import os
+from pathlib import Path
 import re
 from collections import defaultdict
 from dataclasses import dataclass
@@ -49,12 +50,13 @@ class Classify:
 
     # -----------------------------------------------------------------
     def __init__(self, cfg: ClassifyConfig, template: Optional[PromptTemplate] = None) -> None:  # noqa: D401,E501
+        expanded = Path(os.path.expandvars(os.path.expanduser(cfg.save_dir)))
+        expanded.mkdir(parents=True, exist_ok=True)
+        cfg.save_dir = str(expanded)
         self.cfg = cfg
         self.template = template or PromptTemplate.from_package(
             "basic_classifier_prompt.jinja2"
         )
-
-        os.makedirs(self.cfg.save_dir, exist_ok=True)
 
     # -----------------------------------------------------------------
     # Build prompts (deduplicating identical passages)
