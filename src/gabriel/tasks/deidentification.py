@@ -18,7 +18,7 @@ class DeidentifyConfig:
     """Configuration for :class:`Deidentifier`."""
 
     model: str = "o4-mini"
-    n_parallels: int = 50
+    n_parallels: int = 400
     save_dir: str = "deidentify"
     file_name: str = "deidentified.csv"
     use_dummy: bool = False
