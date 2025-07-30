@@ -5,7 +5,7 @@ import re
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from utility_functions import Teleprompter, get_all_responses
 
 

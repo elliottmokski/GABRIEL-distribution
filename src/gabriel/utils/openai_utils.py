@@ -47,7 +47,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 from aiolimiter import AsyncLimiter
-from tqdm import tqdm
+from tqdm.auto import tqdm
 import openai
 import statistics
 
@@ -1040,7 +1040,7 @@ async def get_all_responses(
         queue.put_nowait(item)
     results: List[Dict[str, Any]] = []
     processed = 0
-    pbar = tqdm(total=len(todo_pairs), desc="Processing prompts")
+    pbar = tqdm(total=len(todo_pairs), desc="Processing prompts", leave=True)
 
     async def flush() -> None:
         nonlocal results, df
@@ -1226,4 +1226,5 @@ async def get_all_responses(
         w.cancel()
     await asyncio.gather(*workers, return_exceptions=True)
     await flush()
+    pbar.close()
     return df
