@@ -105,7 +105,7 @@ class RankConfig:
     """
 
     attributes: Union[Dict[str, str], List[str]]
-    n_rounds: int = 15
+    n_rounds: int = 5
     matches_per_round: int = 3
     power_matching: bool = True
     add_zscore: bool = True
@@ -531,19 +531,22 @@ class Rank:
         scored_pairs.sort(key=lambda x: x[0], reverse=True)
         # Each item needs ``mpr`` matches
         needed: Dict[str, int] = {i: mpr for i in item_ids}
+        # Maintain a list of pairs (with possible duplicates) and a set to avoid
+        # selecting the same pair multiple times during the greedy phase.  The
+        # set is used only during selection; the list holds the final pairings.
         pairs_selected: List[Tuple[str, str]] = []
-        pairs_selected_set: set[Tuple[str, str]] = set()
+        pairs_seen: set[Tuple[str, str]] = set()
         # Greedily select high‑scoring pairs respecting per‑item quota
         for score, a, b in scored_pairs:
             if needed[a] > 0 and needed[b] > 0:
                 tup = (a, b) if a < b else (b, a)
-                if tup in pairs_selected_set:
+                if tup in pairs_seen:
                     continue
                 pairs_selected.append(tup)
-                pairs_selected_set.add(tup)
+                pairs_seen.add(tup)
                 needed[a] -= 1
                 needed[b] -= 1
-        # Fill remaining pairings randomly if necessary
+        # Fill remaining pairings randomly if necessary using unique pairs
         ids_needing = [i for i, cnt in needed.items() if cnt > 0]
         attempts = 0
         while ids_needing and attempts < 10000:
@@ -558,13 +561,36 @@ class Rank:
                 continue
             b = self.rng.choice(others)
             tup = (a, b) if a < b else (b, a)
-            if tup not in pairs_selected_set:
-                pairs_selected_set.add(tup)
-                pairs_selected.append(tup)
-                needed[a] -= 1
-                needed[b] -= 1
+            # During fill phase we still prefer unique pairs when possible
+            if tup in pairs_seen:
+                continue
+            pairs_selected.append(tup)
+            pairs_seen.add(tup)
+            needed[a] -= 1
+            needed[b] -= 1
             ids_needing = [i for i, cnt in needed.items() if cnt > 0]
-        return [((a, texts_by_id[a]), (b, texts_by_id[b])) for a, b in pairs_selected_set]
+        # If there are still unmatched items, create duplicate pairs to satisfy
+        # the quotas.  Duplicate pairs are allowed in this final step to
+        # guarantee that every item is assigned the required number of
+        # matchups.  We build a list of the remaining items repeated
+        # according to their outstanding need, shuffle it, and pair
+        # successive entries.
+        leftover: List[str] = []
+        for i, cnt in needed.items():
+            leftover.extend([i] * cnt)
+        if leftover:
+            self.rng.shuffle(leftover)
+            # The length of leftover should always be even because the total
+            # required matches (n*mpr) is even for integer mpr
+            for j in range(0, len(leftover), 2):
+                a = leftover[j]
+                b = leftover[j + 1]
+                tup = (a, b) if a < b else (b, a)
+                pairs_selected.append(tup)
+        # Return the full list of selected pairs (including duplicates when
+        # necessary).  Duplicate pairs are preserved in the list to ensure
+        # that each item participates exactly ``mpr`` times.
+        return [((a, texts_by_id[a]), (b, texts_by_id[b])) for a, b in pairs_selected]
     def _generate_pairs(
         self,
         item_ids: List[str],
@@ -574,14 +600,25 @@ class Rank:
     ) -> List[Tuple[Tuple[str, str], Tuple[str, str]]]:
         """Dispatch to the appropriate pairing strategy."""
         mpr = max(1, self.cfg.matches_per_round)
-        # if power matching is disabled or no previous ratings are available
-        if not self.cfg.power_matching or current_ratings is None:
-            return self._pairs_random(item_ids, texts_by_id, mpr)
-        # use information gain if we have standard error estimates for all items
-        if se_agg is not None and len(se_agg) == len(item_ids):
-            return self._pairs_info_gain(item_ids, texts_by_id, current_ratings, se_agg, mpr)
-        # otherwise pair adjacent items based on current ratings
-        return self._pairs_adjacent(item_ids, texts_by_id, current_ratings, mpr)
+        # When power matching is enabled, always use the information gain pairing
+        # strategy.  If standard errors or current ratings are unavailable,
+        # substitute uniform defaults to ensure that each item is matched
+        # ``mpr`` times.  This guarantees that even in the first round every
+        # item participates in exactly ``mpr`` matchups.  When power
+        # matching is disabled, we still rely on the information gain
+        # machinery but using uniform scores; this produces essentially
+        # random pairings while still enforcing the per‑item quota.  If
+        # callers truly desire unconstrained random match counts, they
+        # should override ``matches_per_round`` accordingly.
+        # Determine default ratings and standard errors when missing
+        if current_ratings is None:
+            current_ratings = {i: 0.0 for i in item_ids}
+        # Build a full se_agg if not supplied or incomplete
+        if se_agg is None or len(se_agg) != len(item_ids):
+            se_agg_full = {i: 1.0 for i in item_ids}
+        else:
+            se_agg_full = se_agg
+        return self._pairs_info_gain(item_ids, texts_by_id, current_ratings, se_agg_full, mpr)
 
     # ------------------------------------------------------------------
     # Main ranking loop
