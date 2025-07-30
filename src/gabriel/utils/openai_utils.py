@@ -269,28 +269,16 @@ def _get_rate_limit_headers(model: str = "o4-mini") -> Optional[Dict[str, str]]:
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         return None
-    # Define two candidate endpoints: the Responses API and the Chat
-    # completions API.  The responses API takes an ``input`` field and
-    # ``max_output_tokens``, while the chat API uses ``messages`` and
-    # ``max_tokens``.  We'll attempt them in order and return the first
-    # set of rate‑limit headers we encounter.
+    # Define two candidate endpoints: the Chat completions API and the Responses
+    # API.  Although the Responses API is the primary interface for this
+    # library, it does not currently return rate limit headers in all
+    # cases【360365694688557†L209-L243】.  Therefore we try the Chat
+    # completions endpoint first to obtain accurate rate limit information.  If
+    # the completions endpoint does not return headers (which is uncommon), we
+    # fall back to the Responses endpoint.  Both calls cap generation at one
+    # token to minimise usage.
     candidates: List[Tuple[str, Dict[str, Any]]] = []
-    # Responses API payload
-    candidates.append(
-        (
-            "https://api.openai.com/v1/responses",
-            {
-                "model": model,
-                "input": [
-                    {"role": "user", "content": "Hello"},
-                ],
-                # Use truncation just like our normal calls
-                "truncation": "auto",
-                "max_output_tokens": 1,
-            },
-        )
-    )
-    # Chat completions API payload
+    # Chat completions API payload (preferred for rate limit headers)
     candidates.append(
         (
             "https://api.openai.com/v1/chat/completions",
@@ -300,6 +288,20 @@ def _get_rate_limit_headers(model: str = "o4-mini") -> Optional[Dict[str, str]]:
                     {"role": "user", "content": "Hello"},
                 ],
                 "max_tokens": 1,
+            },
+        )
+    )
+    # Responses API payload (fallback)
+    candidates.append(
+        (
+            "https://api.openai.com/v1/responses",
+            {
+                "model": model,
+                "input": [
+                    {"role": "user", "content": "Hello"},
+                ],
+                "truncation": "auto",
+                "max_output_tokens": 1,
             },
         )
     )
@@ -377,38 +379,87 @@ def _print_usage_overview(
     # Fetch fresh headers if not supplied.  Pass the model so the helper
     # knows which endpoint to probe when performing the dummy call.
     rl = rate_headers or _get_rate_limit_headers(model)
+    # Determine whether the headers include any meaningful limit values.  Some
+    # endpoints (or API tiers) may omit rate‑limit headers, or return zero
+    # values, which should be treated as unknown.
+    def _parse_float(val: Optional[str]) -> Optional[float]:
+        try:
+            if val is None:
+                return None
+            # Treat empty strings as None
+            s = str(val).strip()
+            if not s:
+                return None
+            f = float(s)
+            return f if f > 0 else None
+        except Exception:
+            return None
+
+    # Parse rate‑limit values from the response headers.  If no headers are
+    # returned or a value is zero/negative, leave the variable as None.
+    lim_r_val = rem_r_val = None
+    lim_t_val = rem_t_val = None
+    reset_r = reset_t = None
     if rl:
-        try:
-            lim_r = int(float(rl.get("limit_requests") or 0))
-            rem_r = int(float(rl.get("remaining_requests") or 0))
-            reset_r = rl.get("reset_requests")
-            print(
-                f"Requests per minute: {lim_r:,} (remaining {rem_r:,}); resets in {reset_r}"
-            )
-            print(f"Approx. requests per day: {lim_r * 60 * 24:,}")
-        except Exception:
-            pass
-        try:
-            lim_t = int(float(rl.get("limit_tokens") or 0))
-            rem_t = int(float(rl.get("remaining_tokens") or 0))
-            reset_t = rl.get("reset_tokens")
-            print(
-                f"Tokens per minute: {lim_t:,} (remaining {rem_t:,}); resets in {reset_t}"
-            )
-            words_per_min = lim_t // 2
-            words_per_day = lim_t * 60 * 24 // 2
-            print(
-                f"≈ {words_per_min:,} words per minute, ≈ {words_per_day:,} words per day"
-            )
-        except Exception:
-            pass
+        lim_r_val = _parse_float(rl.get("limit_requests"))
+        rem_r_val = _parse_float(rl.get("remaining_requests"))
+        lim_t_val = _parse_float(rl.get("limit_tokens"))
+        rem_t_val = _parse_float(rl.get("remaining_tokens"))
+        # Some accounts report usage‑based token limits
+        if lim_t_val is None:
+            lim_t_val = _parse_float(rl.get("limit_tokens_usage_based"))
+        if rem_t_val is None:
+            rem_t_val = _parse_float(rl.get("remaining_tokens_usage_based"))
+        reset_r = rl.get("reset_requests")
+        reset_t = rl.get("reset_tokens") or rl.get("reset_tokens_usage_based")
+    # Print raw rate limit information without falling back to configured defaults.
+    # If a value is unavailable, display "unknown" instead of substituting another number.
+    def fmt(val: Optional[float]) -> str:
+        return f"{int(val):,}" if val is not None else "unknown"
+    print(
+        f"Requests per minute: {fmt(lim_r_val)} (remaining {fmt(rem_r_val)}); resets in {reset_r or 'unknown'}"
+    )
+    # Even if the limits are unknown, approximate requests per day based on the limit value.  If
+    # the limit is unknown, this line will note that the estimate is unavailable.
+    if lim_r_val is not None:
+        print(f"Approx. requests per day: {int(lim_r_val) * 60 * 24:,}")
     else:
-        eff_rpm = int(requests_per_minute * rate_limit_factor)
-        eff_tpm = int(tokens_per_minute * rate_limit_factor)
-        print(f"Requests per minute: {eff_rpm:,} (effective)")
+        print("Approx. requests per day: unknown")
+    print(
+        f"Tokens per minute: {fmt(lim_t_val)} (remaining {fmt(rem_t_val)}); resets in {reset_t or 'unknown'}"
+    )
+    if lim_t_val is not None:
+        words_per_min = int(lim_t_val) // 2
+        words_per_day = int(lim_t_val) * 60 * 24 // 2
         print(
-            f"Tokens per minute: {eff_tpm:,} (≈ {eff_tpm // 2:,} words); per day ≈ {(eff_tpm * 60 * 24) // 2:,} words"
+            f"≈ {words_per_min:,} words per minute, ≈ {words_per_day:,} words per day"
         )
+    else:
+        print("≈ unknown words per minute, ≈ unknown words per day")
+    # Explain what each of the rate limit fields means to the user.
+    print("\nRate limit parameters explained:")
+    print(
+        "  x-ratelimit-limit-requests: the maximum number of requests you can send per minute."
+    )
+    print(
+        "  x-ratelimit-remaining-requests: how many requests you have left in the current minute."
+    )
+    print(
+        "  x-ratelimit-reset-requests: how long until your request quota resets to its full value."
+    )
+    print(
+        "  x-ratelimit-limit-tokens: the maximum number of tokens (input + output) you can send per minute."
+    )
+    print(
+        "  x-ratelimit-remaining-tokens: how many tokens you have left in the current minute."
+    )
+    print(
+        "  x-ratelimit-reset-tokens: how long until your token quota resets to its full value."
+    )
+    # Let users know about monthly usage caps in addition to per‑minute limits.
+    print(
+        "\nIn addition to these per‑minute limits, your organization also has a monthly usage cap based on your tier (e.g., $100/month on the free tier). See the usage tiers below for details."
+    )
     print("\nUsage tiers:")
     for tier in TIER_INFO:
         print(
@@ -430,40 +481,56 @@ def _print_usage_overview(
         )
     else:
         print(f"\nPricing for model '{model}' is unavailable; cannot estimate cost.")
-    # Compute concurrency based on rate limits and token/request budgets.
+    # Compute concurrency based on the retrieved rate limits and token/request budgets.
     try:
         avg_input_tokens = sum(_approx_tokens(p) for p in prompts) / max(1, len(prompts))
         gating_output = max_output_tokens if max_output_tokens is not None else ESTIMATED_OUTPUT_TOKENS_PER_PROMPT
         tokens_per_call = (avg_input_tokens + gating_output) * max(1, n)
+        # Extract numeric values from the rate limit headers.  If a value is missing or
+        # zero, treat it as unknown (None).  We deliberately avoid falling back to
+        # configured caps here because the user has requested that we rely solely
+        # on the API‑provided limits.
+        def _pf(val: Optional[str]) -> Optional[float]:
+            try:
+                if val is None:
+                    return None
+                s = str(val).strip()
+                if not s:
+                    return None
+                f = float(s)
+                return f if f > 0 else None
+            except Exception:
+                return None
         if rl:
-            try:
-                lim_r = int(float(rl.get("limit_requests") or 0))
-            except Exception:
-                lim_r = 0
-            try:
-                rem_r = int(float(rl.get("remaining_requests") or 0))
-            except Exception:
-                rem_r = 0
-            allowed_req = rem_r if rem_r > 0 else lim_r
-            try:
-                lim_t = int(float(rl.get("limit_tokens") or 0))
-            except Exception:
-                lim_t = 0
-            try:
-                rem_t = int(float(rl.get("remaining_tokens") or 0))
-            except Exception:
-                rem_t = 0
-            allowed_tok = rem_t if rem_t > 0 else lim_t
+            lim_r_val = _pf(rl.get("limit_requests"))
+            rem_r_val = _pf(rl.get("remaining_requests"))
+            lim_t_val = _pf(rl.get("limit_tokens")) or _pf(rl.get("limit_tokens_usage_based"))
+            rem_t_val = _pf(rl.get("remaining_tokens")) or _pf(rl.get("remaining_tokens_usage_based"))
+            # Allowed requests are whichever remaining value is available, otherwise
+            # the limit.  If both are missing, None indicates unknown.
+            allowed_req = rem_r_val if rem_r_val is not None else lim_r_val
+            allowed_tok = rem_t_val if rem_t_val is not None else lim_t_val
         else:
-            allowed_req = int(requests_per_minute * rate_limit_factor)
-            allowed_tok = int(tokens_per_minute * rate_limit_factor)
-        if allowed_req <= 0:
-            allowed_req = int(requests_per_minute * rate_limit_factor)
-        if allowed_tok <= 0:
-            allowed_tok = int(tokens_per_minute * rate_limit_factor)
-        concurrency_cap = max(1, min(n_parallels, allowed_req, int(allowed_tok // tokens_per_call)))
+            allowed_req = None
+            allowed_tok = None
+        # Compute concurrency based on available limits.  If the API did not
+        # provide a limit, we use the user‑supplied ceiling n_parallels.  If
+        # both request and token limits are unknown, concurrency remains at the
+        # ceiling.  Otherwise, we take the most constraining of the two.
+        if allowed_req is None or allowed_req <= 0:
+            concurrency_from_requests = n_parallels
+        else:
+            concurrency_from_requests = int(max(1, allowed_req))
+        if allowed_tok is None or allowed_tok <= 0:
+            concurrency_from_tokens = n_parallels
+        else:
+            concurrency_from_tokens = int(max(1, allowed_tok // tokens_per_call))
+        concurrency_cap = max(1, min(n_parallels, concurrency_from_requests, concurrency_from_tokens))
     except Exception:
-        concurrency_cap = n_parallels
+        concurrency_cap = max(1, n_parallels)
+    # Inform the user about dynamic concurrency.  If the calculated cap is lower
+    # than the ceiling, explain that upgrading the tier would allow more
+    # parallel requests.  Otherwise, confirm that we will use the full ceiling.
     if concurrency_cap < n_parallels:
         print(
             f"\nNote: based on your current plan and rate limits, we'll run up to {concurrency_cap} requests at the same time instead of {n_parallels}. Upgrading your tier would allow more parallel requests and speed up processing."
@@ -703,7 +770,7 @@ async def get_all_responses(
     print_example_prompt: bool = True,
     save_path: str = "responses.csv",
     reset_files: bool = False,
-    n_parallels: int = 150,
+    n_parallels: int = 500,
     max_retries: int = 5,
     timeout_factor: float = 1.5,
     max_timeout: int = 300,
