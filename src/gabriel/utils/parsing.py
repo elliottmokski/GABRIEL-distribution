@@ -45,6 +45,16 @@ def _parse_json(txt: Any) -> Union[dict, list]:
         except Exception:
             pass
 
+    # attempt to strip `//` and `/* */` style comments before parsing
+    try:
+        no_line_comments = re.sub(r"(?<!:)//.*$", "", cleaned, flags=re.MULTILINE)
+        no_comments = re.sub(r"/\*.*?\*/", "", no_line_comments, flags=re.S)
+        out = json.loads(no_comments)
+        if isinstance(out, (dict, list)):
+            return out
+    except Exception:
+        pass
+
     brace = re.search(r"\{[\s\S]*\}", cleaned)
     if brace:
         try:
