@@ -355,9 +355,6 @@ def _print_usage_overview(
     max_output_tokens: Optional[int],
     model: str,
     use_batch: bool,
-    requests_per_minute: int,
-    tokens_per_minute: int,
-    rate_limit_factor: float,
     n_parallels: int,
     *,
     verbose: bool = True,
@@ -786,11 +783,10 @@ async def get_all_responses(
     timeout_factor: float = 1.5,
     max_timeout: int = 300,
     dynamic_timeout: bool = True,
-    requests_per_minute: int = 300,
-    tokens_per_minute: int = 150_000,
-    dynamic_rate_limit: bool = True,
-    rate_limit_factor: float = 1.0,
-    rate_limit_adjust_factor: float = 0.7,
+    # Note: we no longer accept user‑supplied requests_per_minute, tokens_per_minute,
+    # dynamic_rate_limit, or rate_limit_factor parameters.  Concurrency is
+    # automatically determined from the OpenAI API’s rate‑limit headers and
+    # adjusted internally when encountering rate‑limit errors.
     cancel_existing_batch: bool = False,
     use_batch: bool = False,
     batch_completion_window: str = "24h",
@@ -836,6 +832,18 @@ async def get_all_responses(
     cutoff = _decide_default_max_output_tokens(user_cutoff, rate_headers)
     get_response_kwargs.setdefault("max_output_tokens", cutoff)
     # Always load or initialise the CSV
+    # Ensure the directory for save_path exists.  Without this, attempts to
+    # write responses to a non‑existent folder will result in file errors.  We
+    # only create the parent directory if it is non‑empty (e.g. when the user
+    # specifies a path like ``folder/file.csv``); otherwise os.path.dirname
+    # returns an empty string and ``makedirs`` would raise.
+    save_dir = os.path.dirname(save_path)
+    if save_dir:
+        try:
+            os.makedirs(save_dir, exist_ok=True)
+        except Exception:
+            # Ignore errors here; they will surface when attempting to write
+            pass
     if os.path.exists(save_path) and not reset_files:
         df = pd.read_csv(save_path)
         df["Response"] = df["Response"].apply(_de)
@@ -847,6 +855,15 @@ async def get_all_responses(
     todo_pairs = [(p, i) for p, i in zip(prompts, identifiers) if i not in done]
     if not todo_pairs:
         return df
+    # Warn the user if the input dataset is very large.  Processing more
+    # than 50,000 prompts in a single run can lead to very long execution
+    # times and increased risk of rate‑limit throttling.  We still proceed
+    # with the run, but advise the user to split the input into smaller
+    # batches when possible.
+    if len(todo_pairs) > 50_000 and verbose:
+        print(
+            f"[warning] You are attempting to process {len(todo_pairs):,} prompts in one go. For better performance and reliability, we recommend splitting jobs into 50k‑row chunks or fewer."
+        )
     # Print usage summary and example prompt
     if print_example_prompt and todo_pairs:
         # Build prompt list for cost estimate
@@ -857,54 +874,102 @@ async def get_all_responses(
             max_output_tokens=cutoff,
             model=model,
             use_batch=use_batch,
-            requests_per_minute=requests_per_minute,
-            tokens_per_minute=tokens_per_minute,
-            rate_limit_factor=rate_limit_factor,
             n_parallels=n_parallels,
             verbose=verbose,
             rate_headers=rate_headers,
         )
         example_prompt, _ = todo_pairs[0]
         print(f"\nExample prompt: {example_prompt}\n")
-    # Dynamically adjust n_parallels based on available rate limits.  This check runs once
-    # before any API calls are made and only applies when not using the batch API.
+    # Dynamically adjust the maximum number of parallel workers based on rate
+    # limits.  We base the concurrency on your API’s per‑minute request and
+    # token budgets and the average prompt length.  This calculation only
+    # runs once at the start of a non‑batch run.  The resulting value acts
+    # as the true upper bound on parallelism; it will be used to size the
+    # worker pool and to configure the request/token limiters below.
     if not use_batch:
         try:
+            # Estimate the average number of tokens per call.  We convert words
+            # to tokens using _approx_tokens and include the expected output
+            # length.  This ensures that long prompts reduce available
+            # parallelism appropriately.
             avg_input_tokens = sum(_approx_tokens(p) for p, _ in todo_pairs) / max(1, len(todo_pairs))
             gating_output = cutoff if cutoff is not None else ESTIMATED_OUTPUT_TOKENS_PER_PROMPT
             tokens_per_call = (avg_input_tokens + gating_output) * max(1, n)
+            # Parse limits from the rate headers.  If the API returns both a
+            # limit and a remaining value, we prefer the remaining value (it
+            # reflects your remaining quota for the current minute).  Missing
+            # or zero values are treated as unknown.
+            def _pf(val: Optional[str]) -> Optional[float]:
+                try:
+                    if val is None:
+                        return None
+                    s = str(val).strip()
+                    if not s:
+                        return None
+                    f = float(s)
+                    return f if f > 0 else None
+                except Exception:
+                    return None
             if rate_headers:
-                try:
-                    lim_r = int(float(rate_headers.get("limit_requests") or 0))
-                except Exception:
-                    lim_r = 0
-                try:
-                    rem_r = int(float(rate_headers.get("remaining_requests") or 0))
-                except Exception:
-                    rem_r = 0
-                allowed_req = rem_r if rem_r > 0 else lim_r
-                try:
-                    lim_t = int(float(rate_headers.get("limit_tokens") or 0))
-                except Exception:
-                    lim_t = 0
-                try:
-                    rem_t = int(float(rate_headers.get("remaining_tokens") or 0))
-                except Exception:
-                    rem_t = 0
-                allowed_tok = rem_t if rem_t > 0 else lim_t
+                lim_r = _pf(rate_headers.get("limit_requests"))
+                rem_r = _pf(rate_headers.get("remaining_requests"))
+                allowed_req = rem_r if rem_r is not None else lim_r
+                lim_t = _pf(rate_headers.get("limit_tokens")) or _pf(rate_headers.get("limit_tokens_usage_based"))
+                rem_t = _pf(rate_headers.get("remaining_tokens")) or _pf(rate_headers.get("remaining_tokens_usage_based"))
+                allowed_tok = rem_t if rem_t is not None else lim_t
             else:
-                allowed_req = int(requests_per_minute * rate_limit_factor)
-                allowed_tok = int(tokens_per_minute * rate_limit_factor)
-            if allowed_req <= 0:
-                allowed_req = int(requests_per_minute * rate_limit_factor)
-            if allowed_tok <= 0:
-                allowed_tok = int(tokens_per_minute * rate_limit_factor)
-            concurrency_cap = max(1, min(n_parallels, int(allowed_req), int(allowed_tok // tokens_per_call)))
+                allowed_req = None
+                allowed_tok = None
+            # Compute the theoretical parallelism from request and token budgets
+            if allowed_req is None:
+                concurrency_from_requests: Optional[int] = None
+            else:
+                concurrency_from_requests = int(max(1, allowed_req))
+            if allowed_tok is None:
+                concurrency_from_tokens: Optional[int] = None
+            else:
+                concurrency_from_tokens = int(max(1, allowed_tok // tokens_per_call))
+            if concurrency_from_requests is None and concurrency_from_tokens is None:
+                concurrency_possible: Optional[int] = None
+            elif concurrency_from_requests is None:
+                concurrency_possible = concurrency_from_tokens
+            elif concurrency_from_tokens is None:
+                concurrency_possible = concurrency_from_requests
+            else:
+                concurrency_possible = min(concurrency_from_requests, concurrency_from_tokens)
+            # Determine final concurrency cap.  If concurrency_possible is None
+            # (unknown), we leave n_parallels unchanged.  Otherwise we limit
+            # to the lesser of the calculated parallelism and the user‑supplied
+            # ceiling.
+            if concurrency_possible is not None:
+                concurrency_cap = max(1, min(n_parallels, concurrency_possible))
+            else:
+                concurrency_cap = max(1, n_parallels)
         except Exception:
-            concurrency_cap = n_parallels
+            concurrency_cap = max(1, n_parallels)
+        # Warn the user when concurrency is reduced due to rate limits.
         if concurrency_cap < n_parallels and verbose:
-            print(f"[parallel reduction] Limiting parallel workers from {n_parallels} to {concurrency_cap} based on your current rate limits. Consider upgrading your plan for faster processing.")
+            print(
+                f"[parallel reduction] Limiting parallel workers from {n_parallels} to {concurrency_cap} based on your current rate limits. Consider upgrading your plan for faster processing."
+            )
         n_parallels = concurrency_cap
+        # Compute per‑minute budgets for gating.  When the API returns a
+        # request or token limit, we use it; otherwise we derive a large
+        # default based on the concurrency cap.  The defaults ensure that
+        # limiters do not unnecessarily throttle when limits are unknown.
+        if allowed_req is not None:
+            allowed_req_pm = int(max(1, allowed_req))
+        else:
+            allowed_req_pm = max(1, n_parallels)
+        if allowed_tok is not None:
+            allowed_tok_pm = int(max(1, allowed_tok))
+        else:
+            allowed_tok_pm = int(max(1, n_parallels * tokens_per_call))
+    else:
+        # In batch mode we don't set concurrency or limiters here; they are
+        # handled by the batch API submission.
+        allowed_req_pm = 1
+        allowed_tok_pm = 1
 
     # Batch submission path
     if use_batch:
@@ -1280,14 +1345,24 @@ async def get_all_responses(
         _append_results(completed_rows)
         return df
     # Non‑batch path
-    # Initialise limiters; will be rebuilt if dynamic_rate_limit kicks in
+    # Initialise limiters using the per‑minute budgets derived above.  These
+    # limiters control the rate of API requests and the number of tokens
+    # consumed per minute.  By setting the budgets based on your account’s
+    # remaining limits (or sensible defaults when limits are unknown), we
+    # ensure that tasks yield gracefully when the budget is exhausted rather
+    # than overrunning the API’s quota.  We do not apply any dynamic
+    # scaling factor here; concurrency has already been capped based on
+    # the budgets and average prompt length.
     nonlocal_timeout = timeout
-    current_rate_limit_factor = rate_limit_factor
-    req_lim = AsyncLimiter(int(requests_per_minute * current_rate_limit_factor), 60)
-    tok_lim = AsyncLimiter(int(tokens_per_minute * current_rate_limit_factor), 60)
+    req_lim = AsyncLimiter(allowed_req_pm, 60)
+    tok_lim = AsyncLimiter(allowed_tok_pm, 60)
     response_times: List[float] = []
+    # Count of timeout errors is no longer used for dynamic timeout adjustment.
     timeout_errors = 0
     call_count = 0
+    # When computing dynamic timeouts, we require a minimum number of
+    # observed samples to compute a 95th percentile.  Use at least 100
+    # samples or the number of parallel workers, whichever is larger.
     min_samples_for_timeout = max(100, n_parallels)
     queue: asyncio.Queue[Tuple[str, str]] = asyncio.Queue()
     for item in todo_pairs:
@@ -1335,18 +1410,16 @@ async def get_all_responses(
         except Exception:
             pass
 
+    # We removed the dynamic rate‑limit adjustment functionality.  If the API
+    # returns a 429 (rate limit error), we simply retry after an exponential
+    # backoff without modifying the per‑minute budgets.  This avoids
+    # overreacting to a single error and keeps concurrency stable.  The
+    # budgets and concurrency are determined once at the start of the job.
     async def rebuild_limiters() -> None:
-        nonlocal req_lim, tok_lim, current_rate_limit_factor
-        current_rate_limit_factor = max(0.1, current_rate_limit_factor)
-        req_lim = AsyncLimiter(int(requests_per_minute * current_rate_limit_factor), 60)
-        tok_lim = AsyncLimiter(int(tokens_per_minute * current_rate_limit_factor), 60)
-        if verbose:
-            print(
-                f"[dynamic rate-limit] Adjusted rate_limit_factor to {current_rate_limit_factor:.2f}. New RPM limit: {int(requests_per_minute * current_rate_limit_factor)}, TPM limit: {int(tokens_per_minute * current_rate_limit_factor)}."
-            )
+        return None
 
     async def worker() -> None:
-        nonlocal processed, timeout_errors, call_count, current_rate_limit_factor, nonlocal_timeout
+        nonlocal processed, timeout_errors, call_count, nonlocal_timeout
         while True:
             try:
                 prompt, ident = await queue.get()
@@ -1383,32 +1456,11 @@ async def get_all_responses(
                                 print(
                                     f"[get_all_responses] Timeout on attempt {attempt} for {ident} after {nonlocal_timeout:.1f}s. Consider increasing the 'timeout' parameter if timeouts persist."
                                 )
-                            if (
-                                dynamic_timeout
-                                and call_count > 0
-                                and timeout_errors / call_count > 0.05
-                            ):
-                                if len(response_times) >= min_samples_for_timeout:
-                                    try:
-                                        sorted_times = sorted(response_times)
-                                        q95_index = max(0, int(0.95 * (len(sorted_times) - 1)))
-                                        q95 = sorted_times[q95_index]
-                                        new_t = min(
-                                            max_timeout,
-                                            max(nonlocal_timeout, timeout_factor * q95),
-                                        )
-                                    except Exception:
-                                        new_t = min(
-                                            max_timeout, nonlocal_timeout * timeout_factor
-                                        )
-                                else:
-                                    new_t = min(max_timeout, nonlocal_timeout * timeout_factor)
-                                if new_t > nonlocal_timeout:
-                                    if verbose:
-                                        print(
-                                            f"[dynamic timeout] Increasing timeout to {new_t:.1f}s due to high timeout rate."
-                                        )
-                                    nonlocal_timeout = new_t
+                            # When dynamic timeout is enabled, a string of empty outputs may indicate
+                            # that the timeout is too low.  We do not perform additional
+                            # adjustments here because ``adjust_timeout`` already adapts
+                            # the timeout based on observed latencies.  The message above
+                            # suggests increasing the timeout parameter manually if needed.
                         else:
                             results.append({"Identifier": ident, "Response": resps, "Time Taken": t})
                             processed += 1
@@ -1428,13 +1480,14 @@ async def get_all_responses(
                         await asyncio.sleep(random.uniform(1, 2) * (2 ** (attempt - 1)))
                         attempt += 1
                     except RateLimitError as e:
+                        # When the API returns a 429 response, log the rate limit error
+                        # and retry with exponential backoff.  We do not adjust
+                        # concurrency or budgets here; rate limits are handled by
+                        # the AsyncLimiters and the initial concurrency cap.
                         if verbose:
                             print(
                                 f"[get_all_responses] Rate limit error on attempt {attempt} for {ident}: {e}"
                             )
-                        if dynamic_rate_limit:
-                            current_rate_limit_factor *= rate_limit_adjust_factor
-                            await rebuild_limiters()
                         if attempt >= max_retries:
                             results.append(
                                 {"Identifier": ident, "Response": None, "Time Taken": None}
@@ -1461,15 +1514,18 @@ async def get_all_responses(
                         await flush()
                         break
                     except Exception as e:
+                        # For unexpected errors (including file I/O issues), log
+                        # the error and re‑raise so that the caller can see
+                        # the failure.  Unlike rate‑limit or API errors,
+                        # unexpected exceptions should not be silently
+                        # swallowed.  This will terminate the overall run.
                         if verbose:
                             print(f"[get_all_responses] Unexpected error for {ident}: {e}")
-                        results.append(
-                            {"Identifier": ident, "Response": None, "Time Taken": None}
-                        )
-                        processed += 1
-                        pbar.update(1)
+                        # Attempt to flush any accumulated results before
+                        # exiting.  If flushing raises, allow that to
+                        # propagate as well.
                         await flush()
-                        break
+                        raise
             finally:
                 queue.task_done()
 
@@ -1478,7 +1534,18 @@ async def get_all_responses(
     await queue.join()
     for w in workers:
         w.cancel()
-    await asyncio.gather(*workers, return_exceptions=True)
+    # Gather worker results and propagate any exceptions.  When
+    # return_exceptions=True, exceptions are returned as values in the
+    # results list.  If any worker raised, propagate the first
+    # exception so the caller is aware of the failure.
+    worker_results = await asyncio.gather(*workers, return_exceptions=True)
+    for res in worker_results:
+        if isinstance(res, Exception):
+            # flush partial results before raising
+            await flush()
+            pbar.close()
+            raise res
+    # Flush remaining results and close progress bar
     await flush()
     pbar.close()
     return df
