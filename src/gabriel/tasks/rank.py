@@ -129,7 +129,7 @@ class Rank:
     after the final round.
     """
 
-    def __init__(self, cfg: RankConfig, template: PromptTemplate | None = None) -> None:
+    def __init__(self, cfg: RankConfig, template: Optional[PromptTemplate] = None) -> None:
         """Instantiate a ranking engine.
 
         Parameters

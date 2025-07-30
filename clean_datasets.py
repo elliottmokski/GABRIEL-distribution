@@ -2,6 +2,7 @@ import json
 import ast
 import re
 from pathlib import Path
+from typing import Optional
 import pandas as pd
 
 # Unified output schema
@@ -146,7 +147,7 @@ def clean_global_populism(base: Path) -> pd.DataFrame:
                 zf.extractall(base / "speeches_20220427_unzipped")
             text_dir = base / "speeches_20220427_unzipped" / "speeches_20220427"
 
-    def read_text(fn: str) -> str | None:
+    def read_text(fn: str) -> Optional[str]:
         fp = text_dir / fn
         if fp.exists():
             return fp.read_text(encoding="utf-8", errors="ignore")

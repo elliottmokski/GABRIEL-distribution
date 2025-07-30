@@ -327,7 +327,7 @@ class Teleprompter:
         text: str,
         research_question: str,
         instructions: str = "",
-        bucket_context: str | None = None,
+        bucket_context: Optional[str] = None,
     ) -> str:
         """
         Render the prompt for extracting mutually exclusive short terms (keys) and their
@@ -347,9 +347,9 @@ class Teleprompter:
         n_cliques: int,
         research_question: str,
         instructions: str = "",
-        bucket_context: str | None = None,
-        hierarchy: dict | None = None,
-        second_column_name: str | None = None,
+        bucket_context: Optional[str] = None,
+        hierarchy: Optional[dict] = None,
+        second_column_name: Optional[str] = None,
     ) -> str:
         """
         Render the prompt for proposing a fixed number of higher-level bucket terms
@@ -373,11 +373,11 @@ class Teleprompter:
         num_to_select: int,
         research_question: str,
         instructions: str = "",
-        bucket_context: str | None = None,
-        selected_buckets: dict[str, str] | None = None,
-        hierarchy: dict | None = None,
-        bucket_definitions: dict | None = None,
-        second_column_name: str | None = None,
+        bucket_context: Optional[str] = None,
+        selected_buckets: Optional[dict[str, str]] = None,
+        hierarchy: Optional[dict] = None,
+        bucket_definitions: Optional[dict] = None,
+        second_column_name: Optional[str] = None,
     ) -> str:
         """
         Render the prompt to vote on a subset of candidate bucket terms that best capture
@@ -404,10 +404,10 @@ class Teleprompter:
         bucket_terms: list[str],
         research_question: str,
         instructions: str = "",
-        bucket_context: str | None = None,
-        text_square: str | None = None,
+        bucket_context: Optional[str] = None,
+        text_square: Optional[str] = None,
         circle_first: bool = True,
-        bucket_definitions: dict | None = None,
+        bucket_definitions: Optional[dict] = None,
     ) -> str:
         """
         Render the prompt to classify a single document into zero or more final buckets.
@@ -429,7 +429,7 @@ class Teleprompter:
         text_circle: str,
         text_square: str,
         instructions: str = "",
-        bucket_context: str | None = None,
+        bucket_context: Optional[str] = None,
         circle_first: bool = True,
     ) -> str:
         template = self.env.get_template("clique_differentiator_prompt.jinja2")
@@ -447,9 +447,9 @@ class Teleprompter:
         text_square: str,
         bucket_terms: list[str],
         instructions: str = "",
-        bucket_context: str | None = None,
+        bucket_context: Optional[str] = None,
         circle_first: bool = True,
-        bucket_definitions: dict | None = None,
+        bucket_definitions: Optional[dict] = None,
     ) -> str:
         template = self.env.get_template("clique_apply_diff_prompt.jinja2")
         return template.render(
@@ -469,9 +469,9 @@ class Teleprompter:
         bucket_terms: list[str],
         research_question: str,
         instructions: str = "",
-        bucket_context: str | None = None,
+        bucket_context: Optional[str] = None,
         circle_first: bool = True,
-        bucket_definitions: dict | None = None,
+        bucket_definitions: Optional[dict] = None,
     ) -> str:
         template = self.env.get_template("clique_elo_prompt.jinja2")
         return template.render(
@@ -1358,7 +1358,7 @@ def create_county_choropleth(
     title: str = "County Ratings",
     color_scale: str = "RdBu",
     font_family: str = "monospace",
-    save_path: str | None = None,
+    save_path: Optional[str] = None,
     county_col: str = None,  # Optionally pass county name column
     z_score: bool = False,   # If True, plot z-scores instead of raw values
 ):

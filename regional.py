@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 
@@ -19,7 +19,7 @@ class Regional:
         topics: List[str],
         *,
         save_dir: str = os.path.expanduser("~/Documents/runs"),
-        run_name: str | None = None,
+        run_name: Optional[str] = None,
         model: str = "o4-mini",
         n_parallels: int = 400,
         use_dummy: bool = False,

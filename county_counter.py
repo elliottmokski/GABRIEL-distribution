@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 import pandas as pd
 
@@ -22,7 +22,7 @@ class CountyCounter:
         *,
         fips_col: Optional[str] = None,
         save_dir: str = os.path.expanduser("~/Documents/runs"),
-        run_name: str | None = None,
+        run_name: Optional[str] = None,
         model_regional: str = "o4-mini",
         model_elo: str = "o4-mini",
         reasoning_effort: str = "medium",
@@ -34,7 +34,7 @@ class CountyCounter:
         additional_instructions: str = "",
         elo_instructions: str = "",
         z_score_choropleth: bool = True,  # Whether to plot z-score choropleths (default True for user intent)
-        elo_attributes: dict | None = None,  # Optional dict of {attr: description}
+        elo_attributes: Optional[Dict] = None,  # Optional dict of {attr: description}
     ) -> None:
         self.df = df.copy()
         self.county_col = county_col

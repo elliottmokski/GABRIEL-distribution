@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 
@@ -18,7 +18,7 @@ class RegionalConfig:
     model: str = "o4-mini"
     n_parallels: int = 400
     save_dir: str = os.path.expanduser("~/Documents/runs")
-    run_name: str | None = None
+    run_name: Optional[str] = None
     use_dummy: bool = False
     additional_instructions: str = ""
     additional_guidelines: str = ""
@@ -35,7 +35,7 @@ class Regional:
         df: pd.DataFrame,
         region_col: str,
         topics: List[str],
-        cfg: RegionalConfig | None = None,
+        cfg: Optional[RegionalConfig] = None,
     ) -> None:
         self.df = df.copy()
         self.region_col = region_col

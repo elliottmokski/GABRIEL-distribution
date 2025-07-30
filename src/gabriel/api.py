@@ -1,6 +1,7 @@
 import asyncio
 import os
 import pandas as pd
+from typing import Optional, Union
 
 from .tasks import (
     Rate,
@@ -19,7 +20,7 @@ async def rate(
     *,
     attributes: dict[str, str],
     save_dir: str,
-    additional_instructions: str | None = None,
+    additional_instructions: Optional[str] = None,
     model: str = "o4-mini",
     n_parallels: int = 100,
     n_runs: int = 1,
@@ -49,7 +50,7 @@ async def classify(
     *,
     labels: dict[str, str],
     save_dir: str,
-    additional_instructions: str | None = None,
+    additional_instructions: Optional[str] = None,
     model: str = "o4-mini",
     n_parallels: int = 400,
     n_runs: int = 1,
@@ -79,7 +80,7 @@ async def deidentify(
     column_name: str,
     *,
     save_dir: str,
-    grouping_column: str | None = None,
+    grouping_column: Optional[str] = None,
     model: str = "o4-mini",
     n_parallels: int = 50,
     use_dummy: bool = False,
@@ -109,9 +110,9 @@ async def rank(
     df: pd.DataFrame,
     column_name: str,
     *,
-    attributes: dict[str, str] | list[str],
+    attributes: Union[dict[str, str], list[str]],
     save_dir: str,
-    additional_instructions: str | None = None,
+    additional_instructions: Optional[str] = None,
     model: str = "o4-mini",
     n_rounds: int = 15,
     matches_per_round: int = 3,

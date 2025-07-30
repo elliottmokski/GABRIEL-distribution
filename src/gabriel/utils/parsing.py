@@ -4,7 +4,7 @@ import ast
 import json
 import os
 import re
-from typing import Any
+from typing import Any, Union, Optional
 
 _JSON_FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.S)
 
@@ -12,7 +12,7 @@ _JSON_FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.S)
 JSON_LLM_MODEL = os.getenv("JSON_LLM_MODEL", "gpt-4o-mini")
 
 
-def _parse_json(txt: Any) -> dict | list:
+def _parse_json(txt: Any) -> Union[dict, list]:
     """Strict JSON parsing with common cleaning heuristics."""
     if isinstance(txt, (dict, list)):
         return txt
@@ -57,7 +57,7 @@ def _parse_json(txt: Any) -> dict | list:
     raise ValueError(f"Failed to parse JSON: {cleaned[:200]}")
 
 
-def safe_json(txt: Any) -> dict | list:
+def safe_json(txt: Any) -> Union[dict, list]:
     """Best-effort JSON parser returning ``{}`` on failure."""
     try:
         return _parse_json(txt)
@@ -65,7 +65,7 @@ def safe_json(txt: Any) -> dict | list:
         return {}
 
 
-async def safest_json(txt: Any, *, model: str | None = None) -> dict | list:
+async def safest_json(txt: Any, *, model: Optional[str] = None) -> Union[dict, list]:
     """Async wrapper around :func:`safe_json` with optional LLM fixup."""
     try:
         return _parse_json(txt)
