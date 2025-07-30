@@ -10,6 +10,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, DefaultDict, Dict, List, Optional
 import os
+from pathlib import Path
 
 import pandas as pd
 
@@ -44,9 +45,11 @@ class Rate:
 
     # -----------------------------------------------------------------
     def __init__(self, cfg: RateConfig, template: Optional[PromptTemplate] = None) -> None:
+        expanded = Path(os.path.expandvars(os.path.expanduser(cfg.save_dir)))
+        expanded.mkdir(parents=True, exist_ok=True)
+        cfg.save_dir = str(expanded)
         self.cfg = cfg
         self.template = template or PromptTemplate.from_package("ratings_prompt.jinja2")
-        os.makedirs(self.cfg.save_dir, exist_ok=True)
 
     # -----------------------------------------------------------------
     # Parse raw LLM output into {attribute: float}
