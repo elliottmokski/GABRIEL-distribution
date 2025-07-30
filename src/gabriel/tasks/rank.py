@@ -152,8 +152,6 @@ class Rank:
         # reproducibility is required, modify this line to pass a
         # specific seed.
         self.rng = random.Random()
-        # ensure the save directory exists
-        os.makedirs(self.cfg.save_dir, exist_ok=True)
         # place holders for multiway rankings and aggregated standard errors
         self.history_multi: Dict[str, List[List[str]]] = {}
         self._last_se_agg: Optional[Dict[str, float]] = None
