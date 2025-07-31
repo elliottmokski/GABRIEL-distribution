@@ -323,25 +323,44 @@ class Rank:
         n = len(s)
         # variance contribution for each pair
         q_ij = n_ij * p_ij * (1 - p_ij)
-        # Assemble the full Fisher information matrix under the sum constraint.
-        # Diagonal entries accumulate the pairwise information for each item;
-        # off‑diagonals are the negative contributions between items.
+        # Assemble the full Fisher information matrix.  Each diagonal entry
+        # accumulates the information for one item, and off‑diagonals encode
+        # negative interactions.  We do not apply the sum‑to‑zero constraint
+        # directly here; instead, we will remove a reference item to ensure
+        # identifiability.  Choosing a well‑connected reference object (i.e., one
+        # with many comparisons) avoids artificially inflating the standard
+        # errors of other items【375153807620927†L569-L706】.
         I = np.zeros((n, n), dtype=float)
         diag = q_ij.sum(axis=1)
         I[np.diag_indices(n)] = diag
         I -= q_ij
-        # Add ridge to the diagonal for numerical stability.
-        I[np.diag_indices(n)] += ridge
-        # Compute the Moore–Penrose pseudoinverse.  This yields the
-        # covariance matrix of the constrained estimator under the
-        # sum‑to‑zero identifiability constraint【375153807620927†L569-L706】.
-        try:
-            cov = np.linalg.pinv(I)
-        except np.linalg.LinAlgError:
-            # As a fallback, use numpy's pseudoinverse on the ridge‑stabilised matrix.
-            cov = np.linalg.pinv(I + np.eye(n) * ridge)
-        # Standard errors are the square roots of the diagonal of the covariance.
-        se = np.sqrt(np.maximum(0.0, np.diag(cov)))
+        # Identify a reference index.  We pick the item with the maximum
+        # information (largest diagonal entry), which typically has the most
+        # comparisons.  This minimises the effect of the reference choice on
+        # other items’ uncertainties.
+        ref_idx = int(np.argmax(diag)) if n > 0 else 0
+        # Build the reduced information matrix by removing the reference row and column.
+        if n > 1:
+            mask = np.ones(n, dtype=bool)
+            mask[ref_idx] = False
+            I_sub = I[np.ix_(mask, mask)].copy()
+            # Stabilise the inversion with a ridge term.
+            I_sub[np.diag_indices(n - 1)] += ridge
+            try:
+                cov_sub = np.linalg.inv(I_sub)
+            except np.linalg.LinAlgError:
+                cov_sub = np.linalg.pinv(I_sub)
+            # Compute the variance of the reference item using the sum constraint.
+            ones = np.ones((n - 1, 1))
+            var_ref = float(ones.T @ cov_sub @ ones)
+            se = np.zeros(n, dtype=float)
+            # Fill standard errors for non‑reference items.
+            se[mask] = np.sqrt(np.maximum(0.0, np.diag(cov_sub)))
+            # Standard error for the reference item.
+            se[ref_idx] = np.sqrt(max(0.0, var_ref))
+        else:
+            # Only one item: variance is undefined; set SE to zero.
+            se = np.zeros(n, dtype=float)
         return se
 
     def _fit_pl(
