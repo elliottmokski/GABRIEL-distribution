@@ -166,7 +166,14 @@ class Rank:
         self._HIGH_SE_FRAC = 0.25  # fraction of high‑uncertainty items
         self._MAX_ITER = 1000  # maximum iterations for BT optimisation
         self._TOL = 1e-6  # convergence tolerance for BT
-        self._SE_RIDGE = 1e-9  # ridge for standard error computation
+        # A small ridge term stabilises the inversion of the Fisher information
+        # matrix when computing standard errors.  The previous value (1e‑9)
+        # occasionally led to extremely large uncertainties for items with
+        # limited or contradictory comparisons.  Increasing this value
+        # regularises the covariance estimate and prevents unreasonably
+        # large standard errors.  If you observe inflated SE values,
+        # consider increasing this further (e.g. to 1e‑4).
+        self._SE_RIDGE = 1e-5
 
         # The maximum number of candidate pairs to consider per pairing round.
         # When the number of items becomes very large (e.g. tens of thousands),
@@ -281,34 +288,60 @@ class Rank:
     ) -> np.ndarray:
         """Estimate standard errors for BT skill parameters.
 
-        This routine computes the observed Fisher information matrix
-        using the approach described by Ford (1957) and returns the
-        square roots of the variances.  A small ridge term can be
-        supplied to stabilise the inversion when the information matrix
-        is ill‑conditioned.
+        Standard errors are derived from the observed Fisher information
+        matrix for the Bradley–Terry model.  The matrix
+        ``n_ij * p_ij * (1 - p_ij)`` gives the contribution to the
+        Fisher information from each pairwise comparison (Ford, 1957).
+        We assemble the full information matrix ``I`` and compute its
+        Moore–Penrose pseudoinverse to obtain the covariance matrix of
+        the constrained maximum‑likelihood estimates under the
+        **sum‑to‑zero constraint**.  Using the pseudoinverse avoids
+        singling out one item as the reference level and spreads
+        uncertainty appropriately across all items【375153807620927†L569-L706】.  A small
+        ridge term is added to the diagonal of ``I`` to stabilise the
+        inversion when the matrix is ill‑conditioned.  The standard
+        error for each item is the square root of the corresponding
+        diagonal element of this covariance matrix.
+
+        Parameters
+        ----------
+        s : np.ndarray
+            Array of estimated log‑skills for each item.
+        n_ij : np.ndarray
+            Matrix of total match counts between items (wins + losses).
+        p_ij : np.ndarray
+            Matrix of predicted win probabilities between items.
+        ridge : float
+            Small constant added to the diagonal of the Fisher information
+            matrix for numerical stability.
+
+        Returns
+        -------
+        np.ndarray
+            Array of standard errors corresponding to each element of ``s``.
         """
         n = len(s)
         # variance contribution for each pair
         q_ij = n_ij * p_ij * (1 - p_ij)
-        # Fisher information matrix
+        # Assemble the full Fisher information matrix under the sum constraint.
+        # Diagonal entries accumulate the pairwise information for each item;
+        # off‑diagonals are the negative contributions between items.
         I = np.zeros((n, n), dtype=float)
         diag = q_ij.sum(axis=1)
         I[np.diag_indices(n)] = diag
         I -= q_ij
-        # remove last row/col to account for non‑identifiability (sum
-        # constraint).  Add ridge to the diagonal to stabilise inversion.
-        I_sub = I[:-1, :-1].copy()
-        I_sub[np.diag_indices(n - 1)] += ridge
+        # Add ridge to the diagonal for numerical stability.
+        I[np.diag_indices(n)] += ridge
+        # Compute the Moore–Penrose pseudoinverse.  This yields the
+        # covariance matrix of the constrained estimator under the
+        # sum‑to‑zero identifiability constraint【375153807620927†L569-L706】.
         try:
-            cov_sub = np.linalg.inv(I_sub)
+            cov = np.linalg.pinv(I)
         except np.linalg.LinAlgError:
-            cov_sub = np.linalg.pinv(I_sub)
-        # compute variance of the last parameter using sum constraint
-        ones = np.ones((n - 1, 1))
-        var_last = float(ones.T @ cov_sub @ ones)
-        se = np.zeros(n, dtype=float)
-        se[:-1] = np.sqrt(np.diag(cov_sub))
-        se[-1] = np.sqrt(var_last)
+            # As a fallback, use numpy's pseudoinverse on the ridge‑stabilised matrix.
+            cov = np.linalg.pinv(I + np.eye(n) * ridge)
+        # Standard errors are the square roots of the diagonal of the covariance.
+        se = np.sqrt(np.maximum(0.0, np.diag(cov)))
         return se
 
     def _fit_pl(
