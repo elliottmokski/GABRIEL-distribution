@@ -105,7 +105,7 @@ class RankConfig:
     """
 
     attributes: Union[Dict[str, str], List[str]]
-    n_rounds: int = 5
+    n_rounds: int = 15
     matches_per_round: int = 3
     power_matching: bool = True
     add_zscore: bool = True
@@ -419,50 +419,32 @@ class Rank:
         that every item participates in the prescribed number of matches.
 
         This implementation differs from the original heuristics by
-        considering *all* possible pairs between items.  Each pair is
-        assigned a score based on the expected reduction in uncertainty
-        (estimated from the current ratings and aggregated standard
-        errors).  Pairs with larger scores are chosen first, subject
-        to the constraint that each item is matched exactly ``mpr``
-        times.  If some items remain unmatched after exhausting the
-        scored pairs, additional pairs are filled in randomly to
-        satisfy the per‑item quota.
+        considering a bounded set of candidate pairs that scales with the
+        number of items.  Each pair is assigned a score based on the
+        expected reduction in uncertainty (estimated from the current
+        ratings and aggregated standard errors).  Pairs with larger
+        scores are chosen first, subject to the constraint that each
+        item is matched exactly ``mpr`` times.  If some items remain
+        unmatched after exhausting the scored pairs, additional pairs
+        are filled in randomly to satisfy the per‑item quota.
         """
         n = len(item_ids)
         if n < 2:
             return []
-        # Dynamically determine the neighbourhood size for candidate opponents.
-        # When the number of items is very large, the number of candidate
-        # pairs grows quadratically with the neighbourhood size.  To keep
-        # computation tractable, we bound the total number of candidate
-        # pairs per round using ``self._MAX_CANDIDATE_PAIRS_PER_ROUND``.
-        # For example, with 10k items and a cap of 200k, each item will
-        # consider roughly 20 neighbours.  We also ensure that every item
-        # has at least ``mpr`` candidate opponents so that it can be
-        # assigned the required number of matches.
         max_pairs = max(1, self._MAX_CANDIDATE_PAIRS_PER_ROUND)
-        # The desired neighbourhood size based on the cap
         desired_neighbors = max_pairs // max(1, n)
         candidate_neighbors = max(mpr, min(self._CANDIDATE_NEIGHBORS, desired_neighbors))
-        # logistic utility function for mapping rating differences to
-        # predicted outcome variances.  Clip extreme differences to
-        # prevent numerical overflow.
         def logistic_clip(x: float) -> float:
             if x > 50:
                 return 1.0
             if x < -50:
                 return 0.0
             return 1.0 / (1.0 + np.exp(-x))
-        # Sort item identifiers by their current aggregate rating
         ids_sorted = sorted(item_ids, key=lambda i: current_ratings[i])
         idx_of = {i_id: k for k, i_id in enumerate(ids_sorted)}
-        # Identify a set of high‑uncertainty items (largest standard errors)
         num_high_se = max(1, int(self._HIGH_SE_FRAC * n))
         high_se_ids = sorted(item_ids, key=lambda i: se_agg.get(i, 1.0), reverse=True)[:num_high_se]
         candidate_pairs_set: set[Tuple[str, str]] = set()
-        # Local neighbourhood pairs: for each item, include its nearby
-        # neighbours in rating space.  The window spans ``candidate_neighbors``
-        # items on either side.
         for i_id in item_ids:
             pos = idx_of[i_id]
             lower = max(0, pos - candidate_neighbors)
@@ -471,18 +453,12 @@ class Rank:
                 if i_id == j:
                     continue
                 candidate_pairs_set.add(tuple(sorted((i_id, j))))
-        # Encourage exploration for high‑uncertainty items: sample random
-        # opponents for the most uncertain items.
         for hs in high_se_ids:
             others = [x for x in item_ids if x != hs]
             k = min(candidate_neighbors, len(others))
             samp = self.rng.sample(others, k)
             for j in samp:
                 candidate_pairs_set.add(tuple(sorted((hs, j))))
-        # Additional purely random candidate pairs to diversify the pool.  We bound
-        # the number of random pairs so that the total candidate set does not
-        # exceed ``max_pairs``.  This prevents runaway memory usage when
-        # processing very large datasets.
         remaining_capacity = max_pairs - len(candidate_pairs_set)
         n_random_targets = int(self._EXPLORE_FRAC * n * mpr)
         if remaining_capacity > 0:
@@ -492,17 +468,12 @@ class Rank:
                     break
                 a, b = self.rng.sample(item_ids, 2)
                 candidate_pairs_set.add(tuple(sorted((a, b))))
-        # Ensure that each item has at least ``mpr`` candidate pairs.  If
-        # some items are underrepresented in the candidate set, add random
-        # opponents until the quota is met.
-        # Build a mapping from item to candidate partner count
         partners_count = {i: 0 for i in item_ids}
         for a, b in candidate_pairs_set:
             partners_count[a] += 1
             partners_count[b] += 1
         for i_id in item_ids:
             while partners_count[i_id] < mpr:
-                # choose a random opponent not equal to i_id
                 potential = [x for x in item_ids if x != i_id]
                 if not potential:
                     break
@@ -513,10 +484,8 @@ class Rank:
                     partners_count[i_id] += 1
                     partners_count[j] += 1
                 else:
-                    # if the pair already exists, partners_count will reflect that
                     partners_count[i_id] += 1
                     partners_count[j] += 1
-        # Score candidate pairs based on expected information gain
         scored_pairs: List[Tuple[float, str, str]] = []
         for a, b in candidate_pairs_set:
             diff = current_ratings[a] - current_ratings[b]
@@ -527,16 +496,10 @@ class Rank:
             param_unc = var_a + var_b
             score = outcome_var * param_unc
             scored_pairs.append((score, a, b))
-        # Sort pairs by decreasing information gain
         scored_pairs.sort(key=lambda x: x[0], reverse=True)
-        # Each item needs ``mpr`` matches
         needed: Dict[str, int] = {i: mpr for i in item_ids}
-        # Maintain a list of pairs (with possible duplicates) and a set to avoid
-        # selecting the same pair multiple times during the greedy phase.  The
-        # set is used only during selection; the list holds the final pairings.
         pairs_selected: List[Tuple[str, str]] = []
         pairs_seen: set[Tuple[str, str]] = set()
-        # Greedily select high‑scoring pairs respecting per‑item quota
         for score, a, b in scored_pairs:
             if needed[a] > 0 and needed[b] > 0:
                 tup = (a, b) if a < b else (b, a)
@@ -546,51 +509,22 @@ class Rank:
                 pairs_seen.add(tup)
                 needed[a] -= 1
                 needed[b] -= 1
-        # Fill remaining pairings randomly if necessary using unique pairs
-        ids_needing = [i for i, cnt in needed.items() if cnt > 0]
-        attempts = 0
-        while ids_needing and attempts < 10000:
-            attempts += 1
+        while any(cnt > 0 for cnt in needed.values()):
+            ids_needing = [i for i, cnt in needed.items() if cnt > 0]
+            if not ids_needing:
+                break
             a = self.rng.choice(ids_needing)
-            # choose an opponent that still needs matches
-            others = [x for x in item_ids if x != a and needed[x] > 0]
-            if not others:
-                # No valid opponent; mark as satisfied
-                needed[a] = 0
-                ids_needing = [i for i, cnt in needed.items() if cnt > 0]
-                continue
-            b = self.rng.choice(others)
+            potential = [x for x in ids_needing if x != a]
+            if potential:
+                b = self.rng.choice(potential)
+            else:
+                b = a
             tup = (a, b) if a < b else (b, a)
-            # During fill phase we still prefer unique pairs when possible
-            if tup in pairs_seen:
-                continue
             pairs_selected.append(tup)
-            pairs_seen.add(tup)
             needed[a] -= 1
             needed[b] -= 1
-            ids_needing = [i for i, cnt in needed.items() if cnt > 0]
-        # If there are still unmatched items, create duplicate pairs to satisfy
-        # the quotas.  Duplicate pairs are allowed in this final step to
-        # guarantee that every item is assigned the required number of
-        # matchups.  We build a list of the remaining items repeated
-        # according to their outstanding need, shuffle it, and pair
-        # successive entries.
-        leftover: List[str] = []
-        for i, cnt in needed.items():
-            leftover.extend([i] * cnt)
-        if leftover:
-            self.rng.shuffle(leftover)
-            # The length of leftover should always be even because the total
-            # required matches (n*mpr) is even for integer mpr
-            for j in range(0, len(leftover), 2):
-                a = leftover[j]
-                b = leftover[j + 1]
-                tup = (a, b) if a < b else (b, a)
-                pairs_selected.append(tup)
-        # Return the full list of selected pairs (including duplicates when
-        # necessary).  Duplicate pairs are preserved in the list to ensure
-        # that each item participates exactly ``mpr`` times.
         return [((a, texts_by_id[a]), (b, texts_by_id[b])) for a, b in pairs_selected]
+
     def _generate_pairs(
         self,
         item_ids: List[str],
@@ -600,25 +534,14 @@ class Rank:
     ) -> List[Tuple[Tuple[str, str], Tuple[str, str]]]:
         """Dispatch to the appropriate pairing strategy."""
         mpr = max(1, self.cfg.matches_per_round)
-        # When power matching is enabled, always use the information gain pairing
-        # strategy.  If standard errors or current ratings are unavailable,
-        # substitute uniform defaults to ensure that each item is matched
-        # ``mpr`` times.  This guarantees that even in the first round every
-        # item participates in exactly ``mpr`` matchups.  When power
-        # matching is disabled, we still rely on the information gain
-        # machinery but using uniform scores; this produces essentially
-        # random pairings while still enforcing the per‑item quota.  If
-        # callers truly desire unconstrained random match counts, they
-        # should override ``matches_per_round`` accordingly.
-        # Determine default ratings and standard errors when missing
+        # Always use information gain pairing to guarantee exact match counts
         if current_ratings is None:
             current_ratings = {i: 0.0 for i in item_ids}
-        # Build a full se_agg if not supplied or incomplete
         if se_agg is None or len(se_agg) != len(item_ids):
-            se_agg_full = {i: 1.0 for i in item_ids}
+            se_full = {i: 1.0 for i in item_ids}
         else:
-            se_agg_full = se_agg
-        return self._pairs_info_gain(item_ids, texts_by_id, current_ratings, se_agg_full, mpr)
+            se_full = se_agg
+        return self._pairs_info_gain(item_ids, texts_by_id, current_ratings, se_full, mpr)
 
     # ------------------------------------------------------------------
     # Main ranking loop
@@ -660,9 +583,39 @@ class Rank:
         # prepare file paths
         base_name = os.path.splitext(self.cfg.file_name)[0]
         final_path = os.path.join(self.cfg.save_dir, f"{base_name}_final.csv")
-        if not reset_files and os.path.exists(final_path):
-            # load previously computed results
-            return pd.read_csv(final_path)
+        # Determine how many rounds have already been processed when
+        # `reset_files` is False.  We look for files named
+        # ``<base_name>_round<k>.csv`` to infer progress.  If a final
+        # checkpoint exists for the last round, reuse it; otherwise we
+        # resume from the next incomplete round.  When ``reset_files``
+        # is ``True``, all progress is ignored and the computation
+        # restarts from round 0.
+        start_round = 0
+        if not reset_files:
+            existing_rounds: List[int] = []
+            try:
+                for fname in os.listdir(self.cfg.save_dir):
+                    if fname.startswith(f"{base_name}_round") and fname.endswith(".csv"):
+                        # Extract the integer after "round"
+                        try:
+                            idx_str = fname[len(base_name) + 6 : -4]  # len("_round") == 6
+                            rnd_idx = int(idx_str)
+                            existing_rounds.append(rnd_idx)
+                        except Exception:
+                            continue
+            except Exception:
+                existing_rounds = []
+            if existing_rounds:
+                last_completed = max(existing_rounds)
+                # If all rounds have been processed, return the final
+                # results immediately (if the checkpoint exists)
+                if last_completed >= self.cfg.n_rounds - 1 and os.path.exists(final_path):
+                    return pd.read_csv(final_path)
+                # Otherwise resume from the next round
+                start_round = last_completed + 1
+        else:
+            # When reset_files is True we will recompute from scratch
+            start_round = 0
         # copy and prepare the input DataFrame
         df_proc = df.reset_index(drop=True).copy()
         # assign a unique identifier per row using the row index
@@ -682,42 +635,186 @@ class Rank:
         history_pairs: Dict[str, List[Tuple[str, str]]] = {a: [] for a in attr_keys}
         # store per‑attribute standard errors across items
         se_store: Dict[str, Dict[str, float]] = {a: {i: np.nan for i in item_ids} for a in attr_keys}
+        # Define attribute batches once to reuse across replay and new rounds
+        attr_batches: List[List[str]] = [attr_keys[i : i + 8] for i in range(0, len(attr_keys), 8)]
 
-        # no Elo expected value function is needed here; rankings rely solely on the BT model
+        # Helper function to write the current results to the final CSV.  This
+        # builds the output DataFrame from the current ``df_proc`` and
+        # ``ratings``/``se_store``/``zscores`` and writes it to
+        # ``final_path``.
+        def _write_checkpoint() -> None:
+            # Compute z‑scores for each attribute if required
+            zscores_local: Dict[str, Dict[str, float]] = {}
+            if self.cfg.add_zscore:
+                for attr in attr_keys:
+                    vals = np.array([ratings[i][attr] for i in item_ids])
+                    mean = vals.mean()
+                    std = vals.std(ddof=0)
+                    if std == 0:
+                        zscores_local[attr] = {i: 0.0 for i in item_ids}
+                    else:
+                        zscores_local[attr] = {
+                            i: float((ratings[i][attr] - mean) / std) for i in item_ids
+                        }
+            # Merge computed results back into the original DataFrame copy.
+            for attr in attr_keys:
+                # ratings
+                val_map = {i: ratings[i][attr] for i in item_ids}
+                df_proc[attr] = df_proc["_id"].map(val_map)
+                # standard errors
+                if self.cfg.compute_se:
+                    se_map = {i: se_store[attr].get(i, np.nan) for i in item_ids}
+                    df_proc[f"{attr}_se"] = df_proc["_id"].map(se_map)
+                # z‑scores
+                if self.cfg.add_zscore:
+                    z_map = zscores_local.get(attr, {i: np.nan for i in item_ids})
+                    df_proc[f"{attr}_z"] = df_proc["_id"].map(z_map)
+            # Reorder columns: original user columns first (excluding the internal ``_id``),
+            # then for each attribute the score column, followed by the standard error and z‑score.
+            original_cols = [c for c in df.columns]  # preserve the order provided by the user
+            new_cols: List[str] = []
+            for attr in attr_keys:
+                new_cols.append(attr)
+                if self.cfg.compute_se:
+                    new_cols.append(f"{attr}_se")
+                if self.cfg.add_zscore:
+                    new_cols.append(f"{attr}_z")
+            final_cols = original_cols + new_cols
+            final_cols = [c for c in final_cols if c in df_proc.columns]
+            df_out_local = df_proc[final_cols].copy()
+            # Write the final results to disk in CSV format.  Using CSV avoids
+            # Excel row limits and unnecessary overhead.
+            df_out_local.to_csv(final_path, index=False)
 
-        # iterate through rounds
-        for rnd in range(self.cfg.n_rounds):
+        # If there are completed rounds and we're resuming, replay them to
+        # reconstruct the ratings and uncertainties.  After each replayed
+        # round we write a checkpoint to ``final_path``.
+        if start_round > 0:
+            for replay_rnd in range(start_round):
+                round_path = os.path.join(self.cfg.save_dir, f"{base_name}_round{replay_rnd}.csv")
+                if not os.path.exists(round_path):
+                    break
+                try:
+                    # Load existing responses for this round
+                    df_round = pd.read_csv(round_path)
+                    df_round["Response"] = df_round["Response"].apply(lambda x: None if pd.isna(x) else x)
+                except Exception:
+                    continue
+                # Parse each response to build history_pairs
+                for ident, resp_raw in zip(df_round["Identifier"], df_round["Response"]):
+                    parts = str(ident).split("|")
+                    if len(parts) != 5:
+                        continue
+                    _, batch_idx_str, pair_idx_str, id_a, id_b = parts
+                    batch_idx = int(batch_idx_str)
+                    batch = attr_batches[batch_idx]
+                    batch_attr_map = {str(k).strip().lower(): k for k in batch}
+                    # Coerce response into a dictionary using safest_json
+                    async def _coerce_dict_replay(raw: Any) -> Dict[str, Any]:
+                        obj = await safest_json(raw)
+                        if isinstance(obj, dict):
+                            return obj
+                        if isinstance(obj, str):
+                            obj2 = await safest_json(obj)
+                            if isinstance(obj2, dict):
+                                return obj2
+                        if isinstance(obj, list) and obj:
+                            inner = await safest_json(obj[0])
+                            if isinstance(inner, dict):
+                                return inner
+                        return {}
+                    safe_obj = await _coerce_dict_replay(resp_raw)
+                    if not safe_obj:
+                        continue
+                    for attr_raw, winner_raw in safe_obj.items():
+                        attr_key_l = str(attr_raw).strip().lower()
+                        if attr_key_l not in batch_attr_map:
+                            continue
+                        real_attr = batch_attr_map[attr_key_l]
+                        val = winner_raw
+                        if isinstance(val, dict) and "winner" in val:
+                            val = val.get("winner")
+                        if isinstance(val, str):
+                            v = val.strip().lower()
+                        else:
+                            v = ""
+                        if v.startswith(("cir", "c", "left", "text a")):
+                            history_pairs[real_attr].append((id_a, id_b))
+                        elif v.startswith(("squ", "b", "right", "text b")):
+                            history_pairs[real_attr].append((id_b, id_a))
+                        elif v.startswith("draw") or v.startswith("insufficient"):
+                            history_pairs[real_attr].append((id_a, id_b))
+                            history_pairs[real_attr].append((id_b, id_a))
+                        else:
+                            continue
+                # After parsing all pairs for this round, update ratings
+                se_agg_next: Dict[str, float] = {i: 0.0 for i in item_ids}
+                se_agg_counts: Dict[str, int] = {i: 0 for i in item_ids}
+                for attr in attr_keys:
+                    outcomes = history_pairs[attr]
+                    if len(outcomes) == 0:
+                        continue
+                    bt_scores, n_ij, p_ij = self._fit_bt(
+                        item_ids=item_ids,
+                        outcomes=outcomes,
+                        pseudo=self.cfg.learning_rate,
+                        max_iter=self._MAX_ITER,
+                        tol=self._TOL,
+                        return_info=True,
+                    )
+                    for i in item_ids:
+                        ratings[i][attr] = bt_scores[i]
+                    if self.cfg.compute_se:
+                        s_vec = np.array([bt_scores[i] for i in item_ids])
+                        se_vec = self._bt_standard_errors(
+                            s=s_vec,
+                            n_ij=n_ij,
+                            p_ij=p_ij,
+                            ridge=self._SE_RIDGE,
+                        )
+                        for i, se_val in zip(item_ids, se_vec):
+                            se_store[attr][i] = float(se_val)
+                            se_agg_next[i] += float(se_val)
+                            se_agg_counts[i] += 1
+                if self.cfg.compute_se:
+                    for i in item_ids:
+                        if se_agg_counts[i] > 0:
+                            se_agg_next[i] /= se_agg_counts[i]
+                        else:
+                            se_agg_next[i] = 1.0
+                    self._last_se_agg = se_agg_next
+                # Centre ratings to zero mean for each attribute
+                for attr in attr_keys:
+                    vals = [ratings[i][attr] for i in item_ids]
+                    mean_val = float(np.mean(vals))
+                    for i in item_ids:
+                        ratings[i][attr] -= mean_val
+                # Write checkpoint after this replayed round
+                _write_checkpoint()
+
+        # Now proceed with new rounds starting from ``start_round``
+        for rnd in range(start_round, self.cfg.n_rounds):
             # aggregate current ratings across attributes for pairing
             current_agg = {i: float(np.mean(list(ratings[i].values()))) for i in item_ids}
-            se_agg = self._last_se_agg
-            # generate pairs; on the first round there is no se_agg
+            se_agg_local = self._last_se_agg
+            # generate pairs; on the first new round there may be no se_agg
             pairs = self._generate_pairs(
                 item_ids=item_ids,
                 texts_by_id=texts_by_id,
-                current_ratings=current_agg if rnd > 0 else None,
-                se_agg=se_agg if rnd > 0 else None,
+                current_ratings=current_agg if rnd > 0 or start_round > 0 else None,
+                se_agg=se_agg_local if (rnd > 0 or start_round > 0) else None,
             )
             if not pairs:
                 break
-            # split attributes into batches to avoid overly long prompts
-            attr_batches = [attr_keys[i : i + 8] for i in range(0, len(attr_keys), 8)]
             prompts: List[str] = []
             ids: List[str] = []
             for batch_idx, batch in enumerate(attr_batches):
-                # build a mapping from lower‑cased attribute name to the
-                # original attribute.  This is used later to match
-                # responses back to the correct canonical attribute name.
                 attr_def_map = (
                     {a: self.cfg.attributes[a] for a in batch}
                     if isinstance(self.cfg.attributes, dict)
                     else {a: "" for a in batch}
                 )
                 for pair_idx, ((id_a, t_a), (id_b, t_b)) in enumerate(pairs):
-                    # render the rankings prompt.  Note that the
-                    # "circle" passage corresponds to the first
-                    # argument and "square" to the second.  The
-                    # template uses the key ``additional_instructions``
-                    # which we pull from the configuration.
                     prompts.append(
                         self.template.render(
                             passage_circle=t_a,
@@ -727,7 +824,7 @@ class Rank:
                         )
                     )
                     ids.append(f"{rnd}|{batch_idx}|{pair_idx}|{id_a}|{id_b}")
-            # obtain responses from the language model
+            # obtain responses from the language model for this round
             resp_df = await get_all_responses(
                 prompts=prompts,
                 identifiers=ids,
@@ -741,71 +838,59 @@ class Rank:
                 **kwargs,
             )
             # parse each response
+            # reuse the _coerce_dict function defined in the original implementation
+            async def _coerce_dict(raw: Any) -> Dict[str, Any]:
+                obj = await safest_json(raw)
+                if isinstance(obj, dict):
+                    return obj
+                if isinstance(obj, str):
+                    obj2 = await safest_json(obj)
+                    if isinstance(obj2, dict):
+                        return obj2
+                if isinstance(obj, list) and obj:
+                    inner = await safest_json(obj[0])
+                    if isinstance(inner, dict):
+                        return inner
+                return {}
             for ident, resp in zip(resp_df.Identifier, resp_df.Response):
-                # identifiers encode round, batch, pair and item ids
                 parts = str(ident).split("|")
                 if len(parts) != 5:
-                    # skip malformed identifiers
                     continue
                 _, batch_idx_str, pair_idx_str, id_a, id_b = parts
-                # robustly coerce the response into a dict
-                async def _coerce_dict(raw: Any) -> Dict[str, Any]:
-                    obj = await safest_json(raw)
-                    if isinstance(obj, dict):
-                        return obj
-                    if isinstance(obj, str):
-                        obj2 = await safest_json(obj)
-                        if isinstance(obj2, dict):
-                            return obj2
-                    if isinstance(obj, list) and obj:
-                        inner = await safest_json(obj[0])
-                        if isinstance(inner, dict):
-                            return inner
-                    return {}
                 safe_obj = await _coerce_dict(resp)
                 if not safe_obj:
                     continue
-                # map lowercased attribute names back to canonical keys
                 batch_idx = int(batch_idx_str)
                 batch = attr_batches[batch_idx]
                 batch_attr_map = {str(k).strip().lower(): k for k in batch}
-                # iterate through each attribute in the response
                 for attr_raw, winner_raw in safe_obj.items():
                     attr_key_l = str(attr_raw).strip().lower()
                     if attr_key_l not in batch_attr_map:
                         continue
                     real_attr = batch_attr_map[attr_key_l]
-                    # determine the outcome
                     val = winner_raw
                     if isinstance(val, dict) and "winner" in val:
                         val = val.get("winner")
-                    # normalise and extract the leading token
                     if isinstance(val, str):
                         v = val.strip().lower()
                     else:
                         v = ""
-                    # decide on winner/loser or tie
                     if v.startswith(("cir", "c", "left", "text a")):
-                        winner, loser = id_a, id_b
-                        history_pairs[real_attr].append((winner, loser))
+                        history_pairs[real_attr].append((id_a, id_b))
                     elif v.startswith(("squ", "b", "right", "text b")):
-                        winner, loser = id_b, id_a
-                        history_pairs[real_attr].append((winner, loser))
+                        history_pairs[real_attr].append((id_b, id_a))
                     elif v.startswith("draw") or v.startswith("insufficient"):
-                        # tie: record both directions to award equal credit
                         history_pairs[real_attr].append((id_a, id_b))
                         history_pairs[real_attr].append((id_b, id_a))
                     else:
-                        # ignore unrecognised outcomes
                         continue
-            # update ratings using the BT model
+            # update ratings using the BT model for this round
             se_agg_next: Dict[str, float] = {i: 0.0 for i in item_ids}
             se_agg_counts: Dict[str, int] = {i: 0 for i in item_ids}
             for attr in attr_keys:
                 outcomes = history_pairs[attr]
                 if len(outcomes) == 0:
                     continue
-                # fit BT scores and gather diagnostics
                 bt_scores, n_ij, p_ij = self._fit_bt(
                     item_ids=item_ids,
                     outcomes=outcomes,
@@ -828,7 +913,6 @@ class Rank:
                         se_store[attr][i] = float(se_val)
                         se_agg_next[i] += float(se_val)
                         se_agg_counts[i] += 1
-            # aggregate standard errors across attributes
             if self.cfg.compute_se:
                 for i in item_ids:
                     if se_agg_counts[i] > 0:
@@ -836,55 +920,14 @@ class Rank:
                     else:
                         se_agg_next[i] = 1.0
                 self._last_se_agg = se_agg_next
-            # centre ratings to zero mean for each attribute after each round
+            # Centre ratings to zero mean for each attribute
             for attr in attr_keys:
                 vals = [ratings[i][attr] for i in item_ids]
                 mean_val = float(np.mean(vals))
                 for i in item_ids:
                     ratings[i][attr] -= mean_val
-        # Compute z‑scores for each attribute if required
-        zscores: Dict[str, Dict[str, float]] = {}
-        if self.cfg.add_zscore:
-            for attr in attr_keys:
-                vals = np.array([ratings[i][attr] for i in item_ids])
-                mean = vals.mean()
-                std = vals.std(ddof=0)
-                if std == 0:
-                    # If all ratings are identical, z‑scores default to zero
-                    zscores[attr] = {i: 0.0 for i in item_ids}
-                else:
-                    zscores[attr] = {
-                        i: float((ratings[i][attr] - mean) / std) for i in item_ids
-                    }
-        # Merge computed results back into the original DataFrame copy.
-        # We use the unique ``_id`` column to map per‑item results.
-        # Assign rating, standard error and z‑score columns via mapping for efficiency.
-        for attr in attr_keys:
-            # ratings
-            val_map = {i: ratings[i][attr] for i in item_ids}
-            df_proc[attr] = df_proc["_id"].map(val_map)
-            # standard errors
-            if self.cfg.compute_se:
-                se_map = {i: se_store[attr].get(i, np.nan) for i in item_ids}
-                df_proc[f"{attr}_se"] = df_proc["_id"].map(se_map)
-            # z‑scores
-            if self.cfg.add_zscore:
-                z_map = zscores.get(attr, {i: np.nan for i in item_ids})
-                df_proc[f"{attr}_z"] = df_proc["_id"].map(z_map)
-        # Reorder columns: original user columns first (excluding the internal ``_id``),
-        # then for each attribute the score column, followed by the standard error and z‑score.
-        original_cols = [c for c in df.columns]  # preserve the order provided by the user
-        new_cols: List[str] = []
-        for attr in attr_keys:
-            new_cols.append(attr)
-            if self.cfg.compute_se:
-                new_cols.append(f"{attr}_se")
-            if self.cfg.add_zscore:
-                new_cols.append(f"{attr}_z")
-        final_cols = original_cols + new_cols
-        # Select columns that actually exist (protect against missing optional columns)
-        final_cols = [c for c in final_cols if c in df_proc.columns]
-        df_out = df_proc[final_cols].copy()
-        # Write the final results to disk
-        df_out.to_csv(final_path, index=False)
-        return df_out
+            # Write checkpoint after this new round
+            _write_checkpoint()
+        # After processing all rounds, return the final DataFrame
+        # The checkpoint has already been written in the final iteration
+        return pd.read_csv(final_path)
