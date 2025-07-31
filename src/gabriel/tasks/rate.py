@@ -1,4 +1,4 @@
-# src/gabriel/tasks/ratings.py
+# src/gabriel/tasks/rate.py
 # ════════════════════════════════════════════════════════════════════
 # Robust passage-rating task with optional debug logging.
 # ════════════════════════════════════════════════════════════════════
@@ -108,19 +108,37 @@ class Rate:
 
         base_name = os.path.splitext(self.cfg.file_name)[0]
         csv_path = os.path.join(self.cfg.save_dir, f"{base_name}_raw_responses.csv")
-        base_root, ext = os.path.splitext(csv_path)
 
         if not isinstance(self.cfg.n_runs, int) or self.cfg.n_runs < 1:
             raise ValueError("n_runs must be an integer >= 1")
 
-        async def _run_once(idx: int):
-            path = csv_path if self.cfg.n_runs == 1 else f"{base_root}_run{idx}{ext}"
-            return await get_all_responses(
+        if self.cfg.n_runs == 1:
+            df_resp_all = await get_all_responses(
                 prompts=prompts,
                 identifiers=ids,
                 n_parallels=self.cfg.n_parallels,
                 model=self.cfg.model,
-                save_path=path,
+                save_path=csv_path,
+                use_dummy=self.cfg.use_dummy,
+                timeout=self.cfg.timeout,
+                json_mode=True,
+                reset_files=reset_files,
+                **kwargs,
+            )
+            df_resps = [df_resp_all]
+        else:
+            prompts_all: List[str] = []
+            ids_all: List[str] = []
+            for run_idx in range(1, self.cfg.n_runs + 1):
+                prompts_all.extend(prompts)
+                ids_all.extend([f"{ident}_run{run_idx}" for ident in ids])
+
+            df_resp_all = await get_all_responses(
+                prompts=prompts_all,
+                identifiers=ids_all,
+                n_parallels=self.cfg.n_parallels,
+                model=self.cfg.model,
+                save_path=csv_path,
                 use_dummy=self.cfg.use_dummy,
                 timeout=self.cfg.timeout,
                 json_mode=True,
@@ -128,10 +146,12 @@ class Rate:
                 **kwargs,
             )
 
-        if self.cfg.n_runs == 1:
-            df_resps = [await _run_once(1)]
-        else:
-            df_resps = await asyncio.gather(*[_run_once(i) for i in range(1, self.cfg.n_runs + 1)])
+            df_resps = []
+            for run_idx in range(1, self.cfg.n_runs + 1):
+                suffix = f"_run{run_idx}"
+                sub = df_resp_all[df_resp_all.Identifier.str.endswith(suffix)].copy()
+                sub.Identifier = sub.Identifier.str.replace(suffix + "$", "", regex=True)
+                df_resps.append(sub)
 
         if debug:
             print("\n── raw LLM responses ──")
