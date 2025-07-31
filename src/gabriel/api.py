@@ -56,7 +56,7 @@ async def classify(
     n_runs: int = 1,
     reset_files: bool = False,
     use_dummy: bool = False,
-    file_name: str = "basic_classifier_responses.csv",
+    file_name: str = "classify_responses.csv",
     **cfg_kwargs,
 ) -> pd.DataFrame:
     """Convenience wrapper for :class:`gabriel.tasks.Classify`."""

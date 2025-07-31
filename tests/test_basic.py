@@ -4,9 +4,9 @@ import pandas as pd
 from gabriel.core.prompt_template import PromptTemplate
 from gabriel.utils.teleprompter import Teleprompter
 from gabriel.utils import openai_utils
-from gabriel.tasks.ratings import Rate, RateConfig
-from gabriel.tasks.deidentification import Deidentifier, DeidentifyConfig
-from gabriel.tasks.basic_classifier import Classify, ClassifyConfig
+from gabriel.tasks.rate import Rate, RateConfig
+from gabriel.tasks.deidentify import Deidentifier, DeidentifyConfig
+from gabriel.tasks.classify import Classify, ClassifyConfig
 from gabriel.tasks.regional import Regional, RegionalConfig
 from gabriel.tasks.county_counter import CountyCounter
 from gabriel.utils import PromptParaphraser, PromptParaphraserConfig
@@ -114,7 +114,7 @@ def test_classification_multirun(tmp_path):
     df = pd.DataFrame({"txt": ["a"]})
     res = asyncio.run(task.run(df, text_column="txt"))
     assert "yes" in res.columns
-    disagg = pd.read_csv(tmp_path / "basic_classifier_responses_full_disaggregated.csv", index_col=[0, 1])
+    disagg = pd.read_csv(tmp_path / "classify_responses_full_disaggregated.csv", index_col=[0, 1])
     assert set(disagg.index.names) == {"text", "run"}
 
 
