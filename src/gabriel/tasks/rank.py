@@ -513,12 +513,14 @@ class Rank:
             ids_needing = [i for i, cnt in needed.items() if cnt > 0]
             if not ids_needing:
                 break
+            # Choose an item that still needs matches
             a = self.rng.choice(ids_needing)
-            potential = [x for x in ids_needing if x != a]
-            if potential:
-                b = self.rng.choice(potential)
-            else:
-                b = a
+            # Try to pair it with any other item (not just those needing matches) to avoid self‑pairs
+            potential = [x for x in item_ids if x != a]
+            if not potential:
+                # Degenerate case: only one item exists; cannot form a valid pair
+                break
+            b = self.rng.choice(potential)
             tup = (a, b) if a < b else (b, a)
             pairs_selected.append(tup)
             needed[a] -= 1
