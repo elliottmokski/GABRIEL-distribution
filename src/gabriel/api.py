@@ -190,7 +190,7 @@ async def codify(
     )
 
 
-async def custom_prompt(
+async def whatever(
     prompts: list[str],
     identifiers: list[str],
     *,
