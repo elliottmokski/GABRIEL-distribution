@@ -4,7 +4,7 @@ import re
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from ..utils import (
     Teleprompter,
