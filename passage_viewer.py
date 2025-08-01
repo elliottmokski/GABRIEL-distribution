@@ -218,7 +218,7 @@ class PassageViewer:
         return re.sub(r'[^a-z]', '', text.lower())
 
     def _find_text_position(self, text: str, snippet: str) -> tuple:
-        """Robust text position finding using the same logic as passage_coder."""
+        """Robust text position finding using the same logic as codify."""
         clean_snippet = snippet.strip()
         if not clean_snippet:
             return None, None

@@ -12,6 +12,7 @@ from .tasks import (
     RankConfig,
     Deidentifier,
     DeidentifyConfig,
+    Codify,
 )
 from .utils.openai_utils import get_all_responses
 
@@ -148,6 +149,44 @@ async def rank(
         **cfg_kwargs,
     )
     return await Rank(cfg).run(df, column_name, reset_files=reset_files)
+
+
+async def codify(
+    df: pd.DataFrame,
+    column_name: str,
+    *,
+    save_dir: str,
+    categories: Optional[dict[str, str]] = None,
+    user_instructions: str = "",
+    additional_instructions: str = "",
+    model: str = "gpt-4o-mini",
+    n_parallels: int = 400,
+    max_words_per_call: int = 1000,
+    max_categories_per_call: int = 8,
+    file_name: str = "coding_results.csv",
+    reset_files: bool = False,
+    debug_print: bool = False,
+    use_dummy: bool = False,
+) -> pd.DataFrame:
+    """Convenience wrapper for :class:`gabriel.tasks.Codify`."""
+    os.makedirs(save_dir, exist_ok=True)
+    coder = Codify()
+    return await coder.codify(
+        df,
+        column_name,
+        categories=categories,
+        user_instructions=user_instructions,
+        max_words_per_call=max_words_per_call,
+        max_categories_per_call=max_categories_per_call,
+        additional_instructions=additional_instructions,
+        n_parallels=n_parallels,
+        model=model,
+        save_dir=save_dir,
+        file_name=file_name,
+        reset_files=reset_files,
+        debug_print=debug_print,
+        use_dummy=use_dummy,
+    )
 
 
 async def custom_prompt(

@@ -13,6 +13,7 @@ _lazy_imports = {
     "ClassifyConfig": ".classify",
     "Rank": ".rank",
     "RankConfig": ".rank",
+    "Codify": ".codify",
     "Regional": ".regional",
     "RegionalConfig": ".regional",
     "RecursiveEloRater": ".recursive_elo",

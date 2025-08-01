@@ -8,6 +8,12 @@ from .maps import create_county_choropleth
 from .prompt_paraphraser import PromptParaphraser, PromptParaphraserConfig
 from .parsing import safe_json, safest_json
 from .jinja import shuffled, shuffled_dict, get_env
+from .word_matching import (
+    normalize_text_aggressive,
+    letters_only,
+    robust_find_improved,
+    strict_find,
+)
 
 __all__ = [
     "get_response",
@@ -23,4 +29,8 @@ __all__ = [
     "shuffled",
     "shuffled_dict",
     "get_env",
+    "normalize_text_aggressive",
+    "letters_only",
+    "robust_find_improved",
+    "strict_find",
 ]
