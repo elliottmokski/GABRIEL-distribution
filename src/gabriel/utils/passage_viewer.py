@@ -5,7 +5,10 @@ import random
 import re
 from typing import List, Dict, Any, Optional, Union
 import colorsys
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+except Exception:  # pragma: no cover - optional dependency
+    plt = None
 
 class PassageViewer:
     def __init__(self, df: pd.DataFrame, text_column: str, categories: Optional[Union[List[str], str]] = None):
@@ -42,22 +45,24 @@ class PassageViewer:
     def _generate_distinct_colors(self, n: int) -> List[str]:
         # Use matplotlib tab20 palette for up to 20, then HSV for overflow
         base_colors = []
-        if n <= 20:
-            cmap = plt.get_cmap('tab20')
-            for i in range(n):
-                rgb = cmap(i)[:3]
-                base_colors.append('#{:02x}{:02x}{:02x}'.format(int(rgb[0]*255), int(rgb[1]*255), int(rgb[2]*255)))
-            return base_colors
-        else:
-            cmap = plt.get_cmap('tab20')
-            for i in range(20):
-                rgb = cmap(i)[:3]
-                base_colors.append('#{:02x}{:02x}{:02x}'.format(int(rgb[0]*255), int(rgb[1]*255), int(rgb[2]*255)))
-            for i in range(20, n):
-                hue = (i * 1.0 / n) % 1.0
-                r, g, b = colorsys.hsv_to_rgb(hue, 0.7, 1.0)
-                base_colors.append('#{:02x}{:02x}{:02x}'.format(int(r*255), int(g*255), int(b*255)))
-            return base_colors[:n]
+        if plt is not None:
+            if n <= 20:
+                cmap = plt.get_cmap('tab20')
+                for i in range(n):
+                    rgb = cmap(i)[:3]
+                    base_colors.append('#{:02x}{:02x}{:02x}'.format(int(rgb[0]*255), int(rgb[1]*255), int(rgb[2]*255)))
+                return base_colors
+            else:
+                cmap = plt.get_cmap('tab20')
+                for i in range(20):
+                    rgb = cmap(i)[:3]
+                    base_colors.append('#{:02x}{:02x}{:02x}'.format(int(rgb[0]*255), int(rgb[1]*255), int(rgb[2]*255)))
+        # Fallback or overflow using HSV
+        for i in range(len(base_colors), n):
+            hue = (i * 1.0 / n) % 1.0
+            r, g, b = colorsys.hsv_to_rgb(hue, 0.7, 1.0)
+            base_colors.append('#{:02x}{:02x}{:02x}'.format(int(r*255), int(g*255), int(b*255)))
+        return base_colors[:n]
 
     def _setup_gui(self):
         self.root = tk.Tk()

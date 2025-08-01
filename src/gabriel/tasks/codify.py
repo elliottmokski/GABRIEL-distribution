@@ -1,7 +1,7 @@
 import json
 import os
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from tqdm import tqdm
@@ -22,6 +22,22 @@ class Codify:
     def __init__(self, teleprompter: Optional[Teleprompter] = None) -> None:
         self.teleprompter = teleprompter or Teleprompter()
         self.hit_rate_stats = {}  # Track hit rates across all texts
+
+    @staticmethod
+    def view(
+        df: pd.DataFrame,
+        text_column: str,
+        categories: Optional[Union[List[str], str]] = None,
+    ):
+        """Convenience wrapper around :func:`view_coded_passages`.
+
+        This helper makes it easy to visualise coding results produced by
+        :class:`Codify`. It simply forwards the provided DataFrame to the
+        passage viewer utility.
+        """
+        from ..utils import view_coded_passages
+
+        return view_coded_passages(df, text_column, categories)
 
     def parse_json(self, response_text: Any) -> Optional[dict]:
         """Parse JSON response, handling various input types."""
