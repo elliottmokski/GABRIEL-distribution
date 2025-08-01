@@ -189,3 +189,13 @@ def test_api_wrappers(tmp_path):
     )
     assert "deidentified_text" in deidentified.columns
 
+    custom = asyncio.run(
+        gabriel.custom_prompt(
+            prompts=["hello"],
+            identifiers=["1"],
+            save_path=str(tmp_path / "cust" / "out.csv"),
+            use_dummy=True,
+        )
+    )
+    assert len(custom) == 1
+

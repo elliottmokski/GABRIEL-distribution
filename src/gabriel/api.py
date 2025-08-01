@@ -13,6 +13,7 @@ from .tasks import (
     Deidentifier,
     DeidentifyConfig,
 )
+from .utils.openai_utils import get_all_responses
 
 async def rate(
     df: pd.DataFrame,
@@ -54,6 +55,7 @@ async def classify(
     model: str = "o4-mini",
     n_parallels: int = 400,
     n_runs: int = 1,
+    min_frequency: float = 0.6,
     reset_files: bool = False,
     use_dummy: bool = False,
     file_name: str = "classify_responses.csv",
@@ -68,6 +70,7 @@ async def classify(
         model=model,
         n_parallels=n_parallels,
         n_runs=n_runs,
+        min_frequency=min_frequency,
         additional_instructions=additional_instructions or "",
         use_dummy=use_dummy,
         **cfg_kwargs,
@@ -145,3 +148,32 @@ async def rank(
         **cfg_kwargs,
     )
     return await Rank(cfg).run(df, column_name, reset_files=reset_files)
+
+
+async def custom_prompt(
+    prompts: list[str],
+    identifiers: list[str],
+    *,
+    save_path: str,
+    model: str = "o4-mini",
+    json_mode: bool = False,
+    use_web_search: bool = False,
+    n_parallels: int = 400,
+    use_dummy: bool = False,
+    reset_files: bool = False,
+    **kwargs,
+) -> pd.DataFrame:
+    """Wrapper around :func:`get_all_responses` for arbitrary prompts."""
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    return await get_all_responses(
+        prompts=prompts,
+        identifiers=identifiers,
+        save_path=save_path,
+        model=model,
+        json_mode=json_mode,
+        use_web_search=use_web_search,
+        n_parallels=n_parallels,
+        use_dummy=use_dummy,
+        reset_files=reset_files,
+        **kwargs,
+    )
