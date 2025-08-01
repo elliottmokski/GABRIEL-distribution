@@ -1,8 +1,15 @@
 from importlib import import_module
 import asyncio
+import pytest
 
 def test_import_gabriel():
     assert import_module("gabriel")
+
+
+def test_viewer_exposed():
+    pytest.importorskip("matplotlib")
+    gabriel = import_module("gabriel")
+    assert callable(gabriel.view_coded_passages)
 
 
 def test_openai_client_dummy():
