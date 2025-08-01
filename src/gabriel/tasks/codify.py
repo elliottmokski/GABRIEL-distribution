@@ -1,20 +1,26 @@
 import json
 import os
-import random
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 from tqdm import tqdm
-from utility_functions import Teleprompter, get_all_responses
-import unicodedata
+
+from ..utils import (
+    Teleprompter,
+    get_all_responses,
+    normalize_text_aggressive,
+    letters_only,
+    robust_find_improved,
+    strict_find,
+)
 
 
-class PassageCoder:
+class Codify:
     """Pipeline for coding passages of text according to specified categories."""
 
-    def __init__(self, teleprompter: Teleprompter) -> None:
-        self.teleprompter = teleprompter
+    def __init__(self, teleprompter: Optional[Teleprompter] = None) -> None:
+        self.teleprompter = teleprompter or Teleprompter()
         self.hit_rate_stats = {}  # Track hit rates across all texts
 
     def parse_json(self, response_text: Any) -> Optional[dict]:
@@ -66,140 +72,6 @@ class PassageCoder:
             return ' '.join(words), ''
         return ' '.join(words[:n]), ' '.join(words[-n:])
 
-    def _normalize_text_aggressive(self, text: str) -> str:
-        """Aggressively normalize text for maximum matching flexibility."""
-        if not text:
-            return ""
-        
-        # First, handle encoding artifacts BEFORE Unicode normalization
-        # This is crucial because unicodedata.normalize might change the artifacts
-        encoding_fixes = {
-            '‚Äô': "'",  # Main apostrophe artifact
-            '‚Äôs': "'s", '‚Äôt': "'t", '‚Äôm': "'m", '‚Äôre': "'re", 
-            '‚Äôve': "'ve", '‚Äôll': "'ll", '‚Äôd': "'d",
-            '‚Ä¶': ' ', '‚Äù': '"', '‚Äú': '"', '‚Äî': '-', '‚Ä¢': "'",
-            '‚Äò': "'", '‚Äúa': '"a',  # Common patterns
-        }
-        
-        for old, new in encoding_fixes.items():
-            text = text.replace(old, new)
-        
-        # Unicode normalization after fixing encoding artifacts
-        text = unicodedata.normalize('NFKD', text)
-        
-        # Standard Unicode replacements
-        unicode_fixes = {
-            # Unicode quotes and apostrophes
-            '\u2019': "'", '\u2018': "'", '\u201c': '"', '\u201d': '"',
-            '\u2013': '-', '\u2014': '-', '\u2026': '...',
-            # Common variations
-            ''': "'", ''': "'", '"': '"', '"': '"',
-            # Remove zero-width characters
-            '\u200b': '', '\u200c': '', '\u200d': '', '\ufeff': '',
-        }
-        
-        for old, new in unicode_fixes.items():
-            text = text.replace(old, new)
-        
-        # Clean up any remaining apostrophe patterns (with length check for safety)
-        if len(text) < 100000:  # Only apply regex patterns to reasonable-sized text
-            try:
-                text = re.sub(r"[''‚Äô]+s\b", "'s", text)  # Possessives
-                text = re.sub(r"[''‚Äô]+t\b", "'t", text)  # Contractions
-                text = re.sub(r"[''‚Äô]+m\b", "'m", text)
-                text = re.sub(r"[''‚Äô]+re\b", "'re", text)
-                text = re.sub(r"[''‚Äô]+ve\b", "'ve", text)
-                text = re.sub(r"[''‚Äô]+ll\b", "'ll", text)
-                text = re.sub(r"[''‚Äô]+d\b", "'d", text)
-            except Exception:
-                # If regex fails, just continue without this cleanup
-                pass
-        
-        # Normalize whitespace - convert all whitespace to single spaces
-        text = re.sub(r'\s+', ' ', text)
-        
-        return text.strip()
-
-    def _letters_only(self, text: str) -> str:
-        """Keep only lowercase letters a-z, remove everything else."""
-        if not text:
-            return ""
-        # Convert to lowercase and keep only a-z letters
-        return re.sub(r'[^a-z]', '', text.lower())
-
-    def _robust_find_improved(self, text: str, excerpt: str) -> Optional[str]:
-        """Fast and robust text matching using letters-only approach with fallbacks."""
-        if not excerpt.strip():
-            return None
-        
-        # Primary strategy: letters-only matching (super fast and robust)
-        text_letters = self._letters_only(text)
-        excerpt_letters = self._letters_only(excerpt)
-        
-        if excerpt_letters and excerpt_letters in text_letters:
-            return excerpt  # Return original excerpt if letters-only match found
-        
-        # Fallback 1: First 20 characters of letters-only (for partial matches at start)
-        if len(excerpt_letters) >= 20:
-            excerpt_first_20 = excerpt_letters[:20]
-            if excerpt_first_20 in text_letters:
-                return excerpt
-        
-        # Fallback 2: Last 20 characters of letters-only (for partial matches at end)
-        if len(excerpt_letters) >= 20:
-            excerpt_last_20 = excerpt_letters[-20:]
-            if excerpt_last_20 in text_letters:
-                return excerpt
-        
-        # Fallback 3: First 10 + last 10 characters (for middle truncation issues)
-        if len(excerpt_letters) >= 20:
-            excerpt_first_10 = excerpt_letters[:10]
-            excerpt_last_10 = excerpt_letters[-10:]
-            if excerpt_first_10 in text_letters and excerpt_last_10 in text_letters:
-                return excerpt
-        
-        # Fallback 4: For shorter excerpts, try partial matching
-        if 10 <= len(excerpt_letters) < 20:
-            excerpt_first_half = excerpt_letters[:len(excerpt_letters)//2]
-            excerpt_second_half = excerpt_letters[len(excerpt_letters)//2:]
-            if len(excerpt_first_half) >= 5 and len(excerpt_second_half) >= 5:
-                if excerpt_first_half in text_letters and excerpt_second_half in text_letters:
-                    return excerpt
-        
-        # Fallback 5: Very short excerpts (< 10 letters): try normalized approach
-        if len(excerpt_letters) < 10:
-            text_norm = self._normalize_text_aggressive(text).lower()
-            excerpt_norm = self._normalize_text_aggressive(excerpt).lower()
-            
-            if excerpt_norm in text_norm:
-                return excerpt
-        
-        return None
-
-    def _strict_find(self, text: str, excerpt: str) -> bool:
-        """Strict matching for failure analysis - only direct and normalized matching, no fallbacks."""
-        if not excerpt.strip():
-            return False
-        
-        # Strategy 1: Direct case-insensitive match
-        text_lower = text.lower()
-        excerpt_lower = excerpt.lower().strip()
-        if excerpt_lower in text_lower:
-            return True
-        
-        # Strategy 2: Normalized matching (handles encoding issues)
-        text_norm = self._normalize_text_aggressive(text).lower()
-        excerpt_norm = self._normalize_text_aggressive(excerpt).lower()
-        if excerpt_norm in text_norm:
-            return True
-        
-        # Strategy 3: Letters-only matching (most basic level)
-        text_letters = self._letters_only(text)
-        excerpt_letters = self._letters_only(excerpt)
-        if excerpt_letters and excerpt_letters in text_letters:
-            return True
-        
-        return False
 
     def find_snippet_in_text(self, text: str, beginning_excerpt: str, ending_excerpt: str) -> Optional[str]:
         """Fast snippet finding that returns actual text from the original document."""
@@ -208,7 +80,7 @@ class PassageCoder:
         
         # Handle short excerpts (no ending)
         if not ending_excerpt:
-            match = self._robust_find_improved(text, beginning_excerpt)
+            match = robust_find_improved(text, beginning_excerpt)
             if match:
                 # Find the actual position in the original text
                 start_pos, end_pos, match_type = self._find_actual_position_with_type(text, beginning_excerpt)
@@ -229,8 +101,8 @@ class PassageCoder:
             return None
         
         # Handle longer snippets with both beginning and ending
-        begin_match = self._robust_find_improved(text, beginning_excerpt)
-        end_match = self._robust_find_improved(text, ending_excerpt)
+        begin_match = robust_find_improved(text, beginning_excerpt)
+        end_match = robust_find_improved(text, ending_excerpt)
         
         if not begin_match and not end_match:
             return None
@@ -290,7 +162,7 @@ class PassageCoder:
         return result[0], result[1]  # Return just position, not match type
 
     def _find_actual_position_with_type(self, text: str, excerpt: str, _recursion_depth: int = 0) -> tuple:
-        """Find the actual character positions and match type using the SAME permissive strategies as _robust_find_improved."""
+        """Find the actual character positions and match type using the SAME permissive strategies as robust_find_improved."""
         if not excerpt.strip():
             return None, None, None
         
@@ -306,8 +178,8 @@ class PassageCoder:
             return idx, idx + len(excerpt_lower), 'exact'
         
         # Strategy 2: Try with our aggressive normalization
-        text_norm = self._normalize_text_aggressive(text)
-        excerpt_norm = self._normalize_text_aggressive(excerpt)
+        text_norm = normalize_text_aggressive(text)
+        excerpt_norm = normalize_text_aggressive(excerpt)
         
         idx = text_norm.lower().find(excerpt_norm.lower())
         if idx != -1:
@@ -315,9 +187,9 @@ class PassageCoder:
             start_pos, end_pos = self._map_normalized_to_original(text, text_norm, idx, len(excerpt_norm))
             return start_pos, end_pos, 'normalized'
         
-        # Strategy 3: Letters-only matching (same as _robust_find_improved)
-        text_letters = self._letters_only(text)
-        excerpt_letters = self._letters_only(excerpt)
+        # Strategy 3: Letters-only matching (same as robust_find_improved)
+        text_letters = letters_only(text)
+        excerpt_letters = letters_only(excerpt)
         
         if excerpt_letters and excerpt_letters in text_letters:
             letters_idx = text_letters.find(excerpt_letters)
@@ -325,7 +197,7 @@ class PassageCoder:
             approx_start = int(ratio * len(text))
             return approx_start, approx_start + len(excerpt), 'letters_only'
         
-        # Strategy 4: First 20 characters fallback (same as _robust_find_improved)
+        # Strategy 4: First 20 characters fallback (same as robust_find_improved)
         if len(excerpt_letters) >= 20:
             excerpt_first_20 = excerpt_letters[:20]
             if excerpt_first_20 in text_letters:
@@ -334,7 +206,7 @@ class PassageCoder:
                 approx_start = int(ratio * len(text))
                 return approx_start, approx_start + len(excerpt), 'first_20'
         
-        # Strategy 5: Last 20 characters fallback (same as _robust_find_improved)
+        # Strategy 5: Last 20 characters fallback (same as robust_find_improved)
         if len(excerpt_letters) >= 20:
             excerpt_last_20 = excerpt_letters[-20:]
             if excerpt_last_20 in text_letters:
@@ -343,7 +215,7 @@ class PassageCoder:
                 approx_start = int(ratio * len(text))
                 return approx_start, approx_start + len(excerpt), 'last_20'
         
-        # Strategy 6: First + Last 10 fallback (same as _robust_find_improved)
+        # Strategy 6: First + Last 10 fallback (same as robust_find_improved)
         if len(excerpt_letters) >= 20:
             excerpt_first_10 = excerpt_letters[:10]
             excerpt_last_10 = excerpt_letters[-10:]
@@ -353,7 +225,7 @@ class PassageCoder:
                 approx_start = int(ratio * len(text))
                 return approx_start, approx_start + len(excerpt), 'first_last_10'
         
-        # Strategy 7: Half matching for shorter excerpts (same as _robust_find_improved)
+        # Strategy 7: Half matching for shorter excerpts (same as robust_find_improved)
         if 10 <= len(excerpt_letters) < 20:
             excerpt_first_half = excerpt_letters[:len(excerpt_letters)//2]
             excerpt_second_half = excerpt_letters[len(excerpt_letters)//2:]
@@ -392,7 +264,7 @@ class PassageCoder:
         # Simple substring search in the window
         for i in range(len(search_text) - len(excerpt_to_find) + 1):
             window = search_text[i:i + len(excerpt_to_find)]
-            if self._normalize_text_aggressive(window).lower() == excerpt_to_find.lower():
+            if normalize_text_aggressive(window).lower() == excerpt_to_find.lower():
                 return search_start + i, search_start + i + len(window)
         
         # Fallback: return estimated positions
@@ -493,8 +365,8 @@ class PassageCoder:
             snippet = None
             
             # Track strict matching for comparison (before fallbacks)
-            strict_begin = self._strict_find(original_text, beginning)
-            strict_end = self._strict_find(original_text, ending) if ending and ending.strip() else True
+            strict_begin = strict_find(original_text, beginning)
+            strict_end = strict_find(original_text, ending) if ending and ending.strip() else True
             if strict_begin and strict_end:
                 strict_matches += 1
             
@@ -512,14 +384,14 @@ class PassageCoder:
                 elif debug_print:
                     print(f"[DEBUG] FAILED to find: '{beginning[:50]}...'")
                     # Show what letters-only matching looks like
-                    letters_begin = self._letters_only(beginning)
-                    letters_text = self._letters_only(original_text)
+                    letters_begin = letters_only(beginning)
+                    letters_text = letters_only(original_text)
                     print(f"[DEBUG] Letters-only excerpt: '{letters_begin[:50]}...'")
                     print(f"[DEBUG] Letters-only contains: {letters_begin in letters_text}")
                     
                     # Now diagnose WHY the snippet extraction failed
-                    begin_match = self._robust_find_improved(original_text, beginning)
-                    end_match = self._robust_find_improved(original_text, ending) if ending else True
+                    begin_match = robust_find_improved(original_text, beginning)
+                    end_match = robust_find_improved(original_text, ending) if ending else True
                     
                     print(f"[DEBUG] Failure analysis for '{beginning[:30]}...':")
                     print(f"[DEBUG]   Begin match: {begin_match is not None}")
@@ -533,17 +405,17 @@ class PassageCoder:
             else:
                 # NOW track the actual failure reasons using STRICT matching (not the permissive fallback method)
                 # Use direct text matching to see what actually failed
-                begin_match = self._strict_find(original_text, beginning)
-                
-                # For ending, we need to distinguish between "no ending provided" vs "ending provided but failed"  
+                begin_match = strict_find(original_text, beginning)
+
+                # For ending, we need to distinguish between "no ending provided" vs "ending provided but failed"
                 if ending and ending.strip():  # Only count as end failure if there was actually ending text
-                    end_match = self._strict_find(original_text, ending)
+                    end_match = strict_find(original_text, ending)
                     if not end_match:
                         end_fail_count += 1
                 else:
                     # No ending text provided, so this is purely a begin failure
                     pass
-                
+
                 if not begin_match:
                     begin_fail_count += 1
                 
@@ -621,10 +493,11 @@ class PassageCoder:
         if total_begin_failures + total_end_failures == 0 and total_found < total_excerpts:
             print("⚠️  WARNING: No failures recorded but some excerpts are missing - accounting error detected!")
 
-    async def run(
+    async def codify(
         self,
         df: pd.DataFrame,
-        text_column: str,
+        column_name: str,
+        *,
         categories: Optional[Dict[str, str]] = None,
         user_instructions: str = "",
         max_words_per_call: int = 1000,
@@ -632,41 +505,37 @@ class PassageCoder:
         additional_instructions: str = "",
         n_parallels: int = 400,
         model: str = "gpt-4o-mini",
-        save_root: str = os.path.expanduser("~/Documents/runs"),
-        run_name: Optional[str] = None,
+        save_dir: str,
+        file_name: str = "coding_results.csv",
         reset_files: bool = False,
         debug_print: bool = False,
         use_dummy: bool = False,
     ) -> pd.DataFrame:
         """
         Process all texts in the dataframe, coding passages according to categories.
-        
+
         Args:
             df: Input dataframe
-            text_column: Column containing text to code
+            column_name: Column containing text to code
             categories: Dict mapping category names to their definitions (optional)
-            user_instructions: Instructions for dynamic category discovery when categories=None
+            user_instructions: Instructions for dynamic category discovery when categories is None
             max_words_per_call: Maximum words per API call (default 1000)
             max_categories_per_call: Maximum categories per API call (default 8)
             additional_instructions: Additional instructions for the prompt
             n_parallels: Number of parallel API calls
             model: Model to use for coding
-            save_root: Root directory for saving results
-            run_name: Name for this run (auto-generated if None)
+            save_dir: Directory for saving results
+            file_name: Name of the CSV file for raw model responses
             reset_files: Whether to reset existing files
             debug_print: Whether to print debug information
             use_dummy: Whether to use dummy responses for testing
-            
+
         Returns:
             Enhanced dataframe with columns for each category (if categories provided)
             or with 'coded_passages' column containing full category dict (if dynamic)
         """
-        if run_name is None:
-            run_name = f"passage_coder_run_{int(random.random() * 1e6)}"
-        
-        save_path = os.path.join(save_root, run_name)
-        os.makedirs(save_path, exist_ok=True)
-        
+        os.makedirs(save_dir, exist_ok=True)
+
         df_proc = df.reset_index(drop=True).copy()
         
         # Determine if we're in dynamic category mode
@@ -685,45 +554,47 @@ class PassageCoder:
             ]
         
         # Build prompts for all text chunks and category batches
+        template = self.teleprompter.env.get_template("codify_prompt.jinja2")
         prompts: List[str] = []
         identifiers: List[str] = []
         text_index_to_chunks: Dict[int, List[int]] = {}  # Maps original text index to chunk indices
-        
+
         chunk_idx = 0
         chunk_map = {}
         for text_idx, row in df_proc.iterrows():
-            text = str(row[text_column])
+            text = str(row[column_name])
             chunks = self.chunk_by_words(text, max_words_per_call)
-            
+
             chunk_indices = []
             for chunk in chunks:
                 # Process each category batch for this chunk
                 for batch_idx, category_batch in enumerate(category_batches):
                     if dynamic_mode:
                         # Dynamic mode: use user_instructions
-                        prompt = self.teleprompter.passage_coder_prompt(
+                        prompt = template.render(
                             text=chunk,
                             categories=None,
                             user_instructions=user_instructions,
-                            additional_instructions=additional_instructions
+                            additional_instructions=additional_instructions,
                         )
                         batch_suffix = ""
                     else:
                         # Static mode: use subset of categories
                         batch_categories = {k: categories[k] for k in category_batch}
-                        prompt = self.teleprompter.passage_coder_prompt(
+                        prompt = template.render(
                             text=chunk,
                             categories=batch_categories,
-                            additional_instructions=additional_instructions
+                            user_instructions="",
+                            additional_instructions=additional_instructions,
                         )
                         batch_suffix = f"_batch_{batch_idx}"
-                    
+
                     prompts.append(prompt)
                     identifiers.append(f"text_{text_idx}_chunk_{chunk_idx}{batch_suffix}")
                     chunk_indices.append(chunk_idx)
                     chunk_map[chunk_idx] = chunk
                     chunk_idx += 1
-            
+
             text_index_to_chunks[text_idx] = chunk_indices
         
         if debug_print and prompts:
@@ -737,7 +608,7 @@ class PassageCoder:
             prompts=prompts,
             identifiers=identifiers,
             n_parallels=n_parallels,
-            save_path=os.path.join(save_path, "coding_results.csv"),
+            save_path=os.path.join(save_dir, file_name),
             reset_files=reset_files,
             use_dummy=use_dummy,
             json_mode=True,
@@ -794,7 +665,7 @@ class PassageCoder:
                                    desc="Processing texts", leave=True)
             
             for text_idx, row in text_iterator:
-                original_text = str(row[text_column])
+                original_text = str(row[column_name])
                 chunk_results = text_to_results.get(text_idx, [])
                 
                 # Merge all categories from all chunks and batches
@@ -831,7 +702,7 @@ class PassageCoder:
                                    desc="Processing texts", leave=True)
             
             for text_idx, row in text_iterator:
-                original_text = str(row[text_column])
+                original_text = str(row[column_name])
                 chunk_results = text_to_results.get(text_idx, [])
                 
                 # For each category, consolidate snippets from all chunks and batches
@@ -843,10 +714,10 @@ class PassageCoder:
                         print(f"[DEBUG] Text {text_idx}, Category '{category}': {len(snippets)} snippets found")
         
         # Save final results
-        df_proc.to_csv(os.path.join(save_path, "coded_passages.csv"), index=False)
+        df_proc.to_csv(os.path.join(save_dir, "coded_passages.csv"), index=False)
         
         if debug_print:
-            print(f"\n[DEBUG] Processing complete. Results saved to: {save_path}")
+            print(f"\n[DEBUG] Processing complete. Results saved to: {save_dir}")
             if dynamic_mode:
                 all_categories = set()
                 for coded_passages in df_proc["coded_passages"]:
