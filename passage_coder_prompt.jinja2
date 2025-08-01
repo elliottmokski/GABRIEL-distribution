@@ -1,0 +1,95 @@
+Consider the following text:
+
+BEGIN TEXT
+{{ text }}
+END TEXT
+
+Your task is to act as a passage coder, as is done in the social sciences.
+
+{% if categories %}
+You are to carefully read and dissect the text, marking the boundaries of snippets/subsections of the text that belong to the following categories/attributes:
+
+BEGIN CATEGORIES/ATTRIBUTES
+{{ categories }}
+END CATEGORIES/ATTRIBUTES
+Follow the specific definitions of the categories in assigning them to snippets/subsections of the text.
+{% else %}
+Consider the broad topic alluded to in these user instructions:
+BEGIN USER INSTRUCTIONS
+{{ user_instructions }}
+END USER INSTRUCTIONS
+Consider the specific category labels that fall under the broad topic alluded to in the user instructions.
+For example, if the broad topic is Bible verses, the specific category labels would be specific Bible verses like "John 3:16" or "Psalm 23:1".
+Or if the topic is Supreme Court decisions, the specific category labels would be specific Supreme Court decisions like "Marbury v. Madison" or "Brown v. Board of Education".
+In your output, you would only output as category labels the specific category labels (under the broad topic) that are present in the text and should be marked.
+So, in the example above, if the text alludes to the Bible verse "John 3:16", you would output "John 3:16" as the category label and mark the snippets/subsections that allude to the John 3:16.
+You would not output every single Bible verse; just every Bible verse that is present in the text.
+Be thorough and exhaustive in your output, denoting every specific category label that is applicable in the text and marking every snippet/subsection that is applicable to each category label.
+{% endif %}
+
+You mark the boundaries of the snippets/subsections by verbatim outputting the first 8 words and the last 8 words of the snippet/subsection (more if necessary to ensure uniqueness in programmatically identifying the snippets/subsections).
+If the snippet/subsection is less than 20 words, you should write out the entire snippet/subsection as the beginning excerpt and leave the ending excerpt blank.
+It is crucial that these beginning and ending excerpts are completely verbatim, same exact spelling/mistakes/punctuation/capitalization/line breaks/etc.
+We will programmatically use these excerpts to identify and pull out the whole snippets/subsections that you are marking.
+Be sure that the beginning and ending excerpts are completely verbatim, same exact everything, same exact characters.
+
+Output a JSON in the following format:
+
+{
+    "<insert category 1 name here>":
+        [
+            {
+                "beginning excerpt": "<insert the first 8 words of the snippet/subsection here verbatim (or the entire snippet/subsection if it is less than 20 words)>",
+                "ending excerpt": "<insert the last 8 words of the snippet/subsection here verbatim (or leave blank if the snippet/subsection is less than 20 words)>",
+            },
+            {
+                "beginning excerpt": "<insert the first 8 words of a different snippet/subsection here verbatim (or the entire snippet/subsection if it is less than 20 words)>",
+                "ending excerpt": "<insert the last 8 words of that snippet/subsection here verbatim (or leave blank if the snippet/subsection is less than 20 words)>",
+            },
+            ...
+        ]
+    "<insert category 2 name here>",
+        [
+            {
+                "beginning excerpt": "<insert the first 8 words of the snippet/subsection here verbatim (or the entire snippet/subsection if it is less than 20 words)>",
+                "ending excerpt": "<insert the last 8 words of the snippet/subsection here verbatim (or leave blank if the snippet/subsection is less than 20 words)>",
+            },
+            ...
+        ],
+    ...
+}
+
+{% if categories %}
+Again: the categories you are marking are: {{ categories.keys() }}
+
+Ensure you input these category names verbatim into the JSON.
+Carefully consider the entire text for each and every category; do not skip any (though it is possible that some categories are not present in the text, in which case you should have the category name in the JSON but an empty list of snippets/subsections).
+{% endif %}
+It is possible and often the case that text will overlap between categories, in which case you should mark the text for each applicable category separately. The same area of text can be marked for multiple categories.
+Often in this case, it is not the exact same snippet/subsection that is being marked for each category, but rather a slightly different snippet/subsection that perhaps starts or ends at a different word, or is a different length.
+You must carefully consider extremely precise boundaries for the snippets/subsections distinctly for each category.
+Be precise with your identified snippets/subsections; don't include any words/chunks of text that are outside the essential boundaries of the snippet/subsection where the category applies.
+Be very thorough. Every single applicable snippet/subsection (include small ones) throughout the text, beginning to end, must be marked.
+This requires meticulosity and attention to detail. 
+Patiently find every single snippet/subsection that fits each category, and be willing to mark a large number of snippets/subsections if necessary. 
+Also be willing to mark the same or similar snippets/subsections under multiple categories separately if applicable.
+Ensure you don't be lazy and mark giant chunks of text where most of it doesn't fit the category. In this case, only mark the parts of the text that fit the category.
+Rigorously consider every single category. Remember that the same or similar snippets/subsections can be marked separately under multiple categories.
+It is absolutely crucial that you look through the entire text. Do not skim through the middle and end, and only mark snippets/subsections at the beginning of the text.
+Scour every single sentence, phrase, and paragraph of the text. Double check that you have not missed any snippets/subsections and that you have not neglected any portions of the text in your thinking and marking.
+Make extra effort to check each of the beginning, middle, and end of the text to ensure you have not missed any snippets/subsections there. Cover everything, beginning to end.
+It is crucial that you think through each portion of the text carefully and thoroughly, otherwise you will miss snippets/subsections.
+
+{% if additional_instructions %}
+These are additional instructions from the user, follow them carefully. They take precedence over the general instructions above, if there is a conflict.
+In particular, consider any instructions, if provided, on the scope of the text to be marked (should you be marking very specific phrases or full paragraphs/sections?).
+If the user indicates a different scope of how large the snippets/subsections should be/how much context to include, follow their instructions over the general instructions above, if there is a conflict.
+BEGIN ADDITIONAL INSTRUCTIONS
+{{ additional_instructions }}
+END ADDITIONAL INSTRUCTIONS
+{% endif %}
+
+{% if categories %}
+Once more, the categories you are marking are: {{ categories.keys() }}
+Remember these category names must be output verbatim in the JSON; exact spelling and capitalization and underscoring and any other formatting must be preserved.
+{% endif %}
