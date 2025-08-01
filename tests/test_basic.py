@@ -193,7 +193,8 @@ def test_api_wrappers(tmp_path):
         gabriel.custom_prompt(
             prompts=["hello"],
             identifiers=["1"],
-            save_path=str(tmp_path / "cust" / "out.csv"),
+            save_dir=str(tmp_path / "cust"),
+            file_name="out.csv",
             use_dummy=True,
         )
     )

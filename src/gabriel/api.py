@@ -193,7 +193,8 @@ async def custom_prompt(
     prompts: list[str],
     identifiers: list[str],
     *,
-    save_path: str,
+    save_dir: str,
+    file_name: str = "custom_prompt_responses.csv",
     model: str = "o4-mini",
     json_mode: bool = False,
     use_web_search: bool = False,
@@ -202,8 +203,12 @@ async def custom_prompt(
     reset_files: bool = False,
     **kwargs,
 ) -> pd.DataFrame:
-    """Wrapper around :func:`get_all_responses` for arbitrary prompts."""
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    """Wrapper around :func:`get_all_responses` for arbitrary prompts.
+
+    Results are saved to ``save_dir/file_name``.
+    """
+    os.makedirs(save_dir, exist_ok=True)
+    save_path = os.path.join(save_dir, file_name)
     return await get_all_responses(
         prompts=prompts,
         identifiers=identifiers,
