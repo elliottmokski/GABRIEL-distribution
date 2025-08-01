@@ -29,6 +29,7 @@ class ClassifyConfig:
     model: str = "o4-mini"
     n_parallels: int = 400
     n_runs: int = 1
+    min_frequency: float = 0.6
     additional_instructions: str = ""
     additional_guidelines: str = ""
     use_dummy: bool = False
@@ -229,14 +230,15 @@ class Classify:
         disagg_path = os.path.join(self.cfg.save_dir, f"{base_name}_full_disaggregated.csv")
         full_df.to_csv(disagg_path, index_label=["text", "run"])
 
-        # aggregate across runs using mode
-        def _mode(s: pd.Series) -> Optional[bool]:
-            ser = s.dropna()
-            if ser.empty:
+        # aggregate across runs using a minimum frequency threshold
+        def _min_freq(s: pd.Series) -> Optional[bool]:
+            if s.notna().sum() == 0:
                 return None
-            return ser.mode().iloc[0]
+            true_count = s.fillna(False).sum()
+            prop = true_count / self.cfg.n_runs
+            return prop >= self.cfg.min_frequency
 
-        agg_df = pd.DataFrame({lab: full_df[lab].groupby("text").apply(_mode) for lab in self.cfg.labels})
+        agg_df = pd.DataFrame({lab: full_df[lab].groupby("text").apply(_min_freq) for lab in self.cfg.labels})
 
         filled = agg_df.dropna(how="all").shape[0]
         print(f"[Classify] Filled {filled}/{len(agg_df)} unique texts.")
