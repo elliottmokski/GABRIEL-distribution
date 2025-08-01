@@ -16,7 +16,7 @@ __all__ = list(_tasks.__all__) + [
     "deidentify",
     "rank",
     "codify",
-    "custom_prompt",
+    "whatever",
     "view_coded_passages",
 ]
 
