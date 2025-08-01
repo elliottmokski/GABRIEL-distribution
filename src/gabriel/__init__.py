@@ -3,7 +3,7 @@
 from importlib.metadata import PackageNotFoundError, version as _v
 
 from . import tasks as _tasks
-from .api import rate, classify, deidentify, rank, codify, custom_prompt, view_coded_passages
+from .api import rate, classify, deidentify, rank, codify, whatever, view_coded_passages
 
 try:
     __version__ = _v("gabriel")
