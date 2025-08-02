@@ -1,5 +1,11 @@
-import tkinter as tk
-from tkinter import ttk, scrolledtext
+try:  # pragma: no cover - optional dependency
+    import tkinter as tk
+    from tkinter import ttk, scrolledtext
+except Exception:  # pragma: no cover - optional dependency
+    tk = None  # type: ignore
+    ttk = None  # type: ignore
+    scrolledtext = None  # type: ignore
+
 import pandas as pd
 import random
 import re
@@ -9,6 +15,44 @@ try:
     import matplotlib.pyplot as plt
 except Exception:  # pragma: no cover - optional dependency
     plt = None
+
+
+def _generate_distinct_colors(n: int) -> List[str]:
+    """Generate ``n`` visually distinct hex colors.
+
+    This helper is shared by both the rich ``tkinter`` viewer and the simpler
+    HTML based viewer used in headless environments such as Google Colab.
+    """
+
+    base_colors: List[str] = []
+    if plt is not None:
+        if n <= 20:
+            cmap = plt.get_cmap("tab20")
+            for i in range(n):
+                rgb = cmap(i)[:3]
+                base_colors.append(
+                    "#{:02x}{:02x}{:02x}".format(
+                        int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255)
+                    )
+                )
+            return base_colors
+        else:
+            cmap = plt.get_cmap("tab20")
+            for i in range(20):
+                rgb = cmap(i)[:3]
+                base_colors.append(
+                    "#{:02x}{:02x}{:02x}".format(
+                        int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255)
+                    )
+                )
+
+    for i in range(len(base_colors), n):
+        hue = (i * 1.0 / n) % 1.0
+        r, g, b = colorsys.hsv_to_rgb(hue, 0.7, 1.0)
+        base_colors.append(
+            "#{:02x}{:02x}{:02x}".format(int(r * 255), int(g * 255), int(b * 255))
+        )
+    return base_colors[:n]
 
 class PassageViewer:
     def __init__(self, df: pd.DataFrame, text_column: str, categories: Optional[Union[List[str], str]] = None):
@@ -36,33 +80,11 @@ class PassageViewer:
         else:
             self.dynamic_mode = False
             self.categories = categories if categories else []
-        self.colors = self._generate_distinct_colors(len(self.categories))
+        self.colors = _generate_distinct_colors(len(self.categories))
         self.category_colors = dict(zip(self.categories, self.colors))
         self.tooltip = None
         self._setup_gui()
         self._display_current_text()
-
-    def _generate_distinct_colors(self, n: int) -> List[str]:
-        # Use matplotlib tab20 palette for up to 20, then HSV for overflow
-        base_colors = []
-        if plt is not None:
-            if n <= 20:
-                cmap = plt.get_cmap('tab20')
-                for i in range(n):
-                    rgb = cmap(i)[:3]
-                    base_colors.append('#{:02x}{:02x}{:02x}'.format(int(rgb[0]*255), int(rgb[1]*255), int(rgb[2]*255)))
-                return base_colors
-            else:
-                cmap = plt.get_cmap('tab20')
-                for i in range(20):
-                    rgb = cmap(i)[:3]
-                    base_colors.append('#{:02x}{:02x}{:02x}'.format(int(rgb[0]*255), int(rgb[1]*255), int(rgb[2]*255)))
-        # Fallback or overflow using HSV
-        for i in range(len(base_colors), n):
-            hue = (i * 1.0 / n) % 1.0
-            r, g, b = colorsys.hsv_to_rgb(hue, 0.7, 1.0)
-            base_colors.append('#{:02x}{:02x}{:02x}'.format(int(r*255), int(g*255), int(b*255)))
-        return base_colors[:n]
 
     def _setup_gui(self):
         self.root = tk.Tk()
@@ -499,8 +521,102 @@ class PassageViewer:
             self.tooltip.destroy()
             self.tooltip = None
 
+def _view_coded_passages_colab(
+    df: pd.DataFrame,
+    text_column: str,
+    categories: Optional[Union[List[str], str]] = None,
+) -> None:
+    """Display passages inside a Jupyter notebook.
 
-def view_coded_passages(df: pd.DataFrame, text_column: str, categories: Optional[Union[List[str], str]] = None):
+    This simplified viewer avoids any desktop GUI requirements, making it
+    suitable for headless environments such as Google Colab. Passages are
+    rendered with HTML highlighting directly in the notebook output.
+    """
+
+    from IPython.display import HTML, display  # pragma: no cover - optional
+
+    df = df.copy()
+
+    # Detect categories in the same way as :class:`PassageViewer`.
+    if categories is None and "coded_passages" in df.columns:
+        dynamic_mode = True
+        all_categories = set()
+        for coded_passages in df["coded_passages"]:
+            if coded_passages and isinstance(coded_passages, dict):
+                all_categories.update(coded_passages.keys())
+        categories = sorted(list(all_categories))
+    elif isinstance(categories, str) and categories == "coded_passages":
+        dynamic_mode = True
+        all_categories = set()
+        for coded_passages in df["coded_passages"]:
+            if coded_passages and isinstance(coded_passages, dict):
+                all_categories.update(coded_passages.keys())
+        categories = sorted(list(all_categories))
+    else:
+        dynamic_mode = False
+        categories = categories if categories else []
+
+    colors = _generate_distinct_colors(len(categories))
+    category_colors = dict(zip(categories, colors))
+
+    legend_parts = [
+        "<span style='display:inline-block;width:12px;height:12px;background:{};margin-right:4px'></span>{}".format(
+            color, cat.replace("_", " ").title()
+        )
+        for cat, color in category_colors.items()
+    ]
+    html_parts = ["<div>" + " &nbsp; ".join(legend_parts) + "</div><hr/>"]
+
+    for _, row in df.iterrows():
+        text = str(row[text_column])
+        if dynamic_mode:
+            snippet_map = row.get("coded_passages") or {}
+        else:
+            snippet_map = {cat: row.get(cat, []) for cat in categories}
+
+        for cat, snippets in snippet_map.items():
+            color = category_colors.get(cat)
+            if not color or not snippets:
+                continue
+            for snippet in snippets:
+                if not snippet:
+                    continue
+                pattern = re.escape(snippet)
+                replacement = f"<span style='background-color:{color}'>{snippet}</span>"
+                text = re.sub(pattern, replacement, text)
+
+        html_parts.append(f"<div style='margin-bottom:1em'>{text}</div>")
+
+    display(HTML("\n".join(html_parts)))
+
+
+def view_coded_passages(
+    df: pd.DataFrame,
+    text_column: str,
+    categories: Optional[Union[List[str], str]] = None,
+    colab: bool = False,
+):
+    """View coded passages.
+
+    Parameters
+    ----------
+    df:
+        DataFrame containing the passages.
+    text_column:
+        Column name in ``df`` holding the raw text.
+    categories:
+        Either a list of category column names or ``"coded_passages"`` for
+        dynamic dictionaries.
+    colab:
+        When ``True``, use the lightweight HTML viewer that works in Google
+        Colab or other headless notebook environments. The default ``False``
+        launches the full ``tkinter`` GUI.
+    """
+
+    if colab:
+        _view_coded_passages_colab(df, text_column, categories)
+        return None
+
     viewer = PassageViewer(df, text_column, categories)
     viewer.show()
     return viewer

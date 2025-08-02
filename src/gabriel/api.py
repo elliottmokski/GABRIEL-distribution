@@ -224,6 +224,37 @@ async def whatever(
     )
 
 
+async def custom_prompt(
+    prompts: list[str],
+    identifiers: list[str],
+    *,
+    save_dir: str,
+    file_name: str = "custom_prompt_responses.csv",
+    model: str = "o4-mini",
+    json_mode: bool = False,
+    use_web_search: bool = False,
+    n_parallels: int = 400,
+    use_dummy: bool = False,
+    reset_files: bool = False,
+    **kwargs,
+) -> pd.DataFrame:
+    """Backward compatible alias for :func:`whatever`."""
+
+    return await whatever(
+        prompts,
+        identifiers,
+        save_dir=save_dir,
+        file_name=file_name,
+        model=model,
+        json_mode=json_mode,
+        use_web_search=use_web_search,
+        n_parallels=n_parallels,
+        use_dummy=use_dummy,
+        reset_files=reset_files,
+        **kwargs,
+    )
+
+
 def view_coded_passages(
     df: pd.DataFrame,
     text_column: str,
