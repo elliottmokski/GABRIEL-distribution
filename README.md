@@ -1,5 +1,7 @@
 # GABRIEL
 
+TRIAL NOTEBOOK: https://colab.research.google.com/drive/1RMUeAWACpViqiUMlPMMwPTKyGU-OX756?usp=sharing. See this notebook for the most updated example set.
+
 GABRIEL (Generalized Attribute Based Ratings Information Extraction Library) is a collection of utilities for running large language model driven analyses.  The library provides high level tasks such as passage rating, text classification, de‑identification, regional report generation and several Elo style ranking utilities.
 
 The current `src` directory contains a cleaned up and asynchronous implementation.  Each task exposes an easy to use `run()` coroutine and sensible configuration dataclasses. 
