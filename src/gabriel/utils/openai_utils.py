@@ -853,6 +853,10 @@ async def get_all_responses(
         _require_api_key()
     logging.basicConfig(level=logging_level)
     logger = logging.getLogger(__name__)
+    # httpx logs a success line for every request at INFO level, which
+    # interferes with tqdm's progress display.  Silence these messages
+    # so only warnings and errors surface.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
     status = StatusTracker()
     tokenizer = _get_tokenizer(model)
     # Backwards compatibility for identifiers
@@ -1440,9 +1444,11 @@ async def get_all_responses(
     # Count of timeout errors is no longer used for dynamic timeout adjustment.
     call_count = 0
     # When computing dynamic timeouts, we require a minimum number of
-    # observed samples to compute a 95th percentile.  Use at least 100
-    # samples or the number of parallel workers, whichever is larger.
-    min_samples_for_timeout = max(100, n_parallels)
+    # observed samples to compute a 95th percentile.  Waiting for 100
+    # samples can be excessive for small jobs, so instead wait for at
+    # least ten observations or one per worker, whichever is larger,
+    # but never more than the total number of prompts.
+    min_samples_for_timeout = max(10, min(len(todo_pairs), n_parallels))
     queue: asyncio.Queue[Tuple[str, str, int]] = asyncio.Queue()
     for item in todo_pairs:
         queue.put_nowait((item[0], item[1], max_retries))
@@ -1591,12 +1597,20 @@ async def get_all_responses(
                 status.num_other_errors += 1
                 if verbose:
                     logger.warning(f"Timeout error for {ident}: {e}")
+                # Treat timeouts as observations at the current timeout
+                # threshold so that ``adjust_timeout`` can react even when
+                # many calls fail before completing.
+                response_times.append(nonlocal_timeout)
+                await adjust_timeout()
                 if attempts_left - 1 > 0:
                     backoff = random.uniform(1, 2) * (2 ** (max_retries - attempts_left))
-                    async def _requeue():
-                        await asyncio.sleep(backoff)
-                        queue.put_nowait((prompt, ident, attempts_left - 1))
-                    asyncio.create_task(_requeue())
+                    # Retry the same prompt after a delay.  We sleep within the
+                    # worker so the task remains accounted for in ``queue.join``
+                    # and ensure the new task is enqueued before ``task_done``
+                    # is called.  This mirrors the legacy retry behaviour and
+                    # prevents retries from being dropped prematurely.
+                    await asyncio.sleep(backoff)
+                    queue.put_nowait((prompt, ident, attempts_left - 1))
                 else:
                     results.append(
                         {
@@ -1622,10 +1636,8 @@ async def get_all_responses(
                     logger.warning(f"Rate limit error for {ident}: {e}")
                 if attempts_left - 1 > 0:
                     backoff = random.uniform(1, 2) * (2 ** (max_retries - attempts_left))
-                    async def _requeue():
-                        await asyncio.sleep(backoff)
-                        queue.put_nowait((prompt, ident, attempts_left - 1))
-                    asyncio.create_task(_requeue())
+                    await asyncio.sleep(backoff)
+                    queue.put_nowait((prompt, ident, attempts_left - 1))
                 else:
                     results.append(
                         {
