@@ -45,11 +45,14 @@ import tempfile
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
+import logging
 import pandas as pd
 from aiolimiter import AsyncLimiter
 from tqdm.auto import tqdm
 import openai
 import statistics
+import tiktoken
+from dataclasses import dataclass
 
 # Try to import requests/httpx for rate‑limit introspection
 try:
@@ -84,6 +87,35 @@ DEFAULT_MAX_OUTPUT_TOKENS = 2500
 # will contain roughly this many tokens.  This value is used solely for estimating cost
 # and determining how many parallel requests can safely run under the token budget.
 ESTIMATED_OUTPUT_TOKENS_PER_PROMPT = 1000
+
+# ---------------------------------------------------------------------------
+# Helper dataclasses and token utilities
+
+
+@dataclass
+class StatusTracker:
+    """Simple container for bookkeeping counters."""
+
+    num_tasks_started: int = 0
+    num_tasks_in_progress: int = 0
+    num_tasks_succeeded: int = 0
+    num_tasks_failed: int = 0
+    num_rate_limit_errors: int = 0
+    num_api_errors: int = 0
+    num_other_errors: int = 0
+    time_of_last_rate_limit_error: float = 0.0
+
+
+def _get_tokenizer(model_name: str) -> tiktoken.Encoding:
+    """Return a tiktoken encoding for the model or a sensible default."""
+    try:
+        return tiktoken.encoding_for_model(model_name)
+    except Exception:
+        class _ApproxEncoder:
+            def encode(self, text: str) -> List[int]:
+                return [0] * max(1, _approx_tokens(text))
+
+        return _ApproxEncoder()
 
 # Usage tiers with qualifications and monthly limits for printing
 TIER_INFO = [
@@ -654,8 +686,9 @@ async def get_response(
     use_dummy: bool = False,
     verbose: bool = True,
     images: Optional[List[str]] = None,
+    return_raw: bool = False,
     **kwargs: Any,
-) -> Tuple[List[str], float]:
+):
     """Minimal async call to OpenAI's /responses endpoint or dummy response.
 
     The caller may specify either ``max_output_tokens`` or the deprecated
@@ -665,7 +698,10 @@ async def get_response(
     """
     # Use dummy for testing without calling the API
     if use_dummy:
-        return [f"DUMMY {prompt}" for _ in range(max(n, 1))], 0.0
+        dummy = [f"DUMMY {prompt}" for _ in range(max(n, 1))]
+        if return_raw:
+            return dummy, 0.0, []
+        return dummy, 0.0
     _require_api_key()
     # Derive the effective cutoff
     cutoff = max_output_tokens if max_output_tokens is not None else max_tokens
@@ -734,7 +770,11 @@ async def get_response(
         raise err
     # Extract ``output_text`` from the responses.  For Responses API
     # the SDK returns an object with an ``output_text`` attribute.
-    return [r.output_text for r in raw], time.time() - start
+    texts = [r.output_text for r in raw]
+    duration = time.time() - start
+    if return_raw:
+        return texts, duration, raw
+    return texts, duration
 
 
 def _ser(x: Any) -> Optional[str]:
@@ -796,6 +836,9 @@ async def get_all_responses(
     max_batch_file_bytes: int = 100 * 1024 * 1024,
     save_every_x_responses: int = 25,
     verbose: bool = True,
+    global_cooldown: int = 15,
+    token_sample_size: int = 20,
+    logging_level: int = logging.INFO,
     **get_response_kwargs: Any,
 ) -> pd.DataFrame:
     """Retrieve responses for a list of prompts, with optional batch support.
@@ -808,6 +851,10 @@ async def get_all_responses(
     """
     if not use_dummy:
         _require_api_key()
+    logging.basicConfig(level=logging_level)
+    logger = logging.getLogger(__name__)
+    status = StatusTracker()
+    tokenizer = _get_tokenizer(model)
     # Backwards compatibility for identifiers
     if identifiers is None:
         identifiers = prompts
@@ -847,14 +894,29 @@ async def get_all_responses(
     if os.path.exists(save_path) and not reset_files:
         df = pd.read_csv(save_path)
         df["Response"] = df["Response"].apply(_de)
+        for col in ["Input Tokens", "Reasoning Tokens", "Output Tokens", "Error"]:
+            if col not in df.columns:
+                df[col] = pd.NA
         done = set(df["Identifier"])
     else:
-        df = pd.DataFrame(columns=["Identifier", "Response", "Time Taken"])
+        df = pd.DataFrame(
+            columns=[
+                "Identifier",
+                "Response",
+                "Time Taken",
+                "Input Tokens",
+                "Reasoning Tokens",
+                "Output Tokens",
+                "Error",
+            ]
+        )
         done = set()
     # Filter prompts/identifiers based on what is already completed
     todo_pairs = [(p, i) for p, i in zip(prompts, identifiers) if i not in done]
     if not todo_pairs:
         return df
+    status.num_tasks_started = len(todo_pairs)
+    status.num_tasks_in_progress = len(todo_pairs)
     # Warn the user if the input dataset is very large.  Processing more
     # than 50,000 prompts in a single run can lead to very long execution
     # times and increased risk of rate‑limit throttling.  We still proceed
@@ -888,11 +950,13 @@ async def get_all_responses(
     # worker pool and to configure the request/token limiters below.
     if not use_batch:
         try:
-            # Estimate the average number of tokens per call.  We convert words
-            # to tokens using _approx_tokens and include the expected output
-            # length.  This ensures that long prompts reduce available
-            # parallelism appropriately.
-            avg_input_tokens = sum(_approx_tokens(p) for p, _ in todo_pairs) / max(1, len(todo_pairs))
+            # Estimate the average number of tokens per call using tiktoken
+            # for more accurate gating.  We include the expected output length
+            # to ensure that long prompts reduce available parallelism.
+            avg_input_tokens = (
+                sum(len(tokenizer.encode(p)) for p, _ in todo_pairs)
+                / max(1, len(todo_pairs))
+            )
             gating_output = cutoff if cutoff is not None else ESTIMATED_OUTPUT_TOKENS_PER_PROMPT
             tokens_per_call = (avg_input_tokens + gating_output) * max(1, n)
             # Parse limits from the rate headers.  If the API returns both a
@@ -1238,12 +1302,25 @@ async def get_all_responses(
                                     "Identifier": ident,
                                     "Response": None,
                                     "Time Taken": None,
+                                    "Input Tokens": None,
+                                    "Reasoning Tokens": None,
+                                    "Output Tokens": None,
                                     "Error": err,
                                 }
                             )
                             continue
                         resp_obj = rec["response"]
                         resp_text: Optional[str] = None
+                        usage = {}
+                        if isinstance(resp_obj, dict):
+                            usage = resp_obj.get("usage", {}) or {}
+                        input_tok = usage.get("input_tokens") if isinstance(usage, dict) else None
+                        output_tok = usage.get("output_tokens") if isinstance(usage, dict) else None
+                        reason_tok = None
+                        if isinstance(usage, dict):
+                            otd = usage.get("output_tokens_details") or {}
+                            if isinstance(otd, dict):
+                                reason_tok = otd.get("reasoning_tokens")
                         # Determine candidate payload
                         candidate = (
                             resp_obj.get("body", resp_obj)
@@ -1312,6 +1389,9 @@ async def get_all_responses(
                                 "Identifier": ident,
                                 "Response": [resp_text],
                                 "Time Taken": None,
+                                "Input Tokens": input_tok,
+                                "Reasoning Tokens": reason_tok,
+                                "Output Tokens": output_tok,
                             }
                         )
                     unfinished_batches.remove(b)
@@ -1358,18 +1438,22 @@ async def get_all_responses(
     tok_lim = AsyncLimiter(allowed_tok_pm, 60)
     response_times: List[float] = []
     # Count of timeout errors is no longer used for dynamic timeout adjustment.
-    timeout_errors = 0
     call_count = 0
     # When computing dynamic timeouts, we require a minimum number of
     # observed samples to compute a 95th percentile.  Use at least 100
     # samples or the number of parallel workers, whichever is larger.
     min_samples_for_timeout = max(100, n_parallels)
-    queue: asyncio.Queue[Tuple[str, str]] = asyncio.Queue()
+    queue: asyncio.Queue[Tuple[str, str, int]] = asyncio.Queue()
     for item in todo_pairs:
-        queue.put_nowait(item)
+        queue.put_nowait((item[0], item[1], max_retries))
     results: List[Dict[str, Any]] = []
     processed = 0
     pbar = tqdm(total=len(todo_pairs), desc="Processing prompts", leave=True)
+    cooldown_until = 0.0
+    active_workers = 0
+    concurrency_cap = n_parallels
+    usage_samples: List[Tuple[int, int, int]] = []
+    estimated_output_tokens = cutoff if cutoff is not None else ESTIMATED_OUTPUT_TOKENS_PER_PROMPT
 
     async def flush() -> None:
         nonlocal results, df
@@ -1419,114 +1503,179 @@ async def get_all_responses(
         return None
 
     async def worker() -> None:
-        nonlocal processed, timeout_errors, call_count, nonlocal_timeout
+        nonlocal processed, call_count, nonlocal_timeout, active_workers, concurrency_cap, cooldown_until, estimated_output_tokens
         while True:
             try:
-                prompt, ident = await queue.get()
+                prompt, ident, attempts_left = await queue.get()
             except asyncio.CancelledError:
                 break
             try:
-                attempt = 1
-                while attempt <= max_retries:
-                    try:
-                        approx = _approx_tokens(prompt)
-                        # Estimate tokens for gating: assume output could be as long as input when cutoff is None
-                        gating_output = cutoff if cutoff is not None else approx
-                        await req_lim.acquire()
-                        await tok_lim.acquire((approx + gating_output) * n)
-                        call_count += 1
-                        resps, t = await asyncio.wait_for(
-                            get_response(
-                                prompt,
-                                n=n,
-                                timeout=nonlocal_timeout,
-                                use_dummy=use_dummy,
-                                verbose=verbose,
-                                images=prompt_images.get(str(ident)) if prompt_images else None,
-                                **get_response_kwargs,
-                            ),
-                            timeout=nonlocal_timeout,
+                now = time.time()
+                if now < cooldown_until:
+                    await asyncio.sleep(cooldown_until - now)
+                while active_workers >= concurrency_cap:
+                    await asyncio.sleep(0.01)
+                active_workers += 1
+                input_tokens = len(tokenizer.encode(prompt))
+                gating_output = estimated_output_tokens
+                await req_lim.acquire()
+                await tok_lim.acquire((input_tokens + gating_output) * n)
+                call_count += 1
+                resps, t, raw = await asyncio.wait_for(
+                    get_response(
+                        prompt,
+                        n=n,
+                        timeout=nonlocal_timeout,
+                        use_dummy=use_dummy,
+                        verbose=verbose,
+                        images=prompt_images.get(str(ident)) if prompt_images else None,
+                        return_raw=True,
+                        **get_response_kwargs,
+                    ),
+                    timeout=nonlocal_timeout,
+                )
+                response_times.append(t)
+                await adjust_timeout()
+                # collect usage
+                total_input = sum(getattr(r.usage, "input_tokens", 0) for r in raw)
+                total_output = sum(getattr(r.usage, "output_tokens", 0) for r in raw)
+                total_reasoning = sum(
+                    getattr(getattr(r.usage, "output_tokens_details", {}), "reasoning_tokens", 0)
+                    for r in raw
+                )
+                usage_samples.append((total_input, total_output, total_reasoning))
+                if len(usage_samples) > token_sample_size:
+                    usage_samples.pop(0)
+                if len(usage_samples) >= token_sample_size:
+                    avg_in = statistics.mean(u[0] for u in usage_samples)
+                    avg_out = statistics.mean(u[1] for u in usage_samples)
+                    avg_reason = statistics.mean(u[2] for u in usage_samples)
+                    estimated_output_tokens = avg_out + avg_reason
+                    tokens_per_call_est = (avg_in + estimated_output_tokens) * max(1, n)
+                    new_cap = min(
+                        n_parallels,
+                        int(allowed_req_pm),
+                        int(max(1, allowed_tok_pm // max(1, tokens_per_call_est))),
+                    )
+                    if new_cap < 1:
+                        new_cap = 1
+                    if new_cap != concurrency_cap and verbose:
+                        print(
+                            f"[token-based adaptation] Updating parallel workers from {concurrency_cap} to {new_cap} based on observed token usage."
                         )
-                        response_times.append(t)
-                        await adjust_timeout()
-                        # Check for empty outputs.  If all returned strings are empty or whitespace,
-                        # notify the user that the safety cutoff or tier limits may have truncated the output.
-                        if resps and all((isinstance(r, str) and not r.strip()) for r in resps):
-                            if verbose:
-                                print(
-                                    f"[get_all_responses] Timeout on attempt {attempt} for {ident} after {nonlocal_timeout:.1f}s. Consider increasing the 'timeout' parameter if timeouts persist."
-                                )
-                            # When dynamic timeout is enabled, a string of empty outputs may indicate
-                            # that the timeout is too low.  We do not perform additional
-                            # adjustments here because ``adjust_timeout`` already adapts
-                            # the timeout based on observed latencies.  The message above
-                            # suggests increasing the timeout parameter manually if needed.
-                        else:
-                            results.append({"Identifier": ident, "Response": resps, "Time Taken": t})
-                            processed += 1
-                            pbar.update(1)
-                            if processed % save_every_x_responses == 0:
-                                await flush()
-                            break
-                        if attempt >= max_retries:
-                            results.append(
-                                {"Identifier": ident, "Response": None, "Time Taken": None}
-                            )
-                            processed += 1
-                            pbar.update(1)
-                            await flush()
-                            break
-                        # Exponential backoff with jitter
-                        await asyncio.sleep(random.uniform(1, 2) * (2 ** (attempt - 1)))
-                        attempt += 1
-                    except RateLimitError as e:
-                        # When the API returns a 429 response, log the rate limit error
-                        # and retry with exponential backoff.  We do not adjust
-                        # concurrency or budgets here; rate limits are handled by
-                        # the AsyncLimiters and the initial concurrency cap.
-                        if verbose:
-                            print(
-                                f"[get_all_responses] Rate limit error on attempt {attempt} for {ident}: {e}"
-                            )
-                        if attempt >= max_retries:
-                            results.append(
-                                {"Identifier": ident, "Response": None, "Time Taken": None}
-                            )
-                            processed += 1
-                            pbar.update(1)
-                            await flush()
-                            break
-                        await asyncio.sleep(random.uniform(1, 2) * (2 ** (attempt - 1)))
-                        attempt += 1
-                    except (
-                        APIError,
-                        BadRequestError,
-                        AuthenticationError,
-                        InvalidRequestError,
-                    ) as e:
-                        if verbose:
-                            print(f"[get_all_responses] API error for {ident}: {e}")
-                        results.append(
-                            {"Identifier": ident, "Response": None, "Time Taken": None}
+                    concurrency_cap = new_cap
+                # Check for empty outputs
+                if resps and all((isinstance(r, str) and not r.strip()) for r in resps):
+                    if verbose:
+                        logger.warning(
+                            f"Timeout for {ident} after {nonlocal_timeout:.1f}s. Consider increasing 'timeout'."
                         )
-                        processed += 1
-                        pbar.update(1)
+                else:
+                    results.append(
+                        {
+                            "Identifier": ident,
+                            "Response": resps,
+                            "Time Taken": t,
+                            "Input Tokens": total_input,
+                            "Reasoning Tokens": total_reasoning,
+                            "Output Tokens": total_output,
+                        }
+                    )
+                    processed += 1
+                    status.num_tasks_succeeded += 1
+                    status.num_tasks_in_progress -= 1
+                    pbar.update(1)
+                    if processed % save_every_x_responses == 0:
                         await flush()
-                        break
-                    except Exception as e:
-                        # For unexpected errors (including file I/O issues), log
-                        # the error and re‑raise so that the caller can see
-                        # the failure.  Unlike rate‑limit or API errors,
-                        # unexpected exceptions should not be silently
-                        # swallowed.  This will terminate the overall run.
-                        if verbose:
-                            print(f"[get_all_responses] Unexpected error for {ident}: {e}")
-                        # Attempt to flush any accumulated results before
-                        # exiting.  If flushing raises, allow that to
-                        # propagate as well.
-                        await flush()
-                        raise
+            except asyncio.TimeoutError as e:
+                status.num_other_errors += 1
+                if verbose:
+                    logger.warning(f"Timeout error for {ident}: {e}")
+                if attempts_left - 1 > 0:
+                    backoff = random.uniform(1, 2) * (2 ** (max_retries - attempts_left))
+                    async def _requeue():
+                        await asyncio.sleep(backoff)
+                        queue.put_nowait((prompt, ident, attempts_left - 1))
+                    asyncio.create_task(_requeue())
+                else:
+                    results.append(
+                        {
+                            "Identifier": ident,
+                            "Response": None,
+                            "Time Taken": None,
+                            "Input Tokens": input_tokens,
+                            "Reasoning Tokens": None,
+                            "Output Tokens": None,
+                            "Error": str(e),
+                        }
+                    )
+                    processed += 1
+                    status.num_tasks_failed += 1
+                    status.num_tasks_in_progress -= 1
+                    pbar.update(1)
+                    await flush()
+            except RateLimitError as e:
+                status.num_rate_limit_errors += 1
+                status.time_of_last_rate_limit_error = time.time()
+                cooldown_until = status.time_of_last_rate_limit_error + global_cooldown
+                if verbose:
+                    logger.warning(f"Rate limit error for {ident}: {e}")
+                if attempts_left - 1 > 0:
+                    backoff = random.uniform(1, 2) * (2 ** (max_retries - attempts_left))
+                    async def _requeue():
+                        await asyncio.sleep(backoff)
+                        queue.put_nowait((prompt, ident, attempts_left - 1))
+                    asyncio.create_task(_requeue())
+                else:
+                    results.append(
+                        {
+                            "Identifier": ident,
+                            "Response": None,
+                            "Time Taken": None,
+                            "Input Tokens": input_tokens,
+                            "Reasoning Tokens": None,
+                            "Output Tokens": None,
+                            "Error": str(e),
+                        }
+                    )
+                    processed += 1
+                    status.num_tasks_failed += 1
+                    status.num_tasks_in_progress -= 1
+                    pbar.update(1)
+                    await flush()
+            except (
+                APIError,
+                BadRequestError,
+                AuthenticationError,
+                InvalidRequestError,
+            ) as e:
+                status.num_api_errors += 1
+                if verbose:
+                    logger.warning(f"API error for {ident}: {e}")
+                results.append(
+                    {
+                        "Identifier": ident,
+                        "Response": None,
+                        "Time Taken": None,
+                        "Input Tokens": input_tokens,
+                        "Reasoning Tokens": None,
+                        "Output Tokens": None,
+                        "Error": str(e),
+                    }
+                )
+                processed += 1
+                status.num_tasks_failed += 1
+                status.num_tasks_in_progress -= 1
+                pbar.update(1)
+                await flush()
+            except Exception as e:
+                status.num_other_errors += 1
+                if verbose:
+                    logger.error(f"Unexpected error for {ident}: {e}")
+                await flush()
+                raise
             finally:
+                active_workers -= 1
                 queue.task_done()
 
     # Spawn workers
@@ -1548,4 +1697,13 @@ async def get_all_responses(
     # Flush remaining results and close progress bar
     await flush()
     pbar.close()
+    logger.info(
+        f"Processing complete. {status.num_tasks_succeeded}/{status.num_tasks_started} requests succeeded."
+    )
+    if status.num_tasks_failed > 0:
+        logger.warning(f"{status.num_tasks_failed} requests failed.")
+    if status.num_rate_limit_errors > 0:
+        logger.warning(
+            f"{status.num_rate_limit_errors} rate limit errors encountered; consider reducing concurrency."
+        )
     return df
