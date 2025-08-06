@@ -1,0 +1,10 @@
+import asyncio
+import pandas as pd
+from gabriel.utils import clean_json_df
+
+
+def test_clean_json_df_dummy():
+    df = pd.DataFrame({"col": ['{"a": 1}', "{bad json"]})
+    out = asyncio.run(clean_json_df(df, ["col"], model="dummy"))
+    assert out.loc[0, "col_cleaned"] == '{"a": 1}'
+    assert out.loc[1, "col_cleaned"][0].startswith("DUMMY")

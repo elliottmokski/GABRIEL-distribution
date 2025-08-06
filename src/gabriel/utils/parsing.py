@@ -4,7 +4,9 @@ import ast
 import json
 import os
 import re
-from typing import Any, Union, Optional
+from typing import Any, Union, Optional, List
+
+import pandas as pd
 
 _JSON_FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.S)
 
@@ -126,3 +128,92 @@ async def safest_json(txt: Any, *, model: Optional[str] = None) -> Union[dict, l
             except Exception:
                 return {}
         return {}
+
+
+async def clean_json_df(
+    df: pd.DataFrame,
+    columns: List[str],
+    *,
+    model: str = "o4-mini",
+    exclude_valid_json: bool = False,
+) -> pd.DataFrame:
+    """Ensure specified DataFrame columns contain valid JSON.
+
+    Parameters
+    ----------
+    df:
+        Input DataFrame whose columns may contain malformed JSON strings.
+    columns:
+        Names of columns to inspect and clean.
+    model:
+        Model name passed to :func:`get_all_responses` when attempting to
+        repair invalid JSON. Defaults to ``"o4-mini"``.
+    exclude_valid_json:
+        When ``False`` (default), only entries that fail to parse are sent to
+        the model. When ``True``, all entries are processed regardless of
+        validity.
+
+    Returns
+    -------
+    DataFrame with new ``<column>_cleaned`` columns containing the cleaned
+    JSON structures. Rows that were already valid retain their original value.
+    """
+
+    from gabriel.utils.openai_utils import get_all_responses
+    import tempfile
+    import os
+
+    df = df.copy()
+    prompts: List[str] = []
+    identifiers: List[str] = []
+    mapping: dict[str, tuple[str, Any]] = {}
+    counter = 0
+
+    for col in columns:
+        cleaned_col = f"{col}_cleaned"
+        df[cleaned_col] = None
+        for idx, val in df[col].items():
+            valid = True
+            try:
+                _parse_json(val)
+            except Exception:
+                valid = False
+            if exclude_valid_json or not valid:
+                prompt = (
+                    "Please parse the following text **without changing any content** "
+                    "into valid JSON. This is a pure formatting task.\n\n" + str(val)
+                )
+                ident = f"r{counter}"
+                prompts.append(prompt)
+                identifiers.append(ident)
+                mapping[ident] = (col, idx)
+                counter += 1
+            else:
+                df.at[idx, cleaned_col] = val
+
+    if prompts:
+        use_dummy = model == "dummy"
+        tmp_fd, tmp_path = tempfile.mkstemp(suffix=".csv")
+        os.close(tmp_fd)
+        os.remove(tmp_path)
+        try:
+            resp_df = await get_all_responses(
+                prompts=prompts,
+                identifiers=identifiers,
+                model=model,
+                json_mode=True,
+                use_dummy=use_dummy,
+                print_example_prompt=False,
+                save_path=tmp_path,
+                reset_files=True,
+            )
+        finally:
+            try:
+                os.remove(tmp_path)
+            except Exception:
+                pass
+        for _, row in resp_df.iterrows():
+            col, idx = mapping[row["Identifier"]]
+            df.at[idx, f"{col}_cleaned"] = row["Response"]
+
+    return df
