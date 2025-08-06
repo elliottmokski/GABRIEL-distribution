@@ -44,6 +44,7 @@ import random
 import tempfile
 import time
 from typing import Any, Dict, List, Optional, Tuple
+from collections import defaultdict
 
 import logging
 import pandas as pd
@@ -897,11 +898,24 @@ async def get_all_responses(
             pass
     if os.path.exists(save_path) and not reset_files:
         df = pd.read_csv(save_path)
+        df = df.drop_duplicates(subset=["Identifier"], keep="last")
         df["Response"] = df["Response"].apply(_de)
-        for col in ["Input Tokens", "Reasoning Tokens", "Output Tokens", "Error"]:
+        if "Error Log" in df.columns:
+            df["Error Log"] = df["Error Log"].apply(_de)
+        for col in [
+            "Input Tokens",
+            "Reasoning Tokens",
+            "Output Tokens",
+            "Successful",
+            "Error Log",
+        ]:
             if col not in df.columns:
                 df[col] = pd.NA
-        done = set(df["Identifier"])
+        # Only skip identifiers that previously succeeded so failures can be retried
+        if "Successful" in df.columns:
+            done = set(df.loc[df["Successful"] == True, "Identifier"])
+        else:
+            done = set(df["Identifier"])
     else:
         df = pd.DataFrame(
             columns=[
@@ -911,7 +925,8 @@ async def get_all_responses(
                 "Input Tokens",
                 "Reasoning Tokens",
                 "Output Tokens",
-                "Error",
+                "Successful",
+                "Error Log",
             ]
         )
         done = set()
@@ -1050,15 +1065,23 @@ async def get_all_responses(
                 return
             batch_df = pd.DataFrame(rows)
             batch_df["Response"] = batch_df["Response"].apply(_ser)
-            batch_df.to_csv(
+            batch_df["Error Log"] = batch_df["Error Log"].apply(_ser)
+            if os.path.exists(save_path):
+                existing = pd.read_csv(save_path)
+                existing = existing[~existing["Identifier"].isin(batch_df["Identifier"])]
+                combined = pd.concat([existing, batch_df], ignore_index=True)
+            else:
+                combined = batch_df
+            combined.to_csv(
                 save_path,
-                mode="a",
-                header=not os.path.exists(save_path),
+                mode="w",
+                header=True,
                 index=False,
                 quoting=csv.QUOTE_MINIMAL,
             )
-            batch_df["Response"] = batch_df["Response"].apply(_de)
-            df = pd.concat([df, batch_df], ignore_index=True)
+            combined["Response"] = combined["Response"].apply(_de)
+            combined["Error Log"] = combined["Error Log"].apply(_de)
+            df = combined
 
         client = openai.AsyncOpenAI()
         # Load existing state
@@ -1309,7 +1332,8 @@ async def get_all_responses(
                                     "Input Tokens": None,
                                     "Reasoning Tokens": None,
                                     "Output Tokens": None,
-                                    "Error": err,
+                                    "Successful": False,
+                                    "Error Log": [err] if err else [],
                                 }
                             )
                             continue
@@ -1396,6 +1420,8 @@ async def get_all_responses(
                                 "Input Tokens": input_tok,
                                 "Reasoning Tokens": reason_tok,
                                 "Output Tokens": output_tok,
+                                "Successful": True,
+                                "Error Log": [],
                             }
                         )
                     unfinished_batches.remove(b)
@@ -1441,6 +1467,8 @@ async def get_all_responses(
     req_lim = AsyncLimiter(allowed_req_pm, 60)
     tok_lim = AsyncLimiter(allowed_tok_pm, 60)
     response_times: List[float] = []
+    error_logs: Dict[str, List[str]] = defaultdict(list)
+    inflight: Dict[str, float] = {}
     # Count of timeout errors is no longer used for dynamic timeout adjustment.
     call_count = 0
     # When computing dynamic timeouts, we require a minimum number of
@@ -1466,27 +1494,41 @@ async def get_all_responses(
         if results:
             batch_df = pd.DataFrame(results)
             batch_df["Response"] = batch_df["Response"].apply(_ser)
-            batch_df.to_csv(
+            batch_df["Error Log"] = batch_df["Error Log"].apply(_ser)
+            if os.path.exists(save_path):
+                existing = pd.read_csv(save_path)
+                existing = existing[~existing["Identifier"].isin(batch_df["Identifier"])]
+                combined = pd.concat([existing, batch_df], ignore_index=True)
+            else:
+                combined = batch_df
+            combined.to_csv(
                 save_path,
-                mode="a",
-                header=not os.path.exists(save_path),
+                mode="w",
+                header=True,
                 index=False,
                 quoting=csv.QUOTE_MINIMAL,
             )
-            batch_df["Response"] = batch_df["Response"].apply(_de)
-            df = pd.concat([df, batch_df], ignore_index=True)
+            combined["Response"] = combined["Response"].apply(_de)
+            combined["Error Log"] = combined["Error Log"].apply(_de)
+            df = combined
             results = []
 
     async def adjust_timeout() -> None:
         nonlocal nonlocal_timeout
         if not dynamic_timeout:
             return
-        if len(response_times) < min_samples_for_timeout:
+        sample_count = len(response_times) + len(inflight)
+        if sample_count < min_samples_for_timeout:
             return
         try:
-            sorted_times = sorted(response_times)
+            now = time.time()
+            elapsed_inflight = [now - s for s in inflight.values()]
+            combined = response_times + elapsed_inflight
+            sorted_times = sorted(combined)
             q95_index = max(0, int(0.95 * (len(sorted_times) - 1)))
             q95 = sorted_times[q95_index]
+            if elapsed_inflight:
+                q95 = max(q95, max(elapsed_inflight) * 1.5)
             new_timeout = min(max_timeout, max(timeout, timeout_factor * q95))
             if (
                 new_timeout > nonlocal_timeout * 1.2
@@ -1527,6 +1569,8 @@ async def get_all_responses(
                 await req_lim.acquire()
                 await tok_lim.acquire((input_tokens + gating_output) * n)
                 call_count += 1
+                error_logs.setdefault(ident, [])
+                inflight[ident] = time.time()
                 resps, t, raw = await asyncio.wait_for(
                     get_response(
                         prompt,
@@ -1540,6 +1584,7 @@ async def get_all_responses(
                     ),
                     timeout=nonlocal_timeout,
                 )
+                inflight.pop(ident, None)
                 response_times.append(t)
                 await adjust_timeout()
                 # collect usage
@@ -1585,23 +1630,28 @@ async def get_all_responses(
                             "Input Tokens": total_input,
                             "Reasoning Tokens": total_reasoning,
                             "Output Tokens": total_output,
+                            "Successful": True,
+                            "Error Log": error_logs.get(ident, []),
                         }
                     )
                     processed += 1
                     status.num_tasks_succeeded += 1
                     status.num_tasks_in_progress -= 1
                     pbar.update(1)
+                    error_logs.pop(ident, None)
                     if processed % save_every_x_responses == 0:
                         await flush()
             except asyncio.TimeoutError as e:
                 status.num_other_errors += 1
                 if verbose:
                     logger.warning(f"Timeout error for {ident}: {e}")
+                inflight.pop(ident, None)
                 # Treat timeouts as observations at the current timeout
                 # threshold so that ``adjust_timeout`` can react even when
                 # many calls fail before completing.
                 response_times.append(nonlocal_timeout)
                 await adjust_timeout()
+                error_logs[ident].append(str(e))
                 if attempts_left - 1 > 0:
                     backoff = random.uniform(1, 2) * (2 ** (max_retries - attempts_left))
                     # Retry the same prompt after a delay.  We sleep within the
@@ -1620,13 +1670,15 @@ async def get_all_responses(
                             "Input Tokens": input_tokens,
                             "Reasoning Tokens": None,
                             "Output Tokens": None,
-                            "Error": str(e),
+                            "Successful": False,
+                            "Error Log": error_logs.get(ident, []),
                         }
                     )
                     processed += 1
                     status.num_tasks_failed += 1
                     status.num_tasks_in_progress -= 1
                     pbar.update(1)
+                    error_logs.pop(ident, None)
                     await flush()
             except RateLimitError as e:
                 status.num_rate_limit_errors += 1
@@ -1634,6 +1686,8 @@ async def get_all_responses(
                 cooldown_until = status.time_of_last_rate_limit_error + global_cooldown
                 if verbose:
                     logger.warning(f"Rate limit error for {ident}: {e}")
+                inflight.pop(ident, None)
+                error_logs[ident].append(str(e))
                 if attempts_left - 1 > 0:
                     backoff = random.uniform(1, 2) * (2 ** (max_retries - attempts_left))
                     await asyncio.sleep(backoff)
@@ -1647,13 +1701,15 @@ async def get_all_responses(
                             "Input Tokens": input_tokens,
                             "Reasoning Tokens": None,
                             "Output Tokens": None,
-                            "Error": str(e),
+                            "Successful": False,
+                            "Error Log": error_logs.get(ident, []),
                         }
                     )
                     processed += 1
                     status.num_tasks_failed += 1
                     status.num_tasks_in_progress -= 1
                     pbar.update(1)
+                    error_logs.pop(ident, None)
                     await flush()
             except (
                 APIError,
@@ -1664,6 +1720,8 @@ async def get_all_responses(
                 status.num_api_errors += 1
                 if verbose:
                     logger.warning(f"API error for {ident}: {e}")
+                inflight.pop(ident, None)
+                error_logs[ident].append(str(e))
                 results.append(
                     {
                         "Identifier": ident,
@@ -1672,13 +1730,15 @@ async def get_all_responses(
                         "Input Tokens": input_tokens,
                         "Reasoning Tokens": None,
                         "Output Tokens": None,
-                        "Error": str(e),
+                        "Successful": False,
+                        "Error Log": error_logs.get(ident, []),
                     }
                 )
                 processed += 1
                 status.num_tasks_failed += 1
                 status.num_tasks_in_progress -= 1
                 pbar.update(1)
+                error_logs.pop(ident, None)
                 await flush()
             except Exception as e:
                 status.num_other_errors += 1
@@ -1687,6 +1747,7 @@ async def get_all_responses(
                 await flush()
                 raise
             finally:
+                inflight.pop(ident, None)
                 active_workers -= 1
                 queue.task_done()
 

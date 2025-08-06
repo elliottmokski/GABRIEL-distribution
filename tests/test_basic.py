@@ -58,6 +58,8 @@ def test_get_all_responses_dummy(tmp_path):
         use_dummy=True,
     ))
     assert len(df) == 2
+    assert set(["Successful", "Error Log"]).issubset(df.columns)
+    assert df["Successful"].all()
 
 
 def test_get_all_responses_images_dummy(tmp_path):
