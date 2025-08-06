@@ -43,9 +43,10 @@ import os
 import random
 import tempfile
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 from collections import defaultdict
 
+from gabriel.utils.logging import get_logger, set_log_level
 import logging
 import pandas as pd
 from aiolimiter import AsyncLimiter
@@ -54,6 +55,8 @@ import openai
 import statistics
 import tiktoken
 from dataclasses import dataclass
+
+logger = get_logger(__name__)
 
 # Try to import requests/httpx for rate‑limit introspection
 try:
@@ -103,6 +106,7 @@ class StatusTracker:
     num_tasks_failed: int = 0
     num_rate_limit_errors: int = 0
     num_api_errors: int = 0
+    num_timeout_errors: int = 0
     num_other_errors: int = 0
     time_of_last_rate_limit_error: float = 0.0
 
@@ -688,6 +692,7 @@ async def get_response(
     verbose: bool = True,
     images: Optional[List[str]] = None,
     return_raw: bool = False,
+    logging_level: Optional[Union[str, int]] = None,
     **kwargs: Any,
 ):
     """Minimal async call to OpenAI's /responses endpoint or dummy response.
@@ -703,6 +708,8 @@ async def get_response(
         if return_raw:
             return dummy, 0.0, []
         return dummy, 0.0
+    if logging_level is not None:
+        set_log_level(logging_level)
     _require_api_key()
     # Derive the effective cutoff
     cutoff = max_output_tokens if max_output_tokens is not None else max_tokens
@@ -761,13 +768,11 @@ async def get_response(
         raw = await asyncio.gather(*tasks)
     except asyncio.TimeoutError:
         err = Exception(f"API call timed out after {timeout} s")
-        if verbose:
-            print(f"[get_response] {err}")
+        logger.error(f"[get_response] {err}")
         raise err
     except Exception as e:
         err = Exception(f"API call resulted in exception: {e!r}")
-        if verbose:
-            print(f"[get_response] {err}")
+        logger.error(f"[get_response] {err}")
         raise err
     # Extract ``output_text`` from the responses.  For Responses API
     # the SDK returns an object with an ``output_text`` attribute.
@@ -839,7 +844,7 @@ async def get_all_responses(
     verbose: bool = True,
     global_cooldown: int = 15,
     token_sample_size: int = 20,
-    logging_level: int = logging.INFO,
+    logging_level: Union[str, int] = "info",
     **get_response_kwargs: Any,
 ) -> pd.DataFrame:
     """Retrieve responses for a list of prompts, with optional batch support.
@@ -852,8 +857,8 @@ async def get_all_responses(
     """
     if not use_dummy:
         _require_api_key()
-    logging.basicConfig(level=logging_level)
-    logger = logging.getLogger(__name__)
+    set_log_level(logging_level)
+    logger = get_logger(__name__)
     # httpx logs a success line for every request at INFO level, which
     # interferes with tqdm's progress display.  Silence these messages
     # so only warnings and errors surface.
@@ -941,9 +946,9 @@ async def get_all_responses(
     # times and increased risk of rate‑limit throttling.  We still proceed
     # with the run, but advise the user to split the input into smaller
     # batches when possible.
-    if len(todo_pairs) > 50_000 and verbose:
-        print(
-            f"[warning] You are attempting to process {len(todo_pairs):,} prompts in one go. For better performance and reliability, we recommend splitting jobs into 50k‑row chunks or fewer."
+    if len(todo_pairs) > 50_000:
+        logger.warning(
+            f"You are attempting to process {len(todo_pairs):,} prompts in one go. For better performance and reliability, we recommend splitting jobs into 50k‑row chunks or fewer."
         )
     # Print usage summary and example prompt
     if print_example_prompt and todo_pairs:
@@ -960,7 +965,7 @@ async def get_all_responses(
             rate_headers=rate_headers,
         )
         example_prompt, _ = todo_pairs[0]
-        print(f"\nExample prompt: {example_prompt}\n")
+        logger.info(f"Example prompt: {example_prompt}")
     # Dynamically adjust the maximum number of parallel workers based on rate
     # limits.  We base the concurrency on your API’s per‑minute request and
     # token budgets and the average prompt length.  This calculation only
@@ -1031,8 +1036,8 @@ async def get_all_responses(
         except Exception:
             concurrency_cap = max(1, n_parallels)
         # Warn the user when concurrency is reduced due to rate limits.
-        if concurrency_cap < n_parallels and verbose:
-            print(
+        if concurrency_cap < n_parallels:
+            logger.info(
                 f"[parallel reduction] Limiting parallel workers from {n_parallels} to {concurrency_cap} based on your current rate limits. Consider upgrading your plan for faster processing."
             )
         n_parallels = concurrency_cap
@@ -1104,17 +1109,14 @@ async def get_all_responses(
             }
         # Cancel unfinished batches if requested
         if cancel_existing_batch and state.get("batches"):
-            if verbose:
-                print("Cancelling unfinished batch jobs...")
+            logger.info("Cancelling unfinished batch jobs...")
             for b in state["batches"]:
                 bid = b.get("batch_id")
                 try:
                     await client.batches.cancel(bid)
-                    if verbose:
-                        print(f"Cancelled batch {bid}.")
+                    logger.info(f"Cancelled batch {bid}.")
                 except Exception as exc:
-                    if verbose:
-                        print(f"Failed to cancel batch {bid}: {exc}")
+                    logger.warning(f"Failed to cancel batch {bid}: {exc}")
             try:
                 os.remove(state_path)
             except OSError:
@@ -1217,10 +1219,9 @@ async def get_all_responses(
                             "submitted_at": int(time.time()),
                         }
                     )
-                    if verbose:
-                        print(
-                            f"Submitted batch {batch.id} with {len(batch_tasks)} requests."
-                        )
+                    logger.info(
+                        f"Submitted batch {batch.id} with {len(batch_tasks)} requests."
+                    )
                 with open(state_path, "w") as f:
                     json.dump(state, f)
         # Return immediately if not waiting for completion
@@ -1234,22 +1235,19 @@ async def get_all_responses(
                 try:
                     job = await client.batches.retrieve(bid)
                 except Exception as exc:
-                    if verbose:
-                        print(f"Failed to retrieve batch {bid}: {exc}")
+                    logger.warning(f"Failed to retrieve batch {bid}: {exc}")
                     continue
                 status = job.status
                 if status == "completed":
                     output_file_id = job.output_file_id
                     error_file_id = job.error_file_id
-                    if verbose:
-                        print(f"Batch {bid} completed. Downloading results...")
+                    logger.info(f"Batch {bid} completed. Downloading results...")
                     try:
                         file_response = await client.files.content(output_file_id)
                     except Exception as exc:
-                        if verbose:
-                            print(
-                                f"Failed to download output file for batch {bid}: {exc}"
-                            )
+                        logger.warning(
+                            f"Failed to download output file for batch {bid}: {exc}"
+                        )
                         unfinished_batches.remove(b)
                         continue
                     # Normalize file response to plain text
@@ -1272,8 +1270,7 @@ async def get_all_responses(
                     except Exception:
                         pass
                     if text_data is None:
-                        if verbose:
-                            print(f"No data found in output file for batch {bid}.")
+                        logger.warning(f"No data found in output file for batch {bid}.")
                         unfinished_batches.remove(b)
                         continue
                     errors: Dict[str, Any] = {}
@@ -1281,10 +1278,9 @@ async def get_all_responses(
                         try:
                             err_response = await client.files.content(error_file_id)
                         except Exception as exc:
-                            if verbose:
-                                print(
-                                    f"Failed to download error file for batch {bid}: {exc}"
-                                )
+                            logger.warning(
+                                f"Failed to download error file for batch {bid}: {exc}"
+                            )
                             err_response = None
                         if err_response is not None:
                             err_text: Optional[str] = None
@@ -1433,8 +1429,7 @@ async def get_all_responses(
                     with open(state_path, "w") as f:
                         json.dump(state, f)
                 elif status in {"failed", "cancelled", "expired"}:
-                    if verbose:
-                        print(f"Batch {bid} finished with status {status}.")
+                    logger.warning(f"Batch {bid} finished with status {status}.")
                     unfinished_batches.remove(b)
                     state["batches"] = [
                         bb
@@ -1444,11 +1439,10 @@ async def get_all_responses(
                     with open(state_path, "w") as f:
                         json.dump(state, f)
                 else:
-                    if verbose:
-                        rc = job.request_counts
-                        print(
-                            f"Batch {bid} in progress: {status}; completed {rc.completed}/{rc.total}."
-                        )
+                    rc = job.request_counts
+                    logger.info(
+                        f"Batch {bid} in progress: {status}; completed {rc.completed}/{rc.total}."
+                    )
             if unfinished_batches:
                 await asyncio.sleep(batch_poll_interval)
         # Append and return
@@ -1490,7 +1484,7 @@ async def get_all_responses(
     estimated_output_tokens = cutoff if cutoff is not None else ESTIMATED_OUTPUT_TOKENS_PER_PROMPT
 
     async def flush() -> None:
-        nonlocal results, df
+        nonlocal results, df, processed
         if results:
             batch_df = pd.DataFrame(results)
             batch_df["Response"] = batch_df["Response"].apply(_ser)
@@ -1512,6 +1506,14 @@ async def get_all_responses(
             combined["Error Log"] = combined["Error Log"].apply(_de)
             df = combined
             results = []
+        if logger.isEnabledFor(logging.INFO) and processed:
+            logger.info(
+                f"Processed {processed}/{status.num_tasks_started} prompts; "
+                f"failures: {status.num_tasks_failed} "
+                f"(timeouts: {status.num_timeout_errors}, "
+                f"rate limits: {status.num_rate_limit_errors}, "
+                f"API: {status.num_api_errors}, other: {status.num_other_errors})"
+            )
 
     async def adjust_timeout() -> None:
         nonlocal nonlocal_timeout
@@ -1534,10 +1536,9 @@ async def get_all_responses(
                 new_timeout > nonlocal_timeout * 1.2
                 or new_timeout < nonlocal_timeout * 0.8
             ):
-                if verbose:
-                    print(
-                        f"[dynamic timeout] Updating timeout from {nonlocal_timeout:.1f}s to {new_timeout:.1f}s based on observed latency."
-                    )
+                logger.debug(
+                    f"[dynamic timeout] Updating timeout from {nonlocal_timeout:.1f}s to {new_timeout:.1f}s based on observed latency."
+                )
                 nonlocal_timeout = new_timeout
         except Exception:
             pass
@@ -1577,7 +1578,6 @@ async def get_all_responses(
                         n=n,
                         timeout=nonlocal_timeout,
                         use_dummy=use_dummy,
-                        verbose=verbose,
                         images=prompt_images.get(str(ident)) if prompt_images else None,
                         return_raw=True,
                         **get_response_kwargs,
@@ -1610,17 +1610,16 @@ async def get_all_responses(
                     )
                     if new_cap < 1:
                         new_cap = 1
-                    if new_cap != concurrency_cap and verbose:
-                        print(
+                    if new_cap != concurrency_cap:
+                        logger.info(
                             f"[token-based adaptation] Updating parallel workers from {concurrency_cap} to {new_cap} based on observed token usage."
                         )
                     concurrency_cap = new_cap
                 # Check for empty outputs
                 if resps and all((isinstance(r, str) and not r.strip()) for r in resps):
-                    if verbose:
-                        logger.warning(
-                            f"Timeout for {ident} after {nonlocal_timeout:.1f}s. Consider increasing 'timeout'."
-                        )
+                    logger.warning(
+                        f"Timeout for {ident} after {nonlocal_timeout:.1f}s. Consider increasing 'timeout'."
+                    )
                 else:
                     results.append(
                         {
@@ -1642,9 +1641,8 @@ async def get_all_responses(
                     if processed % save_every_x_responses == 0:
                         await flush()
             except asyncio.TimeoutError as e:
-                status.num_other_errors += 1
-                if verbose:
-                    logger.warning(f"Timeout error for {ident}: {e}")
+                status.num_timeout_errors += 1
+                logger.warning(f"Timeout error for {ident}: {e}")
                 inflight.pop(ident, None)
                 # Treat timeouts as observations at the current timeout
                 # threshold so that ``adjust_timeout`` can react even when
@@ -1684,8 +1682,7 @@ async def get_all_responses(
                 status.num_rate_limit_errors += 1
                 status.time_of_last_rate_limit_error = time.time()
                 cooldown_until = status.time_of_last_rate_limit_error + global_cooldown
-                if verbose:
-                    logger.warning(f"Rate limit error for {ident}: {e}")
+                logger.warning(f"Rate limit error for {ident}: {e}")
                 inflight.pop(ident, None)
                 error_logs[ident].append(str(e))
                 if attempts_left - 1 > 0:
@@ -1718,8 +1715,7 @@ async def get_all_responses(
                 InvalidRequestError,
             ) as e:
                 status.num_api_errors += 1
-                if verbose:
-                    logger.warning(f"API error for {ident}: {e}")
+                logger.warning(f"API error for {ident}: {e}")
                 inflight.pop(ident, None)
                 error_logs[ident].append(str(e))
                 results.append(
@@ -1742,8 +1738,7 @@ async def get_all_responses(
                 await flush()
             except Exception as e:
                 status.num_other_errors += 1
-                if verbose:
-                    logger.error(f"Unexpected error for {ident}: {e}")
+                logger.error(f"Unexpected error for {ident}: {e}")
                 await flush()
                 raise
             finally:
@@ -1779,4 +1774,10 @@ async def get_all_responses(
         logger.warning(
             f"{status.num_rate_limit_errors} rate limit errors encountered; consider reducing concurrency."
         )
+    if status.num_timeout_errors > 0:
+        logger.warning(f"{status.num_timeout_errors} timeouts encountered.")
+    if status.num_api_errors > 0:
+        logger.warning(f"{status.num_api_errors} API errors encountered.")
+    if status.num_other_errors > 0:
+        logger.warning(f"{status.num_other_errors} unexpected errors encountered.")
     return df

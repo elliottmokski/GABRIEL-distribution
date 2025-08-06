@@ -2,7 +2,7 @@
 
 from .openai_utils import get_response, get_all_responses
 from .image_utils import encode_image
-from .logging import get_logger
+from .logging import get_logger, set_log_level
 from .teleprompter import Teleprompter
 from .maps import create_county_choropleth
 from .prompt_paraphraser import PromptParaphraser, PromptParaphraserConfig
@@ -20,6 +20,7 @@ __all__ = [
     "get_response",
     "get_all_responses",
     "get_logger",
+    "set_log_level",
     "Teleprompter",
     "create_county_choropleth",
     "PromptParaphraser",
