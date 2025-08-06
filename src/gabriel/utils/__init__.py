@@ -6,7 +6,7 @@ from .logging import get_logger, set_log_level
 from .teleprompter import Teleprompter
 from .maps import create_county_choropleth
 from .prompt_paraphraser import PromptParaphraser, PromptParaphraserConfig
-from .parsing import safe_json, safest_json
+from .parsing import safe_json, safest_json, clean_json_df
 from .jinja import shuffled, shuffled_dict, get_env
 from .passage_viewer import PassageViewer, view_coded_passages
 from .word_matching import (
@@ -27,6 +27,7 @@ __all__ = [
     "PromptParaphraserConfig",
     "safe_json",
     "safest_json",
+    "clean_json_df",
     "encode_image",
     "shuffled",
     "shuffled_dict",
