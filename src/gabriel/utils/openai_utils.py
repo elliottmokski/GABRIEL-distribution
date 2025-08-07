@@ -1640,6 +1640,8 @@ async def get_all_responses(
                     error_logs.pop(ident, None)
                     if processed % save_every_x_responses == 0:
                         await flush()
+            except asyncio.CancelledError:
+                raise
             except asyncio.TimeoutError as e:
                 status.num_timeout_errors += 1
                 logger.warning(f"Timeout error for {ident}: {e}")
@@ -1746,25 +1748,27 @@ async def get_all_responses(
                 active_workers -= 1
                 queue.task_done()
 
-    # Spawn workers
+    # Spawn workers and ensure they are cleaned up on exit or cancellation
     workers = [asyncio.create_task(worker()) for _ in range(n_parallels)]
-    await queue.join()
-    for w in workers:
-        w.cancel()
-    # Gather worker results and propagate any exceptions.  When
-    # return_exceptions=True, exceptions are returned as values in the
-    # results list.  If any worker raised, propagate the first
-    # exception so the caller is aware of the failure.
-    worker_results = await asyncio.gather(*workers, return_exceptions=True)
-    for res in worker_results:
-        if isinstance(res, Exception):
-            # flush partial results before raising
-            await flush()
-            pbar.close()
-            raise res
-    # Flush remaining results and close progress bar
-    await flush()
-    pbar.close()
+    try:
+        await queue.join()
+    except (asyncio.CancelledError, KeyboardInterrupt):
+        logger.info("Cancellation requested, shutting down workers...")
+        raise
+    finally:
+        for w in workers:
+            w.cancel()
+        worker_results = await asyncio.gather(*workers, return_exceptions=True)
+        for res in worker_results:
+            if isinstance(res, Exception) and not isinstance(res, asyncio.CancelledError):
+                # flush partial results before raising
+                await flush()
+                pbar.close()
+                raise res
+        # Flush remaining results and close progress bar
+        await flush()
+        pbar.close()
+
     logger.info(
         f"Processing complete. {status.num_tasks_succeeded}/{status.num_tasks_started} requests succeeded."
     )
