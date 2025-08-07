@@ -134,6 +134,7 @@ async def clean_json_df(
     df: pd.DataFrame,
     columns: List[str],
     *,
+    id_col: str,
     model: str = "o4-mini",
     exclude_valid_json: bool = False,
     save_path: Optional[str] = None,
@@ -146,6 +147,10 @@ async def clean_json_df(
         Input DataFrame whose columns may contain malformed JSON strings.
     columns:
         Names of columns to inspect and clean.
+    id_col:
+        Name of a **unique** column in ``df`` used to merge cleaned JSON
+        responses back into the original DataFrame. A :class:`ValueError` is
+        raised if the column is missing or contains duplicate values.
     model:
         Model name passed to :func:`get_all_responses` when attempting to
         repair invalid JSON. Defaults to ``"o4-mini"``.
@@ -167,20 +172,23 @@ async def clean_json_df(
     from gabriel.utils.openai_utils import get_all_responses
     import tempfile
     df = df.copy()
+
+    if id_col not in df.columns:
+        raise ValueError(f"Column '{id_col}' not found in DataFrame")
+    if not df[id_col].is_unique:
+        raise ValueError(f"Column '{id_col}' must contain unique values")
+
     prompts: List[str] = []
     identifiers: List[str] = []
-    # ``mapping`` stores, for each identifier returned by ``get_all_responses``,
-    # the column name and the *positional* index of the row in ``df``.  Using
-    # positional indices avoids issues when the DataFrame has a non-unique index
-    # (``DataFrame.at`` cannot set values when duplicate labels are present).
-    mapping: dict[str, tuple[str, int]] = {}
-    counter = 0
+    # ``mapping`` maps each identifier to its originating column and ``id_col``
+    # value so responses can be merged back using a stable key.
+    mapping: dict[str, tuple[str, Any]] = {}
 
     for col in columns:
         cleaned_col = f"{col}_cleaned"
         df[cleaned_col] = None
         col_idx = df.columns.get_loc(cleaned_col)
-        for row_pos, (_, val) in enumerate(df[col].items()):
+        for row_pos, (id_val, val) in enumerate(zip(df[id_col], df[col])):
             valid = True
             try:
                 _parse_json(val)
@@ -191,11 +199,10 @@ async def clean_json_df(
                     "Please parse the following text **without changing any content** "
                     "into valid JSON. This is a pure formatting task.\n\n" + str(val)
                 )
-                ident = f"r{counter}"
+                ident = f"{id_val}__{col}"
                 prompts.append(prompt)
                 identifiers.append(ident)
-                mapping[ident] = (col, row_pos)
-                counter += 1
+                mapping[ident] = (col, id_val)
             else:
                 df.iat[row_pos, col_idx] = val
 
@@ -230,8 +237,8 @@ async def clean_json_df(
             ident = str(row.get("Identifier", "")).strip()
             if ident not in mapping:
                 continue
-            col, row_pos = mapping[ident]
+            col, id_val = mapping[ident]
             col_idx = df.columns.get_loc(f"{col}_cleaned")
-            df.iat[row_pos, col_idx] = row["Response"]
+            df.loc[df[id_col] == id_val, df.columns[col_idx]] = row["Response"]
 
     return df
