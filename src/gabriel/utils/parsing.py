@@ -227,7 +227,10 @@ async def clean_json_df(
                 except Exception:
                     pass
         for _, row in resp_df.iterrows():
-            col, row_pos = mapping[row["Identifier"]]
+            ident = str(row.get("Identifier", "")).strip()
+            if ident not in mapping:
+                continue
+            col, row_pos = mapping[ident]
             col_idx = df.columns.get_loc(f"{col}_cleaned")
             df.iat[row_pos, col_idx] = row["Response"]
 
