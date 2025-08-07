@@ -166,13 +166,18 @@ async def clean_json_df(
     df = df.copy()
     prompts: List[str] = []
     identifiers: List[str] = []
-    mapping: dict[str, tuple[str, Any]] = {}
+    # ``mapping`` stores, for each identifier returned by ``get_all_responses``,
+    # the column name and the *positional* index of the row in ``df``.  Using
+    # positional indices avoids issues when the DataFrame has a non-unique index
+    # (``DataFrame.at`` cannot set values when duplicate labels are present).
+    mapping: dict[str, tuple[str, int]] = {}
     counter = 0
 
     for col in columns:
         cleaned_col = f"{col}_cleaned"
         df[cleaned_col] = None
-        for idx, val in df[col].items():
+        col_idx = df.columns.get_loc(cleaned_col)
+        for row_pos, (_, val) in enumerate(df[col].items()):
             valid = True
             try:
                 _parse_json(val)
@@ -186,10 +191,10 @@ async def clean_json_df(
                 ident = f"r{counter}"
                 prompts.append(prompt)
                 identifiers.append(ident)
-                mapping[ident] = (col, idx)
+                mapping[ident] = (col, row_pos)
                 counter += 1
             else:
-                df.at[idx, cleaned_col] = val
+                df.iat[row_pos, col_idx] = val
 
     if prompts:
         use_dummy = model == "dummy"
@@ -213,7 +218,8 @@ async def clean_json_df(
             except Exception:
                 pass
         for _, row in resp_df.iterrows():
-            col, idx = mapping[row["Identifier"]]
-            df.at[idx, f"{col}_cleaned"] = row["Response"]
+            col, row_pos = mapping[row["Identifier"]]
+            col_idx = df.columns.get_loc(f"{col}_cleaned")
+            df.iat[row_pos, col_idx] = row["Response"]
 
     return df
