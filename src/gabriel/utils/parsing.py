@@ -136,6 +136,7 @@ async def clean_json_df(
     *,
     model: str = "o4-mini",
     exclude_valid_json: bool = False,
+    save_path: Optional[str] = None,
 ) -> pd.DataFrame:
     """Ensure specified DataFrame columns contain valid JSON.
 
@@ -152,6 +153,10 @@ async def clean_json_df(
         When ``False`` (default), only entries that fail to parse are sent to
         the model. When ``True``, all entries are processed regardless of
         validity.
+    save_path:
+        Optional path where the intermediate CSV from
+        :func:`get_all_responses` will be saved. When ``None`` (default), a
+        temporary file is created and deleted after processing.
 
     Returns
     -------
@@ -161,8 +166,6 @@ async def clean_json_df(
 
     from gabriel.utils.openai_utils import get_all_responses
     import tempfile
-    import os
-
     df = df.copy()
     prompts: List[str] = []
     identifiers: List[str] = []
@@ -198,9 +201,14 @@ async def clean_json_df(
 
     if prompts:
         use_dummy = model == "dummy"
-        tmp_fd, tmp_path = tempfile.mkstemp(suffix=".csv")
-        os.close(tmp_fd)
-        os.remove(tmp_path)
+        cleanup = False
+        if save_path is None:
+            tmp_fd, tmp_path = tempfile.mkstemp(suffix=".csv")
+            os.close(tmp_fd)
+            os.remove(tmp_path)
+            cleanup = True
+        else:
+            tmp_path = save_path
         try:
             resp_df = await get_all_responses(
                 prompts=prompts,
@@ -213,10 +221,11 @@ async def clean_json_df(
                 reset_files=True,
             )
         finally:
-            try:
-                os.remove(tmp_path)
-            except Exception:
-                pass
+            if cleanup:
+                try:
+                    os.remove(tmp_path)
+                except Exception:
+                    pass
         for _, row in resp_df.iterrows():
             col, row_pos = mapping[row["Identifier"]]
             col_idx = df.columns.get_loc(f"{col}_cleaned")
